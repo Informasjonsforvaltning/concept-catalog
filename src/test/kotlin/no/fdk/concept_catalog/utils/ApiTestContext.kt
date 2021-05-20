@@ -19,7 +19,9 @@ abstract class ApiTestContext {
 
     internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
-            TestPropertyValues.of().applyTo(configurableApplicationContext.environment)
+            TestPropertyValues.of(
+                "spring.data.mongodb.uri=mongodb://$MONGO_USER:$MONGO_PASSWORD@localhost:${mongoContainer.getMappedPort(MONGO_PORT)}/$MONGO_DB_NAME?authSource=admin&authMechanism=SCRAM-SHA-1"
+            ).applyTo(configurableApplicationContext.environment)
         }
     }
 
@@ -38,6 +40,8 @@ abstract class ApiTestContext {
                 .waitingFor(Wait.forListeningPort())
 
             mongoContainer.start()
+
+            populate()
 
             try {
                 val con = URL("http://localhost:5000/ping").openConnection() as HttpURLConnection

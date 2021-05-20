@@ -1,10 +1,11 @@
 package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.OpEnum
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
 import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
@@ -24,32 +25,58 @@ private val mapper = jacksonObjectMapper()
 )
 @ContextConfiguration(initializers = [ApiTestContext.Initializer::class])
 @Tag("contract")
-class UpdateConcept : ApiTestContext() {
+class GetConcept : ApiTestContext() {
 
     @Test
     fun `Unauthorized when access token is not included`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "req"))
-        val rsp = authorizedRequest("/begreper/id0", port, mapper.writeValueAsString(operations), null, HttpMethod.PATCH)
+        val rsp = authorizedRequest("/begreper/${BEGREP_0.id}", port, null, null, HttpMethod.GET)
 
         assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
     }
 
     @Test
-    fun `Forbidden for read access`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "req"))
-        val rsp =
-            authorizedRequest("/begreper/id0", port, mapper.writeValueAsString(operations), JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH)
+    fun `Forbidden for wrong orgnr`() {
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_WRONG_ORG.id}",
+            port,
+            null,
+            JwtToken(Access.ORG_READ).toString(),
+            HttpMethod.GET
+        )
 
         assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
     }
 
     @Test
-    fun `Ok for write access`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "req"))
-        val rsp =
-            authorizedRequest("/begreper/id0", port, mapper.writeValueAsString(operations), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH)
+    fun `Ok for read access`() {
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_0.id}",
+            port,
+            null,
+            JwtToken(Access.ORG_READ).toString(),
+            HttpMethod.GET
+        )
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Begrep = mapper.readValue(rsp["body"] as String)
+        assertEquals(BEGREP_0, result)
+    }
+
+    @Test
+    fun `Ok for write access`() {
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_0.id}",
+            port,
+            null,
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.GET
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Begrep = mapper.readValue(rsp["body"] as String)
+        assertEquals(BEGREP_0, result)
     }
 
 }
