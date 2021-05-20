@@ -19,11 +19,11 @@ val BEGREP_0 = Begrep(
     id = "id0",
     status = Status.UTKAST,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
-    tillattTerm = mapOf(Pair("nn", "tillattTerm")),
-    frarådetTerm = mapOf(Pair("nb", "fraraadetTerm")),
+    tillattTerm = mapOf(Pair("nn", listOf("tillattTerm"))),
+    frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
-    merknad = mapOf(Pair("nn", "merknad")),
+    merknad = mapOf(Pair("nn", listOf("merknad"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
