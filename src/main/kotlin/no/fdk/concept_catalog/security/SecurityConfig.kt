@@ -12,9 +12,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher
 import javax.servlet.http.HttpServletRequest
 
 @Configuration
-open class SecurityConfig(
-    private val securityProperties: SecurityProperties
-) : WebSecurityConfigurerAdapter() {
+open class SecurityConfig : WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity) {
         http.csrf().disable()
 
@@ -43,7 +41,7 @@ open class SecurityConfig(
             DelegatingOAuth2TokenValidator(
                 listOf(
                     JwtTimestampValidator(),
-                    JwtIssuerValidator(securityProperties.fdkIssuer),
+                    JwtIssuerValidator(properties.jwt.issuerUri),
                     JwtClaimValidator("aud") { aud: List<String> -> aud.contains("concept-catalogue") }
                 )
             ))
