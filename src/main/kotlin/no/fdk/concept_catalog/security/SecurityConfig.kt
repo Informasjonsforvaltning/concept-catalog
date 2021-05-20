@@ -51,7 +51,6 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
 
 private class TurtleMatcher: RequestMatcher{
     override fun matches(request: HttpServletRequest?): Boolean =
-        request?.getHeader("Accept") != null &&
-            request.getHeader("Accept") == "text/turtle" &&
-            request.method == "GET"
+        request?.method == HttpMethod.GET.name &&
+            request.getHeader("Accept")?.contains("text/turtle") ?: false
 }
