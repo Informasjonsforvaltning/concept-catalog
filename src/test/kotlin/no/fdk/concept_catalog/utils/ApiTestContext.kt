@@ -5,6 +5,8 @@ import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
+import org.testcontainers.containers.GenericContainer
+import org.testcontainers.containers.wait.strategy.Wait
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -24,10 +26,18 @@ abstract class ApiTestContext {
     companion object {
 
         private val logger = LoggerFactory.getLogger(ApiTestContext::class.java)
+        var mongoContainer: KGenericContainer
 
         init {
 
             startMockServer()
+
+            mongoContainer = KGenericContainer("mongo:latest")
+                .withEnv(MONGO_ENV_VALUES)
+                .withExposedPorts(MONGO_PORT)
+                .waitingFor(Wait.forListeningPort())
+
+            mongoContainer.start()
 
             try {
                 val con = URL("http://localhost:5000/ping").openConnection() as HttpURLConnection
@@ -46,3 +56,6 @@ abstract class ApiTestContext {
     }
 
 }
+
+// Hack needed because testcontainers use of generics confuses Kotlin
+class KGenericContainer(imageName: String) : GenericContainer<KGenericContainer>(imageName)

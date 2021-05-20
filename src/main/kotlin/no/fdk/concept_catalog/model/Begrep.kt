@@ -1,9 +1,11 @@
 package no.fdk.concept_catalog.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
 import kotlin.collections.HashMap
 
+@Document(collection = "begrep")
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Begrep (
     val id: String? = null,
