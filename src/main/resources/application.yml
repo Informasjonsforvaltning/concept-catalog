@@ -4,3 +4,20 @@ logging:
   level.no: ${LOG_LEVEL:DEBUG}
   level.org.springframework: WARN
   level.org.springframework.web: WARN
+spring:
+  security.oauth2.resourceserver.jwt:
+    jwk-set-uri: ${SSO_HOST}/auth/realms/fdk/protocol/openid-connect/certs
+    issuer-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk
+
+
+---
+spring:
+  config.activate.on-profile: develop
+  security.oauth2.resourceserver.jwt.jwk-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
+
+
+---
+spring:
+  config.activate.on-profile: contract-test
+  security.oauth2.resourceserver.jwt.jwk-set-uri: http://localhost:5000/auth/realms/fdk/protocol/openid-connect/certs
+
