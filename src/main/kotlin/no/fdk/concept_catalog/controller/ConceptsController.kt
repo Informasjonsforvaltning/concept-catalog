@@ -70,11 +70,15 @@ class ConceptsController(
         @RequestParam(
             value = "status",
             required = false
-        ) status: Status?
-    ): ResponseEntity<List<Begrep>> =
-        if (endpointPermissions.hasOrgReadPermission(jwt, orgNumber)) {
-            ResponseEntity<List<Begrep>>(HttpStatus.OK)
-        } else ResponseEntity<List<Begrep>>(HttpStatus.FORBIDDEN)
+        ) status: String?
+    ): ResponseEntity<List<Begrep>> {
+        val parsedStatus = conceptService.statusFromString(status)
+        return when {
+            !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            status != null && parsedStatus == null -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            else -> ResponseEntity(conceptService.getConceptsForOrganization(orgNumber, parsedStatus), HttpStatus.OK)
+        }
+    }
 
     @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getBegrepById(
