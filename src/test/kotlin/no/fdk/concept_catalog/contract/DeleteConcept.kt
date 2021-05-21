@@ -1,6 +1,8 @@
 package no.fdk.concept_catalog.contract
 
 import no.fdk.concept_catalog.utils.ApiTestContext
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_DELETED
 import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
@@ -22,7 +24,7 @@ class DeleteConcept : ApiTestContext() {
 
     @Test
     fun `Unauthorized when access token is not included`() {
-        val rsp = authorizedRequest("/begreper/id0", port, null, null, HttpMethod.DELETE)
+        val rsp = authorizedRequest("/begreper/${BEGREP_0.id}", port, null, null, HttpMethod.DELETE)
 
         assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
     }
@@ -30,17 +32,21 @@ class DeleteConcept : ApiTestContext() {
     @Test
     fun `Forbidden for read access`() {
         val rsp =
-            authorizedRequest("/begreper/id0", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.DELETE)
+            authorizedRequest("/begreper/${BEGREP_0.id}", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.DELETE)
 
         assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
     }
 
     @Test
-    fun `Ok - No content - for write access`() {
-        val rsp =
-            authorizedRequest("/begreper/id0", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE)
+    fun `Is deleted for write access`() {
+        val before = authorizedRequest("/begreper/${BEGREP_TO_BE_DELETED.id}", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
+        assertEquals(HttpStatus.OK.value(), before["status"])
 
+        val rsp = authorizedRequest("/begreper/${BEGREP_TO_BE_DELETED.id}", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE)
         assertEquals(HttpStatus.NO_CONTENT.value(), rsp["status"])
+
+        val after = authorizedRequest("/begreper/${BEGREP_TO_BE_DELETED.id}", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
+        assertEquals(HttpStatus.NOT_FOUND.value(), after["status"])
     }
 
 }

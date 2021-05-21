@@ -54,3 +54,11 @@ val BEGREP_WRONG_ORG = Begrep(
         id = "999888777"
     )
 )
+
+val BEGREP_TO_BE_DELETED = Begrep(
+    id = "id-to-be-deleted",
+    status = Status.UTKAST,
+    ansvarligVirksomhet = Virksomhet(
+        id = "111111111"
+    )
+)

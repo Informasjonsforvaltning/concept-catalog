@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service
 @Service
 class ConceptService(private val conceptRepository: ConceptRepository) {
 
+    fun deleteConcept(concept: Begrep) =
+        conceptRepository.delete(concept)
+
     fun getConceptById(id: String): Begrep? =
         conceptRepository.findByIdOrNull(id)
 
