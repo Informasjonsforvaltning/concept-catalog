@@ -29,8 +29,9 @@ class ConceptsController(
         @RequestBody concept: Begrep
     ): ResponseEntity<Unit> =
         if (endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id)) {
-            ResponseEntity<Unit>(HttpStatus.CREATED)
-        } else ResponseEntity<Unit>(HttpStatus.FORBIDDEN)
+            conceptService.createConcept(concept)
+            ResponseEntity(HttpStatus.CREATED)
+        } else ResponseEntity(HttpStatus.FORBIDDEN)
 
     @PostMapping(
         value = ["/import"],
