@@ -54,10 +54,16 @@ class ConceptsController(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable("id") id: String
     ): ResponseEntity<Unit> {
-        val auth = jwt.claims["authorities"] as? String
-        return if (endpointPermissions.hasOrgWritePermission(jwt, auth?.split(":")?.get(1))) {
-            ResponseEntity<Unit>(HttpStatus.NO_CONTENT)
-        } else ResponseEntity<Unit>(HttpStatus.FORBIDDEN)
+        val concept = conceptService.getConceptById(id)
+        return when {
+            concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> {
+                conceptService.deleteConcept(concept)
+                ResponseEntity(HttpStatus.NO_CONTENT)
+            }
+        }
     }
 
     @GetMapping(value = [""], produces = [MediaType.APPLICATION_JSON_VALUE])
