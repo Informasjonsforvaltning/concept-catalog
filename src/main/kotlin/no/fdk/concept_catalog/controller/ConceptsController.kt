@@ -47,6 +47,7 @@ class ConceptsController(
                 return ResponseEntity<Unit>(HttpStatus.FORBIDDEN)
             }
         }
+        conceptService.createConcepts(concepts)
         return ResponseEntity<Unit>(HttpStatus.CREATED)
     }
 
