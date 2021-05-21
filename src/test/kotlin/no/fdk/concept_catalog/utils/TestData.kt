@@ -30,6 +30,24 @@ val BEGREP_0 = Begrep(
     seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322")
 )
 
+val BEGREP_1 = Begrep(
+    id = "id1",
+    status = Status.GODKJENT,
+    anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"))),
+    ansvarligVirksomhet = Virksomhet(
+        id = "123456789"
+    )
+)
+
+val BEGREP_2 = Begrep(
+    id = "id2",
+    status = Status.PUBLISERT,
+    anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
+    ansvarligVirksomhet = Virksomhet(
+        id = "123456789"
+    )
+)
+
 val BEGREP_WRONG_ORG = Begrep(
     id = "id-wrong-org",
     ansvarligVirksomhet = Virksomhet(

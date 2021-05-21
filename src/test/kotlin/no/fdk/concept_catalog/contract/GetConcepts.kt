@@ -1,7 +1,9 @@
 package no.fdk.concept_catalog.contract
 
-import no.fdk.concept_catalog.utils.ApiTestContext
-import no.fdk.concept_catalog.utils.authorizedRequest
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.*
@@ -10,6 +12,8 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.assertEquals
+
+private val mapper = jacksonObjectMapper()
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(
@@ -31,9 +35,7 @@ class GetConcepts : ApiTestContext() {
     fun `Forbidden for wrong orgnr`() {
         val rsp = authorizedRequest(
             "/begreper?orgNummer=999888777",
-            port,
-            null,
-            JwtToken(Access.ORG_READ).toString(),
+            port, null, JwtToken(Access.ORG_READ).toString(),
             HttpMethod.GET
         )
 
@@ -44,26 +46,62 @@ class GetConcepts : ApiTestContext() {
     fun `Ok for read access`() {
         val rsp = authorizedRequest(
             "/begreper?orgNummer=123456789",
-            port,
-            null,
-            JwtToken(Access.ORG_READ).toString(),
+            port, null, JwtToken(Access.ORG_READ).toString(),
             HttpMethod.GET
         )
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2), result)
     }
 
     @Test
     fun `Ok for write access`() {
         val rsp = authorizedRequest(
             "/begreper?orgNummer=123456789",
-            port,
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
+            port, null, JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2), result)
+
+    }
+
+    @Test
+    fun `Ok for specific status`() {
+        val rspUtkast = authorizedRequest(
+            "/begreper?orgNummer=123456789&status=utKASt",
+            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.GET
+        )
+
+        val rspGodkjent = authorizedRequest(
+            "/begreper?orgNummer=123456789&status=GODKJENT",
+            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.GET
+        )
+
+        val rspPublisert = authorizedRequest(
+            "/begreper?orgNummer=123456789&status=publisert",
+            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.GET
+        )
+
+        assertEquals(HttpStatus.OK.value(), rspUtkast["status"])
+        assertEquals(HttpStatus.OK.value(), rspGodkjent["status"])
+        assertEquals(HttpStatus.OK.value(), rspPublisert["status"])
+
+        val resultUtkast: List<Begrep> = mapper.readValue(rspUtkast["body"] as String)
+        val resultGodkjent: List<Begrep> = mapper.readValue(rspGodkjent["body"] as String)
+        val resultPublisert: List<Begrep> = mapper.readValue(rspPublisert["body"] as String)
+
+        assertEquals(listOf(BEGREP_0), resultUtkast)
+        assertEquals(listOf(BEGREP_1), resultGodkjent)
+        assertEquals(listOf(BEGREP_2), resultPublisert)
     }
 
 }
