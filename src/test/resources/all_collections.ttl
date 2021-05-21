@@ -1,0 +1,81 @@
+@prefix schema: <http://schema.org/> .
+@prefix adms:  <http://www.w3.org/ns/adms#> .
+@prefix spdx:  <http://spdx.org/rdf/terms#> .
+@prefix iso:   <http://iso.org/25012/2008/dataquality/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dqv:   <http://www.w3.org/ns/dqv#> .
+@prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
+@prefix oa:    <http://www.w3.org/ns/prov#> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcat:  <http://www.w3.org/ns/dcat#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+
+<https://registrering-begrep.fellesdatakatalog.brreg.no/123456789/id0>
+        rdf:type            skos:Concept ;
+        rdfs:seeAlso        "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322" ;
+        dct:identifier      "id0" ;
+        dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
+        skosxl:altLabel     [ rdf:type            skosxl:Label ;
+                              skosxl:literalForm  "tillattTerm"@nn
+                            ] ;
+        skosxl:hiddenLabel  [ rdf:type            skosxl:Label ;
+                              skosxl:literalForm  "fraraadetTerm"@nb
+                            ] ;
+        skosxl:prefLabel    [ rdf:type            skosxl:Label ;
+                              skosxl:literalForm  "anbefaltTerm"@nb
+                            ] ;
+        skosno:definisjon   [ rdf:type                skosno:Definisjon ;
+                              rdfs:label              "definisjon"@nb ;
+                              skos:scopeNote          "merknad"@nn ;
+                              skosno:forholdTilKilde  skosno:egendefinert
+                            ] .
+
+<https://registrering-begrep.fellesdatakatalog.brreg.no/123456789>
+        rdf:type        skos:Collection ;
+        rdfs:label      "Concept collection belonging to 123456789" ;
+        dct:identifier  "https://registrering-begrep.fellesdatakatalog.brreg.no/123456789" ;
+        dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
+        skos:member     <https://registrering-begrep.fellesdatakatalog.brreg.no/123456789/id0> .
+
+<https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id3>
+        rdf:type          skos:Concept ;
+        dct:identifier    "id3" ;
+        dct:publisher     <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
+        dct:subject       "fagområde"@nb ;
+        dct:temporal      [ rdf:type          dct:PeriodOfTime ;
+                            schema:startDate  "2020-10-10"^^xsd:date
+                          ] ;
+        skos:example      "example"@en ;
+        skosxl:prefLabel  [ rdf:type            skosxl:Label ;
+                            skosxl:literalForm  "Begrep 3"@nn
+                          ] .
+
+<https://registrering-begrep.fellesdatakatalog.brreg.no/111222333>
+        rdf:type        skos:Collection ;
+        rdfs:label      "Concept collection belonging to 111222333" ;
+        dct:identifier  "https://registrering-begrep.fellesdatakatalog.brreg.no/111222333" ;
+        dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
+        skos:member     <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id4> , <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id3> .
+
+<https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id4>
+        rdf:type            skos:Concept ;
+        dct:identifier      "id4" ;
+        dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
+        dct:temporal        [ rdf:type        dct:PeriodOfTime ;
+                              schema:endDate  "2030-10-10"^^xsd:date
+                            ] ;
+        skosxl:prefLabel    [ rdf:type            skosxl:Label ;
+                              skosxl:literalForm  "Begrep 4"@en
+                            ] ;
+        dcat:contactPoint   [ rdf:type            vcard:Organization ;
+                              vcard:hasEmail      <mailto:test@test.no> ;
+                              vcard:hasTelephone  <tel:99887766>
+                            ] ;
+        skosno:bruksområde  "bruksområde"@nn .

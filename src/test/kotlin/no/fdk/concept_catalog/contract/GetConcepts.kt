@@ -99,9 +99,9 @@ class GetConcepts : ApiTestContext() {
         val resultGodkjent: List<Begrep> = mapper.readValue(rspGodkjent["body"] as String)
         val resultPublisert: List<Begrep> = mapper.readValue(rspPublisert["body"] as String)
 
-        assertEquals(listOf(BEGREP_0), resultUtkast)
+        assertEquals(listOf(BEGREP_0), resultPublisert)
         assertEquals(listOf(BEGREP_1), resultGodkjent)
-        assertEquals(listOf(BEGREP_2), resultPublisert)
+        assertEquals(listOf(BEGREP_2), resultUtkast)
     }
 
 }

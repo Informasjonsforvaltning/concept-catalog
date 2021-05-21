@@ -7,9 +7,10 @@ logging:
 spring:
   data.mongodb.uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/concept-catalogue?authSource=admin&authMechanism=SCRAM-SHA-1
   security.oauth2.resourceserver.jwt:
-    jwk-set-uri: ${SSO_HOST}/auth/realms/fdk/protocol/openid-connect/certs
+    jwk-set-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk/protocol/openid-connect/certs
     issuer-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk
-
+application:
+  collectionBaseUri: ${COLLECTION_BASE_URI:https://registrering-begrep.fellesdatakatalog.brreg.no}
 
 ---
 spring:

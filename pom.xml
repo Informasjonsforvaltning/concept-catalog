@@ -81,6 +81,27 @@
             <version>6.6</version>
         </dependency>
 
+        <!--    RDF dependencies    -->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-core</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-arq</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <!-- The local jar for https://github.com/difi/skos-ap-no-tools.git -->
+        <dependency>
+            <groupId>no.difi.skos-ap-no</groupId>
+            <artifactId>concept-builder</artifactId>
+            <version>1.0.3</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/libs/concept-builder-1.0.3.jar</systemPath>
+        </dependency>
+
         <!-- TEST -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -156,6 +177,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                </configuration>
             </plugin>
 
             <plugin>
