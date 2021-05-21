@@ -3,8 +3,8 @@ package no.fdk.concept_catalog.controller
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.Status
-import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.security.EndpointPermissions
+import no.fdk.concept_catalog.service.ConceptService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @CrossOrigin
 @RequestMapping(value = ["/begreper"])
-class ConceptsController(private val endpointPermissions: EndpointPermissions) {
+class ConceptsController(
+    private val endpointPermissions: EndpointPermissions,
+    private val conceptService: ConceptService
+) {
 
     @PostMapping(
         value = [""],
@@ -77,8 +80,15 @@ class ConceptsController(private val endpointPermissions: EndpointPermissions) {
     fun getBegrepById(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable("id") id: String
-    ): ResponseEntity<Begrep> =
-        ResponseEntity<Begrep>(HttpStatus.OK)
+    ): ResponseEntity<Begrep> {
+        val concept = conceptService.getConceptById(id)
+        return when {
+            concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
+            endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet?.id) ->
+                ResponseEntity(concept, HttpStatus.OK)
+            else -> ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+    }
 
     @PatchMapping(
         value = ["/{id}"],

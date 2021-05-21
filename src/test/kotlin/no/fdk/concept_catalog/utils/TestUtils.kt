@@ -1,5 +1,13 @@
 package no.fdk.concept_catalog.utils
 
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
+import com.mongodb.client.MongoClient
+import com.mongodb.client.MongoClients
+import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.utils.ApiTestContext.Companion.mongoContainer
+import org.bson.codecs.configuration.CodecRegistries
+import org.bson.codecs.pojo.PojoCodecProvider
 import org.springframework.http.*
 import java.io.BufferedReader
 import java.net.URL
@@ -82,3 +90,51 @@ fun authorizedRequest(
     }
 
 }
+
+fun populate() {
+    val connectionString = ConnectionString("mongodb://${MONGO_USER}:${MONGO_PASSWORD}@localhost:${mongoContainer.getMappedPort(MONGO_PORT)}/$MONGO_DB_NAME?authSource=admin&authMechanism=SCRAM-SHA-1")
+    val pojoCodecRegistry = CodecRegistries.fromRegistries(
+        MongoClientSettings.getDefaultCodecRegistry(), CodecRegistries.fromProviders(
+            PojoCodecProvider.builder().automatic(true).build()))
+
+    val client: MongoClient = MongoClients.create(connectionString)
+    val mongoDatabase = client.getDatabase(MONGO_DB_NAME).withCodecRegistry(pojoCodecRegistry)
+
+    val catalogCollection = mongoDatabase.getCollection("begrep")
+    catalogCollection.deleteMany(org.bson.Document())
+    catalogCollection.insertMany(conceptDbPopulation())
+    client.close()
+}
+
+fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_WRONG_ORG)
+    .map { it.mapDBO() }
+
+private fun Begrep.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("_id", id)
+        .append("status", status?.toString())
+        .append("anbefaltTerm", anbefaltTerm?.mapDBO())
+        .append("tillattTerm", tillattTerm)
+        .append("frarådetTerm", frarådetTerm)
+        .append("definisjon", definisjon?.mapDBO())
+        .append("kildebeskrivelse", kildebeskrivelse?.mapDBO())
+        .append("merknad", merknad)
+        .append("ansvarligVirksomhet", ansvarligVirksomhet?.mapDBO())
+        .append("seOgså", seOgså)
+
+private fun Term.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("navn", navn)
+
+private fun Definisjon.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("tekst", tekst)
+
+private fun Kildebeskrivelse.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("forholdTilKilde", forholdTilKilde.toString())
+        .append("kilde", kilde)
+
+private fun Virksomhet.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("_id", id)
