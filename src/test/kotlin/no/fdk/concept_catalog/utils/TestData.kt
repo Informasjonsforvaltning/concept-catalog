@@ -55,6 +55,14 @@ val BEGREP_WRONG_ORG = Begrep(
     )
 )
 
+val BEGREP_TO_BE_CREATED = Begrep(
+    status = Status.UTKAST,
+    anbefaltTerm = Term(navn = emptyMap()),
+    ansvarligVirksomhet = Virksomhet(
+        id = "111111111"
+    )
+)
+
 val BEGREP_TO_BE_DELETED = Begrep(
     id = "id-to-be-deleted",
     status = Status.UTKAST,

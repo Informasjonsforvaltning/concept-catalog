@@ -16,6 +16,10 @@ class ConceptService(private val conceptRepository: ConceptRepository) {
     fun getConceptById(id: String): Begrep? =
         conceptRepository.findByIdOrNull(id)
 
+    fun createConcept(concept: Begrep) {
+        conceptRepository.save(concept.copy(id = null))
+    }
+
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
         if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
         else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status)
