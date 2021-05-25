@@ -73,6 +73,18 @@ val BEGREP_TO_BE_DELETED = Begrep(
     )
 )
 
+val BEGREP_TO_BE_UPDATED = Begrep(
+    id = "id-to-be-updated",
+    anbefaltTerm = Term(navn = mapOf(Pair("en", "To be updated"))),
+    tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
+    bruksområde = mapOf(Pair("en", listOf("To be copied"))),
+    eksempel = mapOf(Pair("en", listOf("Will be replaced by copy"))),
+    status = Status.UTKAST,
+    ansvarligVirksomhet = Virksomhet(
+        id = "111111111"
+    )
+)
+
 val BEGREP_3 = Begrep(
     id = "id3",
     status = Status.PUBLISERT,
