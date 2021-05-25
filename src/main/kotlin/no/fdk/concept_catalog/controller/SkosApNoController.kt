@@ -11,20 +11,14 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping(value = ["/collections"], produces = ["text/turtle"])
 class SkosApNoController(private val skosApNoModelService: SkosApNoModelService) {
 
-    @GetMapping(value = ["/{id}"])
-    fun getCollectionById(@PathVariable("id") id: String): ResponseEntity<String> =
-        ResponseEntity(
-            skosApNoModelService.buildModelForPublishersCollection(id)
-                .turtleResponse(),
-            HttpStatus.OK
-        )
+    @GetMapping("/{id}")
+    fun getCollectionById(@PathVariable("id") id: String): String =
+        skosApNoModelService.buildModelForPublishersCollection(id)
+            .turtleResponse()
 
-    @GetMapping(value = [""])
-    fun getAllCollections() : ResponseEntity<String> =
-        ResponseEntity(
-            skosApNoModelService.buildModelForAllCollections()
-                .turtleResponse(),
-            HttpStatus.OK
-        )
+    @GetMapping
+    fun getAllCollections() : String =
+        skosApNoModelService.buildModelForAllCollections()
+            .turtleResponse()
 
 }
