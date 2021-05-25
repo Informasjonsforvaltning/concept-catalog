@@ -70,7 +70,7 @@ class SkosApNoModelService(
             val conceptURI = getConceptUri(collectionBuilder, concept.id)
             val conceptBuilder = collectionBuilder
                 .conceptBuilder(conceptURI)
-                .identifier(concept.id)
+                .identifier(conceptURI)
                 .publisher(concept.ansvarligVirksomhet?.id)
                 .modified(concept.endringslogelement?.endringstidspunkt?.toLocalDate())
 

@@ -20,7 +20,7 @@
 <https://registrering-begrep.fellesdatakatalog.brreg.no/123456789/id0>
         rdf:type            skos:Concept ;
         rdfs:seeAlso        "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322" ;
-        dct:identifier      "id0" ;
+        dct:identifier      <https://registrering-begrep.fellesdatakatalog.brreg.no/123456789/id0> ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         skosxl:altLabel     [ rdf:type            skosxl:Label ;
                               skosxl:literalForm  "tillattTerm"@nn
@@ -40,6 +40,6 @@
 <https://registrering-begrep.fellesdatakatalog.brreg.no/123456789>
         rdf:type        skos:Collection ;
         rdfs:label      "Concept collection belonging to 123456789" ;
-        dct:identifier  "https://registrering-begrep.fellesdatakatalog.brreg.no/123456789" ;
+        dct:identifier  <https://registrering-begrep.fellesdatakatalog.brreg.no/123456789> ;
         dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         skos:member     <https://registrering-begrep.fellesdatakatalog.brreg.no/123456789/id0> .

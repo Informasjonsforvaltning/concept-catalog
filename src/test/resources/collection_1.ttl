@@ -19,7 +19,7 @@
 
 <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id3>
         rdf:type          skos:Concept ;
-        dct:identifier    "id3" ;
+        dct:identifier    <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id3> ;
         dct:publisher     <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
         dct:subject       "fagområde"@nb ;
         dct:temporal      [ rdf:type          dct:PeriodOfTime ;
@@ -33,13 +33,13 @@
 <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333>
         rdf:type        skos:Collection ;
         rdfs:label      "Concept collection belonging to 111222333" ;
-        dct:identifier  "https://registrering-begrep.fellesdatakatalog.brreg.no/111222333" ;
+        dct:identifier  <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333> ;
         dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
         skos:member     <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id4> , <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id3> .
 
 <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id4>
         rdf:type            skos:Concept ;
-        dct:identifier      "id4" ;
+        dct:identifier      <https://registrering-begrep.fellesdatakatalog.brreg.no/111222333/id4> ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
         dct:temporal        [ rdf:type        dct:PeriodOfTime ;
                               schema:endDate  "2030-10-10"^^xsd:date

@@ -32,6 +32,21 @@
         <testcontainers.version>1.15.3</testcontainers.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/Informasjonsforvaltning/skos-ap-no-tools</url>
+            <snapshots><enabled>true</enabled></snapshots>
+            <releases><enabled>true</enabled></releases>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -93,13 +108,10 @@
             <version>4.0.0</version>
         </dependency>
 
-        <!-- The local jar for https://github.com/difi/skos-ap-no-tools.git -->
         <dependency>
             <groupId>no.difi.skos-ap-no</groupId>
             <artifactId>concept-builder</artifactId>
-            <version>1.0.3</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/libs/concept-builder-1.0.3.jar</systemPath>
+            <version>1.0.4</version>
         </dependency>
 
         <!-- TEST -->
@@ -177,9 +189,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <includeSystemScope>true</includeSystemScope>
-                </configuration>
             </plugin>
 
             <plugin>
