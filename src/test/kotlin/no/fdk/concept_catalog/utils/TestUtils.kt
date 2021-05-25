@@ -6,6 +6,8 @@ import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext.Companion.mongoContainer
+import org.apache.jena.rdf.model.Model
+import org.apache.jena.rdf.model.ModelFactory
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.pojo.PojoCodecProvider
 import org.springframework.http.*
@@ -14,7 +16,10 @@ import java.net.URL
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
+import java.io.InputStreamReader
+import java.io.Reader
 import java.net.HttpURLConnection
+import java.nio.charset.StandardCharsets
 
 fun apiGet(port: Int, endpoint: String, acceptHeader: MediaType): Map<String, Any> {
 
@@ -89,6 +94,18 @@ fun authorizedRequest(
         )
     }
 
+}
+
+class TestResponseReader {
+    private fun resourceAsReader(resourceName: String): Reader {
+        return InputStreamReader(javaClass.classLoader.getResourceAsStream(resourceName)!!, StandardCharsets.UTF_8)
+    }
+
+    fun parseTurtleFile(filename: String): Model {
+        val expected = ModelFactory.createDefaultModel()
+        expected.read(resourceAsReader(filename), "", "TURTLE")
+        return expected
+    }
 }
 
 fun populate() {

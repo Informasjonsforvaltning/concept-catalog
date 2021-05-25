@@ -29,6 +29,8 @@ jobs:
 
       - name: Package & run tests with maven
         run: mvn clean install --no-transfer-progress
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image with latest tag
         run: docker build . -t eu.gcr.io/digdir-fdk-infra/concept-catalog:$GITHUB_SHA -t eu.gcr.io/digdir-fdk-infra/concept-catalog:latest

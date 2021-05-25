@@ -2,6 +2,8 @@ package no.fdk.concept_catalog.utils
 
 import no.fdk.concept_catalog.model.*
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 const val LOCAL_SERVER_PORT = 5000
 
@@ -17,7 +19,7 @@ val MONGO_ENV_VALUES: Map<String, String> = ImmutableMap.of(
 
 val BEGREP_0 = Begrep(
     id = "id0",
-    status = Status.UTKAST,
+    status = Status.PUBLISERT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm"))),
     frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm"))),
@@ -41,7 +43,7 @@ val BEGREP_1 = Begrep(
 
 val BEGREP_2 = Begrep(
     id = "id2",
-    status = Status.PUBLISERT,
+    status = Status.UTKAST,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
@@ -68,5 +70,36 @@ val BEGREP_TO_BE_DELETED = Begrep(
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
+    )
+)
+
+val BEGREP_3 = Begrep(
+    id = "id3",
+    status = Status.PUBLISERT,
+    anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
+    kildebeskrivelse = Kildebeskrivelse(
+        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
+    eksempel = mapOf(Pair("en", listOf("example"))),
+    fagområde = mapOf(Pair("nb", "fagområde")),
+    omfang = URITekst(uri = "https://test.no", tekst = "Test"),
+    gyldigFom = LocalDate.of(2020, 10, 10),
+    ansvarligVirksomhet = Virksomhet(
+        id = "111222333"
+    )
+)
+
+val BEGREP_4 = Begrep(
+    id = "id4",
+    status = Status.PUBLISERT,
+    anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
+    kildebeskrivelse = Kildebeskrivelse(
+        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
+    bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
+    gyldigTom = LocalDate.of(2030, 10, 10),
+    kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
+    ansvarligVirksomhet = Virksomhet(
+        id = "111222333"
     )
 )

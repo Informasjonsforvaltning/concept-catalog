@@ -3,12 +3,18 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.repository.ConceptRepository
+import org.slf4j.LoggerFactory
+import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
+private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 
 @Service
-class ConceptService(private val conceptRepository: ConceptRepository) {
+class ConceptService(
+    private val conceptRepository: ConceptRepository,
+    private val mongoOperations: MongoOperations
+) {
 
     fun deleteConcept(concept: Begrep) =
         conceptRepository.delete(concept)
@@ -37,5 +43,13 @@ class ConceptService(private val conceptRepository: ConceptRepository) {
             Status.PUBLISERT.value -> Status.PUBLISERT
             else -> null
         }
+
+    fun getAllPublisherIds(): List<String> {
+        return mongoOperations
+            .query(Begrep::class.java)
+            .distinct("ansvarligVirksomhet.id")
+            .`as`(String::class.java)
+            .all()
+    }
 
 }
