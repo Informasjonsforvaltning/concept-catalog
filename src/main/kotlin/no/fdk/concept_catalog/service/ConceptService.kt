@@ -33,9 +33,8 @@ class ConceptService(
     fun getConceptById(id: String): Begrep? =
         conceptRepository.findByIdOrNull(id)
 
-    fun createConcept(concept: Begrep) {
+    fun createConcept(concept: Begrep): Begrep =
         conceptRepository.save(concept.copy(id = null))
-    }
 
     fun createConcepts(concepts: List<Begrep>) {
         conceptRepository.saveAll(

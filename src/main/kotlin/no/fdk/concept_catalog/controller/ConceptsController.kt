@@ -6,6 +6,7 @@ import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -33,8 +34,9 @@ class ConceptsController(
     ): ResponseEntity<Unit> =
         if (endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id)) {
             logger.info("creating concept for ${concept.ansvarligVirksomhet?.id}")
-            conceptService.createConcept(concept)
-            ResponseEntity(HttpStatus.CREATED)
+            conceptService.createConcept(concept).id
+                ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
+                ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
         } else ResponseEntity(HttpStatus.FORBIDDEN)
 
     @PostMapping(
@@ -131,3 +133,9 @@ class ConceptsController(
     }
 
 }
+
+private fun locationHeaderForCreated(newId: String): HttpHeaders =
+    HttpHeaders().apply {
+        add(HttpHeaders.LOCATION, "/begreper/$newId")
+        add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
+    }
