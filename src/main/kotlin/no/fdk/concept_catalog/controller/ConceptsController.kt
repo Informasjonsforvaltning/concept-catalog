@@ -2,7 +2,6 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
 import org.slf4j.LoggerFactory
@@ -116,16 +115,17 @@ class ConceptsController(
     fun setBegrepById(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable("id") id: String,
-        @RequestBody patchOperations: List<JsonPatchOperation>,
-        @RequestParam(
-            value = "validate",
-            required = false,
-            defaultValue = "true"
-        ) validate: Boolean?
+        @RequestBody patchOperations: List<JsonPatchOperation>
     ): ResponseEntity<Begrep> {
-        val auth = jwt.claims["authorities"] as? String
-        return if (endpointPermissions.hasOrgWritePermission(jwt, auth?.split(":")?.get(1))) {
-            ResponseEntity<Begrep>(HttpStatus.OK)
-        } else ResponseEntity<Begrep>(HttpStatus.FORBIDDEN)
+        val concept = conceptService.getConceptById(id)
+        val userId = endpointPermissions.getUserId(jwt)
+        return when {
+            concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
+            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, userId), HttpStatus.OK)
+        }
     }
+
 }

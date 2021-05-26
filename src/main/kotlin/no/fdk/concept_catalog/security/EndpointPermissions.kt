@@ -42,4 +42,7 @@ class EndpointPermissions {
         return authorities?.contains(ROLE_ROOT_ADMIN) ?: false
     }
 
+    fun getUserId(jwt: Jwt): String? =
+        jwt.claims["user_name"] as? String
+
 }

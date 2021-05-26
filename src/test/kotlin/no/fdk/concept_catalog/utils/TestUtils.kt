@@ -123,7 +123,7 @@ fun populate() {
     client.close()
 }
 
-fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED)
+fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED, BEGREP_TO_BE_UPDATED)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =
@@ -136,6 +136,8 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("definisjon", definisjon?.mapDBO())
         .append("kildebeskrivelse", kildebeskrivelse?.mapDBO())
         .append("merknad", merknad)
+        .append("bruksområde", bruksområde)
+        .append("eksempel", eksempel)
         .append("ansvarligVirksomhet", ansvarligVirksomhet?.mapDBO())
         .append("seOgså", seOgså)
 

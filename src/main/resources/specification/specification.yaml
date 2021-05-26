@@ -104,13 +104,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: validate
-          in: query
-          description: Om begrepet skal valideres
-          required: false
-          schema:
-            type: boolean
-            default: true
       responses:
         '200':
           description: OK
