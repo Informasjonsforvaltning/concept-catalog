@@ -136,15 +136,15 @@ class SkosApNoModelService(
 
     private fun addScopeNoteToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
         concept.merknad
-            .filterValues { it.toString().isNotBlank() }
-            .forEach { (key, entry) ->
+            ?.filterValues { it.toString().isNotBlank() }
+            ?.forEach { (key, entry) ->
                 entry.forEach { value -> definitionBuilder.scopeNote(value, key) }
             }
     }
 
     private fun addSourceDescriptionToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
         concept.kildebeskrivelse
-            ?.takeIf { it.kilde.isNotEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
+            ?.takeIf { !it.kilde.isNullOrEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
             ?.let {
                 val sourceDescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()
 
@@ -160,7 +160,7 @@ class SkosApNoModelService(
                     }
                 }
 
-                if (it.kilde.isNotEmpty()) {
+                if (!it.kilde.isNullOrEmpty()) {
                     val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
                     it.kilde.forEach { source -> sourceBuilder.label(source.tekst, NB).seeAlso(source.uri) }
                     sourceBuilder.build()
@@ -172,8 +172,8 @@ class SkosApNoModelService(
 
     private fun addAltLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.tillattTerm
-            .filterValues { it.isNotEmpty() }
-            .takeIf { it.isNotEmpty() }
+            ?.filterValues { it.isNotEmpty() }
+            ?.takeIf { it.isNotEmpty() }
             ?.let {
                 val altLabelBuilder = conceptBuilder.altLabelBuilder()
 
@@ -185,8 +185,8 @@ class SkosApNoModelService(
 
     private fun addHiddenLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.frarådetTerm
-            .filterValues { it.isNotEmpty() }
-            .takeIf { it.isNotEmpty() }
+            ?.filterValues { it.isNotEmpty() }
+            ?.takeIf { it.isNotEmpty() }
             ?.let {
                 val hiddenLabelBuilder = conceptBuilder.hiddenLabelBuilder()
 
@@ -198,22 +198,22 @@ class SkosApNoModelService(
 
     private fun addExampleToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.eksempel
-            .filterValues { it.toString().isNotBlank() }
-            .forEach { (key, entry) ->
+            ?.filterValues { it.toString().isNotBlank() }
+            ?.forEach { (key, entry) ->
                 entry.forEach { value -> conceptBuilder.example(value, key) }
             }
     }
 
     private fun addSubjectToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.fagområde
-            .filterValues { it.isNotBlank() }
-            .forEach { (key, value) -> conceptBuilder.subject(value, key) }
+            ?.filterValues { it.isNotBlank() }
+            ?.forEach { (key, value) -> conceptBuilder.subject(value, key) }
     }
 
     private fun addDomainOfUseToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.bruksområde
-            .filterValues { it.isNotEmpty() }
-            .forEach { (key, entry) -> entry.forEach { value -> conceptBuilder.domainOfUse(value.toString(), key) } }
+            ?.filterValues { it.isNotEmpty() }
+            ?.forEach { (key, entry) -> entry.forEach { value -> conceptBuilder.domainOfUse(value.toString(), key) } }
     }
 
     private fun addContactPointToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
@@ -238,8 +238,8 @@ class SkosApNoModelService(
 
     private fun addSeeAlsoReferencesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.seOgså
-            .filter { it.isNotBlank() }
-            .forEach { conceptBuilder.seeAlso(it).build() }
+            ?.filter { it.isNotBlank() }
+            ?.forEach { conceptBuilder.seeAlso(it).build() }
     }
 
     private fun addValidityPeriodToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {

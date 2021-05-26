@@ -71,7 +71,7 @@ class UpdateConcept : ApiTestContext() {
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
         assertEquals("Oppdatert", result.anbefaltTerm?.navn?.get("nb"))
-        assertEquals(listOf("Ny merknad"), result.merknad["nb"])
+        assertEquals(listOf("Ny merknad"), result.merknad?.get("nb"))
     }
 
     @Test
@@ -87,7 +87,7 @@ class UpdateConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertNull(result.tillattTerm["nn"])
+        assertNull(result.tillattTerm?.get("nn"))
     }
 
     @Test
@@ -117,8 +117,8 @@ class UpdateConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_TO_BE_UPDATED.tillattTerm["en"], result.frarådetTerm["en"])
-        assertNull(result.tillattTerm["en"])
+        assertEquals(BEGREP_TO_BE_UPDATED.tillattTerm?.get("en"), result.frarådetTerm?.get("en"))
+        assertNull(result.tillattTerm?.get("en"))
     }
 
     @Test
@@ -133,8 +133,8 @@ class UpdateConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_TO_BE_UPDATED.bruksområde["en"], result.bruksområde["en"])
-        assertEquals(BEGREP_TO_BE_UPDATED.bruksområde["en"], result.eksempel["en"])
+        assertEquals(BEGREP_TO_BE_UPDATED.bruksområde?.get("en"), result.bruksområde?.get("en"))
+        assertEquals(BEGREP_TO_BE_UPDATED.bruksområde?.get("en"), result.eksempel?.get("en"))
     }
 
     @Test
