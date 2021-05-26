@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.Endringslogelement
 import no.fdk.concept_catalog.model.JsonPatchOperation
@@ -14,6 +15,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.util.UriComponentsBuilder
 import java.io.StringReader
 import java.time.LocalDateTime
 import java.util.*
@@ -25,7 +27,9 @@ private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 @Service
 class ConceptService(
     private val conceptRepository: ConceptRepository,
-    private val mongoOperations: MongoOperations
+    private val mongoOperations: MongoOperations,
+    private val applicationProperties: ApplicationProperties,
+    private val conceptPublisher: ConceptPublisher
 ) {
 
     fun deleteConcept(concept: Begrep) =
@@ -36,10 +40,15 @@ class ConceptService(
 
     fun createConcept(concept: Begrep, userId: String): Begrep =
         concept.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
+            .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
             .updateLastChangedAndByWhom(userId)
             .let { conceptRepository.save(it) }
 
     fun createConcepts(concepts: List<Begrep>, userId: String) {
+        concepts.mapNotNull { it.ansvarligVirksomhet?.id }
+            .distinct()
+            .forEach { publishNewCollectionIfFirstSavedConcept(it) }
+
         conceptRepository.saveAll(
             concepts.map {
                 it.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
@@ -86,6 +95,21 @@ class ConceptService(
             .distinct("ansvarligVirksomhet.id")
             .`as`(String::class.java)
             .all()
+    }
+
+    private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
+        val begrepCount = publisherId?.let {
+            conceptRepository.countBegrepByAnsvarligVirksomhetId(it)
+        }
+
+        if (begrepCount == 0L) {
+            logger.info("Adding first entry for $publisherId in harvest admin...")
+            val harvestUrl = UriComponentsBuilder
+                .fromUriString(applicationProperties.collectionBaseUri)
+                .replacePath("/collections/$publisherId")
+                .build().toUriString()
+            conceptPublisher.sendNewDataSource(publisherId, harvestUrl)
+        }
     }
 
 }
