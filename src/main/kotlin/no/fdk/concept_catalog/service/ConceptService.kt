@@ -35,14 +35,14 @@ class ConceptService(
         conceptRepository.findByIdOrNull(id)
 
     fun createConcept(concept: Begrep, userId: String): Begrep =
-        concept.copy(id = null, status = Status.UTKAST)
+        concept.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
             .updateLastChangedAndByWhom(userId)
             .let { conceptRepository.save(it) }
 
     fun createConcepts(concepts: List<Begrep>, userId: String) {
         conceptRepository.saveAll(
             concepts.map {
-                it.copy(id = null, status = Status.UTKAST)
+                it.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
                     .updateLastChangedAndByWhom(userId)
             }
         )
