@@ -15,15 +15,15 @@ data class Begrep (
     val id: String? = null,
     val status: Status? = null,
     val anbefaltTerm: Term? = null,
-    val tillattTerm: Map<String, List<String>> = HashMap(),
-    val frarådetTerm: Map<String, List<String>> = HashMap(),
+    val tillattTerm: Map<String, List<String>>? = HashMap(),
+    val frarådetTerm: Map<String, List<String>>? = HashMap(),
     val definisjon: Definisjon? = null,
     val kildebeskrivelse: Kildebeskrivelse? = null,
-    val merknad: Map<String, List<String>> = HashMap(),
+    val merknad: Map<String, List<String>>? = HashMap(),
     val ansvarligVirksomhet: Virksomhet? = null,
-    val eksempel: Map<String, List<String>> = HashMap(),
-    val fagområde: Map<String, String> = HashMap(),
-    val bruksområde: Map<String, List<String>> = HashMap(),
+    val eksempel: Map<String, List<String>>? = HashMap(),
+    val fagområde: Map<String, String>? = HashMap(),
+    val bruksområde: Map<String, List<String>>? = HashMap(),
     val omfang: URITekst? = null,
     val kontaktpunkt: Kontaktpunkt? = null,
     @JsonSerialize(using = LocalDateSerializer::class)
@@ -33,5 +33,5 @@ data class Begrep (
     @JsonDeserialize(using = LocalDateDeserializer::class)
     val gyldigTom: LocalDate? = null,
     val endringslogelement: Endringslogelement? = null,
-    val seOgså: List<String> = ArrayList()
+    val seOgså: List<String>? = ArrayList()
 )

@@ -9,10 +9,10 @@ fun Begrep.isValid(): Boolean = when {
     status == null -> false
     status == Status.UTKAST -> false
     anbefaltTerm == null -> false
-    anbefaltTerm.navn.isEmpty() -> false
+    anbefaltTerm.navn.isNullOrEmpty() -> false
     !isValidTranslationsMap(anbefaltTerm.navn) -> false
     definisjon == null -> false
-    definisjon.tekst.isEmpty() -> false
+    definisjon.tekst.isNullOrEmpty() -> false
     !isValidTranslationsMap(definisjon.tekst) -> false
     ansvarligVirksomhet == null -> false
     !ansvarligVirksomhet.isValid() -> false

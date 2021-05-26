@@ -4,5 +4,5 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Definisjon (
-    val tekst: Map<String, String> = HashMap()
+    val tekst: Map<String, String>? = HashMap()
 )
