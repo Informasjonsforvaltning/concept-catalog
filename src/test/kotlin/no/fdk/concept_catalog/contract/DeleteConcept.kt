@@ -38,6 +38,12 @@ class DeleteConcept : ApiTestContext() {
     }
 
     @Test
+    fun `Bad request when published`() {
+        val rsp = authorizedRequest("/begreper/${BEGREP_0.id}", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE)
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+    }
+
+    @Test
     fun `Is deleted for write access`() {
         val before = authorizedRequest("/begreper/${BEGREP_TO_BE_DELETED.id}", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
         assertEquals(HttpStatus.OK.value(), before["status"])
