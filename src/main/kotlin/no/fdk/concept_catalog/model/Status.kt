@@ -1,7 +1,12 @@
 package no.fdk.concept_catalog.model
 
+import com.fasterxml.jackson.annotation.JsonValue
+
 enum class Status(val value: String) {
     UTKAST("utkast"),
     GODKJENT("godkjent"),
-    PUBLISERT("publisert")
+    PUBLISERT("publisert");
+
+    @JsonValue
+    fun jsonValue(): String = value
 }
