@@ -31,13 +31,20 @@ class ConceptsController(
     fun createBegrep(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody concept: Begrep
-    ): ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id)) {
-            logger.info("creating concept for ${concept.ansvarligVirksomhet?.id}")
-            conceptService.createConcept(concept).id
-                ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
-                ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
-        } else ResponseEntity(HttpStatus.FORBIDDEN)
+    ): ResponseEntity<Unit> {
+        val userId = endpointPermissions.getUserId(jwt)
+        return when {
+            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> {
+                logger.info("creating concept for ${concept.ansvarligVirksomhet?.id}")
+                conceptService.createConcept(concept, userId).id
+                    ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
+                    ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+            }
+        }
+    }
 
     @PostMapping(
         value = ["/import"],
@@ -48,14 +55,17 @@ class ConceptsController(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody concepts: List<Begrep>
     ): ResponseEntity<Unit> {
-        for (concept in concepts) {
-            if (!endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id)) {
-                return ResponseEntity<Unit>(HttpStatus.FORBIDDEN)
+        val userId = endpointPermissions.getUserId(jwt)
+        return when {
+            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            concepts.any { !endpointPermissions.hasOrgWritePermission(jwt, it.ansvarligVirksomhet?.id) } ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> {
+                logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
+                conceptService.createConcepts(concepts, userId)
+                return ResponseEntity<Unit>(HttpStatus.CREATED)
             }
         }
-        logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
-        conceptService.createConcepts(concepts)
-        return ResponseEntity<Unit>(HttpStatus.CREATED)
     }
 
     @DeleteMapping(value = ["/{id}"])
