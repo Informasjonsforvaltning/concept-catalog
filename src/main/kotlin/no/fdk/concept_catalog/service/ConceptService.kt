@@ -33,12 +33,17 @@ class ConceptService(
     fun getConceptById(id: String): Begrep? =
         conceptRepository.findByIdOrNull(id)
 
-    fun createConcept(concept: Begrep): Begrep =
-        conceptRepository.save(concept.copy(id = null))
+    fun createConcept(concept: Begrep, userId: String): Begrep =
+        concept.copy(id = null, status = Status.UTKAST)
+            .updateLastChangedAndByWhom(userId)
+            .let { conceptRepository.save(concept) }
 
-    fun createConcepts(concepts: List<Begrep>) {
+    fun createConcepts(concepts: List<Begrep>, userId: String) {
         conceptRepository.saveAll(
-            concepts.map { it.copy(id = null) }
+            concepts.map {
+                it.copy(id = null, status = Status.UTKAST)
+                    .updateLastChangedAndByWhom(userId)
+            }
         )
     }
 
