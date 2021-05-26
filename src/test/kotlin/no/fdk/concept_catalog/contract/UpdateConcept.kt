@@ -5,8 +5,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.OpEnum
+import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.utils.ApiTestContext
-import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
 import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
@@ -123,7 +123,7 @@ class UpdateConcept : ApiTestContext() {
 
     @Test
     fun `Copy value`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", value = listOf("asdads"), from = "/bruksområde/en"))
+        val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/en"))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
@@ -135,6 +135,30 @@ class UpdateConcept : ApiTestContext() {
         val result: Begrep = mapper.readValue(rsp["body"] as String)
         assertEquals(BEGREP_TO_BE_UPDATED.bruksområde["en"], result.bruksområde["en"])
         assertEquals(BEGREP_TO_BE_UPDATED.bruksområde["en"], result.eksempel["en"])
+    }
+
+    @Test
+    fun `Conflict when publishing Concept that does not validate`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/status", Status.PUBLISERT))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.CONFLICT.value(), rsp["status"])
+    }
+
+    @Test
+    fun `Bad request with exception message when JsonPatchOperation fails`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/nn"))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
     }
 
 }

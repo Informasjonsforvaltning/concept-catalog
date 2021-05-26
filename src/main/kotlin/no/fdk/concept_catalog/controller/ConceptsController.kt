@@ -2,7 +2,6 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
 import org.slf4j.LoggerFactory
@@ -125,7 +124,7 @@ class ConceptsController(
             userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
-            else -> conceptService.updateConcept(concept, patchOperations, userId)
+            else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, userId), HttpStatus.OK)
         }
     }
 

@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
 import javax.json.Json
@@ -43,7 +43,7 @@ class ConceptService(
         )
     }
 
-    fun updateConcept(concept: Begrep, operations: List<JsonPatchOperation>, userId: String): ResponseEntity<Begrep> {
+    fun updateConcept(concept: Begrep, operations: List<JsonPatchOperation>, userId: String): Begrep {
         val patched = try {
             patchBegrep(concept.copy(endringslogelement = null), operations)
                 .copy(
@@ -52,15 +52,15 @@ class ConceptService(
                 .updateLastChangedAndByWhom(userId)
         } catch (jsonException: JsonException) {
             logger.error("PATCH failed for ${concept.id}", jsonException)
-            return ResponseEntity(HttpStatus.BAD_REQUEST)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST)
         }
 
         if (patched.status != Status.UTKAST && !patched.isValid()) {
             logger.error("Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.")
-            return ResponseEntity(HttpStatus.CONFLICT)
+            throw ResponseStatusException(HttpStatus.CONFLICT)
         }
 
-        return ResponseEntity(conceptRepository.save(patched), HttpStatus.OK)
+        return conceptRepository.save(patched)
     }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
