@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
+import java.util.*
 import javax.json.Json
 import javax.json.JsonException
 
@@ -36,7 +37,7 @@ class ConceptService(
     fun createConcept(concept: Begrep, userId: String): Begrep =
         concept.copy(id = null, status = Status.UTKAST)
             .updateLastChangedAndByWhom(userId)
-            .let { conceptRepository.save(concept) }
+            .let { conceptRepository.save(it) }
 
     fun createConcepts(concepts: List<Begrep>, userId: String) {
         conceptRepository.saveAll(
