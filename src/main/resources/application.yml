@@ -9,6 +9,11 @@ spring:
   security.oauth2.resourceserver.jwt:
     jwk-set-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk/protocol/openid-connect/certs
     issuer-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: ${RABBIT_USERNAME:admin}
+    password: ${RABBIT_PASSWORD:admin}
 application:
   collectionBaseUri: ${COLLECTION_BASE_URI:https://registrering-begrep.fellesdatakatalog.brreg.no}
 
@@ -17,7 +22,7 @@ spring:
   config.activate.on-profile: develop
   data.mongodb.uri: mongodb://admin:admin@localhost:27017/datasetCatalog?authSource=admin&authMechanism=SCRAM-SHA-1
   security.oauth2.resourceserver.jwt.jwk-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
-
+  rabbitmq.host: 127.0.0.1
 
 ---
 spring:
