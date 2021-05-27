@@ -74,6 +74,10 @@ class ConceptService(
             throw ResponseStatusException(HttpStatus.CONFLICT)
         }
 
+        if (patched.status == Status.PUBLISERT || concept.status == Status.PUBLISERT) {
+            concept.ansvarligVirksomhet?.id?.let { publisherId -> conceptPublisher.send(publisherId) }
+        }
+
         return conceptRepository.save(patched)
     }
 
