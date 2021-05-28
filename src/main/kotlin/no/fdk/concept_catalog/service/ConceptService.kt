@@ -3,6 +3,8 @@ package no.fdk.concept_catalog.service
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.Endringslogelement
@@ -24,6 +26,7 @@ import javax.json.Json
 import javax.json.JsonException
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
+private val mapper = jacksonObjectMapper()
 
 @Service
 class ConceptService(
@@ -128,10 +131,10 @@ private fun patchBegrep(begrep: Begrep, operations: List<JsonPatchOperation>): B
     if (operations.isNotEmpty()) {
         with(ObjectMapper().registerModule(JavaTimeModule())) {
             val changes = Json.createReader(StringReader(writeValueAsString(operations))).readArray()
-            val original = Json.createReader(StringReader(writeValueAsString(begrep))).readObject()
+            val original = Json.createReader(StringReader(mapper.writeValueAsString(begrep))).readObject()
 
             return Json.createPatch(changes).apply(original)
-                .let { readValue(it.toString(), Begrep::class.java) }
+                .let { mapper.readValue(it.toString()) }
         }
     }
     return begrep
