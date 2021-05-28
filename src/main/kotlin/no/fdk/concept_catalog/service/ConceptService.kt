@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.service
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.fdk.concept_catalog.configuration.ApplicationProperties
@@ -64,9 +65,14 @@ class ConceptService(
                     id = concept.id,
                     ansvarligVirksomhet = concept.ansvarligVirksomhet)
                 .updateLastChangedAndByWhom(userId)
-        } catch (jsonException: JsonException) {
-            logger.error("PATCH failed for ${concept.id}", jsonException)
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+        } catch (ex: Exception) {
+            logger.error("PATCH failed for ${concept.id}", ex)
+            when (ex) {
+                is JsonException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+                is JsonProcessingException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+                is IllegalArgumentException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+                else -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
+            }
         }
 
         if (patched.status != Status.UTKAST && !patched.isValid()) {
