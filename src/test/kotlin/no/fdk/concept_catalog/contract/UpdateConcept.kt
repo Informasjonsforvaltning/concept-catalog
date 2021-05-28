@@ -150,8 +150,20 @@ class UpdateConcept : ApiTestContext() {
     }
 
     @Test
-    fun `Bad request with exception message when JsonPatchOperation fails`() {
+    fun `Bad request when patch path is wrong`() {
         val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/nn"))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+    }
+
+    @Test
+    fun `Bad request when patch value is invalid`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/eksempel/en", value = "invalid"))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
