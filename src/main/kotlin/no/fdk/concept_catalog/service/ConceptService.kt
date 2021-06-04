@@ -125,6 +125,8 @@ class ConceptService(
         }
     }
 
+    fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> = conceptRepository.findByTermLike(orgNumber, query).toList()
+
 }
 
 private fun patchBegrep(begrep: Begrep, operations: List<JsonPatchOperation>): Begrep {
