@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
+import no.fdk.concept_catalog.model.JsonSearchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
@@ -139,6 +140,26 @@ class ConceptsController(
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, userId), HttpStatus.OK)
+        }
+    }
+
+    @PostMapping(
+        value = ["/search"],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun searchBegrep(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestParam(
+            value = "orgNummer",
+            required = true
+        ) orgNumber: String,
+        @RequestBody request: JsonSearchOperation
+    ): ResponseEntity<List<Begrep>> {
+        return when {
+            !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            request.query.isEmpty() -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            else -> ResponseEntity(conceptService.searchConceptsByTerm(orgNumber, request.query), HttpStatus.OK)
         }
     }
 
