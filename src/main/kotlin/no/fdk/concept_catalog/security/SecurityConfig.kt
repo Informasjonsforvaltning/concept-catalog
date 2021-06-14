@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.security
 
+import org.apache.jena.riot.Lang
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -57,11 +58,14 @@ private class RDFMatcher: RequestMatcher{
 private fun acceptHeaderIsRDF(accept: String?): Boolean =
     when {
         accept == null -> false
-        accept.contains("text/turtle") -> true
-        accept.contains("text/n3") -> true
-        accept.contains("application/rdf+json") -> true
-        accept.contains("application/ld+json") -> true
-        accept.contains("application/rdf+xml") -> true
-        accept.contains("application/n-triples") -> true
+        accept.contains(Lang.TURTLE.headerString) -> true
+        accept.contains(Lang.N3.headerString) -> true
+        accept.contains(Lang.RDFJSON.headerString) -> true
+        accept.contains(Lang.JSONLD.headerString) -> true
+        accept.contains(Lang.RDFXML.headerString) -> true
+        accept.contains(Lang.NTRIPLES.headerString) -> true
+        accept.contains(Lang.NQUADS.headerString) -> true
+        accept.contains(Lang.TRIG.headerString) -> true
+        accept.contains(Lang.TRIX.headerString) -> true
         else -> false
     }
