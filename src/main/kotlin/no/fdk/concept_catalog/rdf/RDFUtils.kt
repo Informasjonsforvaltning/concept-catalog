@@ -20,7 +20,7 @@ fun jenaLangFromAcceptHeader(accept: String?): Lang =
         accept.contains(Lang.RDFJSON.headerString) -> Lang.RDFJSON
         accept.contains(Lang.JSONLD.headerString) -> Lang.JSONLD
         accept.contains(Lang.NTRIPLES.headerString) -> Lang.NTRIPLES
-        accept.contains(Lang.N3.headerString) -> Lang.N3
+        accept.contains("text/n3") -> Lang.N3
         accept.contains(Lang.NQUADS.headerString) -> Lang.NQUADS
         accept.contains(Lang.TRIG.headerString) -> Lang.TRIG
         accept.contains(Lang.TRIX.headerString) -> Lang.TRIX

@@ -29,7 +29,7 @@ class GetSkosApNoCollection: ApiTestContext() {
         val expected = TestResponseReader().parseTurtleFile("collection_0.ttl")
 
         val turtle = apiGet(port, "/collections/123456789", MediaType.valueOf("text/turtle"))
-        val n3 = apiGet(port, "/collections/123456789", MediaType.valueOf("text/rdf+n3"))
+        val n3 = apiGet(port, "/collections/123456789", MediaType.valueOf("text/n3"))
         val rdfXML = apiGet(port, "/collections/123456789", MediaType.valueOf("application/rdf+xml"))
         val rdfJSON = apiGet(port, "/collections/123456789", MediaType.valueOf("application/rdf+json"))
         val ldJSON = apiGet(port, "/collections/123456789", MediaType.valueOf("application/ld+json"))

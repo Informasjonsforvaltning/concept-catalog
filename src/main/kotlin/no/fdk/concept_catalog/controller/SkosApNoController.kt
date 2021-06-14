@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 @CrossOrigin
 @RequestMapping(
     value = ["/collections"],
-    produces = ["text/turtle", "text/rdf+n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
+    produces = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
         "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
 )
 class SkosApNoController(private val skosApNoModelService: SkosApNoModelService) {

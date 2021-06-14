@@ -59,7 +59,7 @@ private fun acceptHeaderIsRDF(accept: String?): Boolean =
     when {
         accept == null -> false
         accept.contains(Lang.TURTLE.headerString) -> true
-        accept.contains(Lang.N3.headerString) -> true
+        accept.contains("text/n3") -> true
         accept.contains(Lang.RDFJSON.headerString) -> true
         accept.contains(Lang.JSONLD.headerString) -> true
         accept.contains(Lang.RDFXML.headerString) -> true
