@@ -19,7 +19,7 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
         http.cors()
             .and()
                 .authorizeRequests()
-                .requestMatchers(TurtleMatcher())
+                .requestMatchers(RDFMatcher())
                     .permitAll()
                 .antMatchers(HttpMethod.OPTIONS)
                     .permitAll()
@@ -49,8 +49,19 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
     }
 }
 
-private class TurtleMatcher: RequestMatcher{
+private class RDFMatcher: RequestMatcher{
     override fun matches(request: HttpServletRequest?): Boolean =
-        request?.method == HttpMethod.GET.name &&
-            request.getHeader("Accept")?.contains("text/turtle") ?: false
+        request?.method == "GET" && acceptHeaderIsRDF(request.getHeader("Accept"))
 }
+
+private fun acceptHeaderIsRDF(accept: String?): Boolean =
+    when {
+        accept == null -> false
+        accept.contains("text/turtle") -> true
+        accept.contains("text/n3") -> true
+        accept.contains("application/rdf+json") -> true
+        accept.contains("application/ld+json") -> true
+        accept.contains("application/rdf+xml") -> true
+        accept.contains("application/n-triples") -> true
+        else -> false
+    }
