@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.security
 
+import org.apache.jena.riot.Lang
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,7 +20,7 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
         http.cors()
             .and()
                 .authorizeRequests()
-                .requestMatchers(TurtleMatcher())
+                .requestMatchers(RDFMatcher())
                     .permitAll()
                 .antMatchers(HttpMethod.OPTIONS)
                     .permitAll()
@@ -49,8 +50,22 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
     }
 }
 
-private class TurtleMatcher: RequestMatcher{
+private class RDFMatcher: RequestMatcher{
     override fun matches(request: HttpServletRequest?): Boolean =
-        request?.method == HttpMethod.GET.name &&
-            request.getHeader("Accept")?.contains("text/turtle") ?: false
+        request?.method == "GET" && acceptHeaderIsRDF(request.getHeader("Accept"))
 }
+
+private fun acceptHeaderIsRDF(accept: String?): Boolean =
+    when {
+        accept == null -> false
+        accept.contains(Lang.TURTLE.headerString) -> true
+        accept.contains("text/n3") -> true
+        accept.contains(Lang.RDFJSON.headerString) -> true
+        accept.contains(Lang.JSONLD.headerString) -> true
+        accept.contains(Lang.RDFXML.headerString) -> true
+        accept.contains(Lang.NTRIPLES.headerString) -> true
+        accept.contains(Lang.NQUADS.headerString) -> true
+        accept.contains(Lang.TRIG.headerString) -> true
+        accept.contains(Lang.TRIX.headerString) -> true
+        else -> false
+    }
