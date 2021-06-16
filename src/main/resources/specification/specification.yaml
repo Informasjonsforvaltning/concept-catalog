@@ -205,7 +205,7 @@ paths:
       tags:
         - skos-ap-no
       description: Returnerer samlinger av begreper
-      operationId: getCollections
+      operationId: getAllCollections
       responses:
         '200':
           description: OK
@@ -218,11 +218,37 @@ paths:
       tags:
         - skos-ap-no
       description: Returnerer en samling av begreper
-      operationId: getCollection
+      operationId: getCollectionById
       parameters:
         - name: id
           in: path
           description: Ansvarlig virksomhet sitt organisasjonsnummer
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            text/turtle:
+              schema:
+                type: string
+  /collections/{collectionId}/concepts/{id}:
+    get:
+      tags:
+        - skos-ap-no
+      description: Returnerer en samling av begreper
+      operationId: getConceptById
+      parameters:
+        - name: collectionId
+          in: path
+          description: Ansvarlig virksomhet sitt organisasjonsnummer
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: Begrepets id
           required: true
           schema:
             type: string
