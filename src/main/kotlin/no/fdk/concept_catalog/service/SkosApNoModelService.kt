@@ -2,16 +2,18 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import org.apache.jena.rdf.model.Model
-import no.difi.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
-import no.difi.skos_ap_no.concept.builder.Conceptcollection.Concept.ConceptBuilder
-import no.difi.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.DefinitionBuilder
-import no.difi.skos_ap_no.concept.builder.ModelBuilder
-import no.difi.skos_ap_no.concept.builder.generic.SourceType
+import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
+import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.ConceptBuilder
+import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.DefinitionBuilder
+import no.norge.data.skos_ap_no.concept.builder.ModelBuilder
+import no.norge.data.skos_ap_no.concept.builder.generic.SourceType
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.Status
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 private val logger = LoggerFactory.getLogger(SkosApNoModelService::class.java)
 
@@ -45,6 +47,18 @@ class SkosApNoModelService(
         return modelBuilder.build()
     }
 
+    fun buildModelForConcept(collectionId: String, id: String): Model {
+        logger.debug("Building model for concept: {}", id)
+        val concept = conceptService.getConceptById(id)
+        val modelBuilder = instantiateModelBuilder()
+
+        if (concept?.ansvarligVirksomhet?.id == collectionId) {
+            addConceptToModel(modelBuilder, concept)
+        } else throw ResponseStatusException(HttpStatus.NOT_FOUND)
+
+        return modelBuilder.build()
+    }
+
     private fun instantiateModelBuilder(): ModelBuilder {
         return ModelBuilder.builder()
     }
@@ -74,19 +88,39 @@ class SkosApNoModelService(
                 .publisher(concept.ansvarligVirksomhet?.id)
                 .modified(concept.endringslogelement?.endringstidspunkt?.toLocalDate())
 
-            addPrefLabelToConcept(conceptBuilder, concept)
-            addDefinitionToConcept(conceptBuilder, concept)
-            addAltLabelToConcept(conceptBuilder, concept)
-            addHiddenLabelToConcept(conceptBuilder, concept)
-            addExampleToConcept(conceptBuilder, concept)
-            addSubjectToConcept(conceptBuilder, concept)
-            addDomainOfUseToConcept(conceptBuilder, concept)
-            addContactPointToConcept(conceptBuilder, concept)
-            addSeeAlsoReferencesToConcept(conceptBuilder, concept)
-            addValidityPeriodToConcept(conceptBuilder, concept)
+            addPropertiesToConcept(conceptBuilder, concept)
 
             conceptBuilder.build()
         }
+    }
+
+    private fun addConceptToModel(modelBuilder: ModelBuilder, concept: Begrep) {
+        if (concept.id == null || concept.ansvarligVirksomhet?.id == null) logger.error("Concept has no id, will not serialize.", Exception("Concept has no id, will not serialize."))
+        else {
+            val conceptURI = "${getCollectionUri(concept.ansvarligVirksomhet.id)}/${concept.id}"
+            val conceptBuilder = modelBuilder
+                .conceptBuilder(conceptURI)
+                .identifier(conceptURI)
+                .publisher(concept.ansvarligVirksomhet.id)
+                .modified(concept.endringslogelement?.endringstidspunkt?.toLocalDate())
+
+            addPropertiesToConcept(conceptBuilder, concept)
+
+            conceptBuilder.buildSingleConcept()
+        }
+    }
+
+    private fun addPropertiesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+        addPrefLabelToConcept(conceptBuilder, concept)
+        addDefinitionToConcept(conceptBuilder, concept)
+        addAltLabelToConcept(conceptBuilder, concept)
+        addHiddenLabelToConcept(conceptBuilder, concept)
+        addExampleToConcept(conceptBuilder, concept)
+        addSubjectToConcept(conceptBuilder, concept)
+        addDomainOfUseToConcept(conceptBuilder, concept)
+        addContactPointToConcept(conceptBuilder, concept)
+        addSeeAlsoReferencesToConcept(conceptBuilder, concept)
+        addValidityPeriodToConcept(conceptBuilder, concept)
     }
 
     private fun getCollectionUri(publisherId: String): String {
@@ -239,7 +273,7 @@ class SkosApNoModelService(
     private fun addSeeAlsoReferencesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.seOgså
             ?.filter { it.isNotBlank() }
-            ?.forEach { conceptBuilder.seeAlso(it).build() }
+            ?.forEach { conceptBuilder.seeAlso(it) }
     }
 
     private fun addValidityPeriodToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {

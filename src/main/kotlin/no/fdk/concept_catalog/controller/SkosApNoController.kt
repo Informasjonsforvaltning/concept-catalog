@@ -25,4 +25,13 @@ class SkosApNoController(private val skosApNoModelService: SkosApNoModelService)
         skosApNoModelService.buildModelForAllCollections()
             .rdfResponse(jenaLangFromAcceptHeader(accept))
 
+    @GetMapping("/{collectionId}/concepts/{id}")
+    fun getConceptById(
+        @RequestHeader(HttpHeaders.ACCEPT) accept: String?,
+        @PathVariable("collectionId") collectionId: String,
+        @PathVariable("id") id: String
+    ): String =
+        skosApNoModelService.buildModelForConcept(collectionId, id)
+            .rdfResponse(jenaLangFromAcceptHeader(accept))
+
 }
