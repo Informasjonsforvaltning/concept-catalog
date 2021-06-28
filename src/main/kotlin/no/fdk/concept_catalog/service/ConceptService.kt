@@ -71,10 +71,10 @@ class ConceptService(
         } catch (ex: Exception) {
             logger.error("PATCH failed for ${concept.id}", ex)
             when (ex) {
-                is JsonException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-                is JsonProcessingException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-                is IllegalArgumentException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST)
-                else -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR)
+                is JsonException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)
+                is JsonProcessingException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)
+                is IllegalArgumentException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)
+                else -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.message)
             }
         }
 
