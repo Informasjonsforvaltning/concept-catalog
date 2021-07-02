@@ -65,7 +65,7 @@ class SkosApNoModelService(
     }
 
     private fun addConceptToCollection(collectionBuilder: CollectionBuilder, concept: Begrep) {
-        if (concept.id == null) logger.error("Concept has no id, will not serialize.")
+        if (concept.id == null) logger.error("Concept has no id, will not serialize.", Exception("Concept has no id, will not serialize."))
         else {
             val conceptURI = getConceptUri(collectionBuilder, concept.id)
             val conceptBuilder = collectionBuilder
