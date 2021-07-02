@@ -79,8 +79,9 @@ class ConceptService(
         }
 
         if (patched.status != Status.UTKAST && !patched.isValid()) {
-            logger.error("Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.")
-            throw ResponseStatusException(HttpStatus.CONFLICT)
+            val conflictException = ResponseStatusException(HttpStatus.CONFLICT)
+            logger.error("Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.", conflictException)
+            throw conflictException
         }
 
         if (patched.status == Status.PUBLISERT || concept.status == Status.PUBLISERT) {
