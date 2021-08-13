@@ -298,9 +298,11 @@ components:
         gyldigFom:
           type: string
           format: date
+          nullable: true
         gyldigTom:
           type: string
           format: date
+          nullable: true
         endringslogelement:
           $ref: "#/components/schemas/Endringslogelement"
         seOgså:
@@ -328,6 +330,8 @@ components:
       properties:
         uri:
           type: string
+          format: uri
+          pattern: "^https?://"
         tekst:
           type: string
     Kontaktpunkt:
@@ -336,6 +340,7 @@ components:
       properties:
         harEpost:
           type: string
+          format: email
           description: e-post adressen til kontaktpunkt
         harTelefon:
           type: string
@@ -346,6 +351,7 @@ components:
       properties:
         uri:
           type: string
+          format: uri
           description: Lenke til the virksomhet i Brønnøysundregistrene
         id:
           type: string
@@ -429,14 +435,14 @@ components:
       type: object
       additionalProperties: {}
     JsonSearchOperation:
-      type:object
-    description: 'A JSON document containing the desired query string'
-    required:
-      - query
-    properties:
-      query:
-        type: string
-        description: 'The query string to search for'
+      type: object
+      description: 'A JSON document containing the desired query string'
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: 'The query string to search for'
   securitySchemes:
     bearerAuth:            # arbitrary name for the security scheme
       type: http
