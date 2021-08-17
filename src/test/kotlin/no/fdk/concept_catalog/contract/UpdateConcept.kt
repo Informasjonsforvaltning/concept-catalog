@@ -1,14 +1,16 @@
 package no.fdk.concept_catalog.contract
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
 import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -16,7 +18,7 @@ import org.springframework.test.context.ContextConfiguration
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-private val mapper = jacksonObjectMapper()
+private val mapper = JacksonConfigurer().objectMapper()
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(
@@ -135,15 +137,16 @@ class UpdateConcept : ApiTestContext() {
     }
 
     @Test
-    fun `Conflict when publishing Concept that does not validate`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/status", Status.PUBLISERT))
+    fun `Bad request when publishing Concept that does not validate`() {
+        val operations = listOf(
+                JsonPatchOperation(op = OpEnum.REPLACE, "/status", Status.PUBLISERT))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.CONFLICT.value(), rsp["status"])
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
     }
 
     @Test

@@ -2,20 +2,15 @@ package no.fdk.concept_catalog.service
 
 import com.nhaarman.mockitokotlin2.*
 import no.fdk.concept_catalog.configuration.ApplicationProperties
+import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.model.DataSource
-import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.utils.BEGREP_0
-import no.fdk.concept_catalog.utils.BEGREP_3
-import no.fdk.concept_catalog.utils.BEGREP_4
-import no.fdk.concept_catalog.utils.TestResponseReader
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.MongoOperations
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 @Tag("unit")
 class Rabiit {
@@ -23,7 +18,9 @@ class Rabiit {
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
-    private val conceptService = ConceptService(conceptRepository, mongoOperations, applicationProperties, conceptPublisher)
+
+    private val conceptService = ConceptService(
+        conceptRepository, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
 
     @Test
     fun `Publish collection when first concept is created`() {

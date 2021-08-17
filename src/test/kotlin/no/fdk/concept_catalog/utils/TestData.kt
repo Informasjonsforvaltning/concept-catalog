@@ -3,7 +3,6 @@ package no.fdk.concept_catalog.utils
 import no.fdk.concept_catalog.model.*
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 const val LOCAL_SERVER_PORT = 5000
 
