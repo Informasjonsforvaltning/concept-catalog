@@ -2,8 +2,6 @@ package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.Begrep
@@ -12,6 +10,8 @@ import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isValid
+import no.fdk.concept_catalog.validation.validateSchema
+import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
@@ -20,20 +20,20 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.io.StringReader
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
 import javax.json.Json
 import javax.json.JsonException
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
-private val mapper = jacksonObjectMapper()
 
 @Service
 class ConceptService(
     private val conceptRepository: ConceptRepository,
     private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
-    private val conceptPublisher: ConceptPublisher
+    private val conceptPublisher: ConceptPublisher,
+    private val mapper: ObjectMapper
 ) {
 
     fun deleteConcept(concept: Begrep) =
@@ -42,23 +42,47 @@ class ConceptService(
     fun getConceptById(id: String): Begrep? =
         conceptRepository.findByIdOrNull(id)
 
-    fun createConcept(concept: Begrep, userId: String): Begrep =
-        concept.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
-            .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
-            .updateLastChangedAndByWhom(userId)
-            .let { conceptRepository.save(it) }
+    fun createConcept(concept: Begrep, userId: String): Begrep {
+        val newConcept = concept.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
+                .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
+                .updateLastChangedAndByWhom(userId)
+
+        val validation = newConcept.validateSchema()
+        if (!validation.isValid) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
+        }
+
+        return conceptRepository.save(newConcept)
+    }
 
     fun createConcepts(concepts: List<Begrep>, userId: String) {
         concepts.mapNotNull { it.ansvarligVirksomhet?.id }
             .distinct()
             .forEach { publishNewCollectionIfFirstSavedConcept(it) }
 
-        conceptRepository.saveAll(
-            concepts.map {
-                it.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
-                    .updateLastChangedAndByWhom(userId)
+        val validationResultsMap = mutableMapOf<Begrep, ValidationResults>()
+        val newConcepts = concepts.map {
+            it.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
+                .updateLastChangedAndByWhom(userId)
+        }.onEach {
+            val validation = it.validateSchema()
+            if (!validation.isValid) {
+                validationResultsMap[it] = validation.results()
             }
-        )
+        }
+
+        if (validationResultsMap.isNotEmpty()) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST,
+                validationResultsMap.entries.mapIndexed { index, entry ->
+                    "Begrep ${index}"
+                        .plus(entry.key.anbefaltTerm?.navn?.let { " - $it" } ?: "")
+                        .plus("\n")
+                        .plus(entry.value.toString())
+                        .plus("\n\n")
+                }.joinToString("\n"))
+        }
+
+        conceptRepository.saveAll(newConcepts)
     }
 
     fun updateConcept(concept: Begrep, operations: List<JsonPatchOperation>, userId: String): Begrep {
@@ -78,10 +102,15 @@ class ConceptService(
             }
         }
 
+        val validation = patched.validateSchema()
+        if (!validation.isValid) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
+        }
+
         if (patched.status != Status.UTKAST && !patched.isValid()) {
-            val conflictException = ResponseStatusException(HttpStatus.CONFLICT)
-            logger.error("Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.", conflictException)
-            throw conflictException
+            val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
+            logger.error("Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.", badRequestException)
+            throw badRequestException
         }
 
         if (patched.status == Status.PUBLISERT || concept.status == Status.PUBLISERT) {
@@ -111,6 +140,8 @@ class ConceptService(
             .all()
     }
 
+    fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> = conceptRepository.findByTermLike(orgNumber, query).toList()
+
     private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
             conceptRepository.countBegrepByAnsvarligVirksomhetId(it)
@@ -126,27 +157,25 @@ class ConceptService(
         }
     }
 
-    fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> = conceptRepository.findByTermLike(orgNumber, query).toList()
+    private fun patchBegrep(begrep: Begrep, operations: List<JsonPatchOperation>): Begrep {
+        if (operations.isNotEmpty()) {
+            with(mapper) {
+                val changes = Json.createReader(StringReader(writeValueAsString(operations))).readArray()
+                val original = Json.createReader(StringReader(writeValueAsString(begrep))).readObject()
 
-}
-
-private fun patchBegrep(begrep: Begrep, operations: List<JsonPatchOperation>): Begrep {
-    if (operations.isNotEmpty()) {
-        with(ObjectMapper().registerModule(JavaTimeModule())) {
-            val changes = Json.createReader(StringReader(writeValueAsString(operations))).readArray()
-            val original = Json.createReader(StringReader(mapper.writeValueAsString(begrep))).readObject()
-
-            return Json.createPatch(changes).apply(original)
-                .let { mapper.readValue(it.toString()) }
+                return Json.createPatch(changes).apply(original)
+                    .let { readValue(it.toString()) }
+            }
         }
+        return begrep
     }
-    return begrep
 }
 
 private fun Begrep.updateLastChangedAndByWhom(userId: String): Begrep =
     copy(
         endringslogelement = Endringslogelement(
-            endringstidspunkt = LocalDateTime.now(),
+            endringstidspunkt = ZonedDateTime.now().toInstant(),
             brukerId = userId
         )
     )
+

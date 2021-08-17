@@ -11,14 +11,14 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.pojo.PojoCodecProvider
 import org.springframework.http.*
-import java.io.BufferedReader
-import java.net.URL
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
+import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.Reader
 import java.net.HttpURLConnection
+import java.net.URL
 import java.nio.charset.StandardCharsets
 
 fun apiGet(port: Int, endpoint: String, acceptHeader: MediaType): Map<String, Any> {

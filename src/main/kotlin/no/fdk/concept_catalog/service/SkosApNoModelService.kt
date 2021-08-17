@@ -1,19 +1,20 @@
 package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
-import org.apache.jena.rdf.model.Model
+import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.ForholdTilKildeEnum
+import no.fdk.concept_catalog.model.Status
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.ConceptBuilder
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.DefinitionBuilder
 import no.norge.data.skos_ap_no.concept.builder.ModelBuilder
 import no.norge.data.skos_ap_no.concept.builder.generic.SourceType
-import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.model.ForholdTilKildeEnum
-import no.fdk.concept_catalog.model.Status
+import org.apache.jena.rdf.model.Model
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.time.ZoneId
 
 private val logger = LoggerFactory.getLogger(SkosApNoModelService::class.java)
 
@@ -86,7 +87,7 @@ class SkosApNoModelService(
                 .conceptBuilder(conceptURI)
                 .identifier(conceptURI)
                 .publisher(concept.ansvarligVirksomhet?.id)
-                .modified(concept.endringslogelement?.endringstidspunkt?.toLocalDate())
+                .modified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
 
             addPropertiesToConcept(conceptBuilder, concept)
 
@@ -102,7 +103,7 @@ class SkosApNoModelService(
                 .conceptBuilder(conceptURI)
                 .identifier(conceptURI)
                 .publisher(concept.ansvarligVirksomhet.id)
-                .modified(concept.endringslogelement?.endringstidspunkt?.toLocalDate())
+                .modified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
 
             addPropertiesToConcept(conceptBuilder, concept)
 

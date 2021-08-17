@@ -265,6 +265,8 @@ components:
     Begrep:
       type: object
       description: Et begrep
+      required:
+        - ansvarligVirksomhet
       properties:
         id:
           type: string
@@ -272,7 +274,7 @@ components:
         status:
           $ref: "#/components/schemas/Status"
         anbefaltTerm:
-          $ref: "#/components/schemas/Term"
+          $ref : "#/components/schemas/Term"
         tillattTerm:
           $ref: "#/components/schemas/TekstMedSpraakKode"
         frarådetTerm:
@@ -284,7 +286,9 @@ components:
         merknad:
           $ref: '#/components/schemas/TekstMedSpraakKode'
         ansvarligVirksomhet:
-          $ref: "#/components/schemas/Virksomhet"
+          allOf:
+            - $ref: "#/components/schemas/Virksomhet"
+          nullable: false
         eksempel:
           $ref: '#/components/schemas/TekstMedSpraakKode'
         fagområde:
@@ -316,6 +320,7 @@ components:
       properties:
         forholdTilKilde:
           type: string
+          nullable: false
           enum:
             - egendefinert
             - basertPaaKilde
@@ -348,6 +353,8 @@ components:
     Virksomhet:
       type: object
       description: Ansvarlig virksomhet for begrepet [dct:publisher]
+      required:
+        - id
       properties:
         uri:
           type: string
@@ -356,6 +363,7 @@ components:
         id:
           type: string
           description: organisasjonsnummer
+          nullable: false
         navn:
           type: string
           description: Navnet til virksomheten slik den er oppgitt i Brønnøysundregistrene
@@ -376,6 +384,7 @@ components:
       properties:
         melding:
           type: string
+          nullable: false
     Endringslogelement:
       type: object
       required:
@@ -384,9 +393,11 @@ components:
       properties:
         brukerId:
           type: string
+          nullable: false
         endringstidspunkt:
           type: string
           format: date-time
+          nullable: false
     JsonPatch:
       description: 'A JSON Schema describing a JSON Patch (https://tools.ietf.org/html/rfc6902)'
       type: array
@@ -401,6 +412,7 @@ components:
       properties:
         op:
           type: string
+          nullable: false
           description: 'The operation to be performed'
           enum:
             - add
@@ -411,6 +423,7 @@ components:
             - test
         path:
           type: string
+          nullable: false
           description: 'A JSON pointer to the property being affected'
         value:
           type: object
@@ -442,6 +455,7 @@ components:
       properties:
         query:
           type: string
+          nullable: false
           description: 'The query string to search for'
   securitySchemes:
     bearerAuth:            # arbitrary name for the security scheme

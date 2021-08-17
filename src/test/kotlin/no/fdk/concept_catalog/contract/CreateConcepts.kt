@@ -1,20 +1,24 @@
 package no.fdk.concept_catalog.contract
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.model.Virksomhet
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.ApiTestContext
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_CREATED
+import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
+import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.assertEquals
 
-private val mapper = jacksonObjectMapper()
+private val mapper = JacksonConfigurer().objectMapper()
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(

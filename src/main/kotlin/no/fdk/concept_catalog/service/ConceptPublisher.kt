@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import no.fdk.concept_catalog.model.DataSource
 import no.fdk.concept_catalog.model.DataSourceType
 import no.fdk.concept_catalog.model.DataType
-import org.springframework.amqp.core.AmqpTemplate
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.AmqpException
+import org.springframework.amqp.core.AmqpTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.util.*
