@@ -27,6 +27,8 @@ import javax.json.JsonException
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 
+private const val newConceptVersion = "0.0.1"
+
 @Service
 class ConceptService(
     private val conceptRepository: ConceptRepository,
@@ -43,7 +45,7 @@ class ConceptService(
         conceptRepository.findByIdOrNull(id)
 
     fun createConcept(concept: Begrep, userId: String): Begrep {
-        val newConcept = concept.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
+        val newConcept = concept.copy(id = UUID.randomUUID().toString(), versjonsnr = newConceptVersion, status = Status.UTKAST)
                 .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
                 .updateLastChangedAndByWhom(userId)
 
@@ -62,7 +64,7 @@ class ConceptService(
 
         val validationResultsMap = mutableMapOf<Begrep, ValidationResults>()
         val newConcepts = concepts.map {
-            it.copy(id = UUID.randomUUID().toString(), status = Status.UTKAST)
+            it.copy(id = UUID.randomUUID().toString(), versjonsnr = newConceptVersion, status = Status.UTKAST)
                 .updateLastChangedAndByWhom(userId)
         }.onEach {
             val validation = it.validateSchema()
@@ -87,7 +89,7 @@ class ConceptService(
 
     fun updateConcept(concept: Begrep, operations: List<JsonPatchOperation>, userId: String): Begrep {
         val patched = try {
-            patchBegrep(concept.copy(endringslogelement = null), operations)
+            patchBegrep(concept.copy(versjonsnr = concept.versjonsnr ?: newConceptVersion, endringslogelement = null), operations)
                 .copy(
                     id = concept.id,
                     ansvarligVirksomhet = concept.ansvarligVirksomhet)

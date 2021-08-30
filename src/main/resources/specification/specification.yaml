@@ -271,6 +271,9 @@ components:
         id:
           type: string
           description: system-generert id (GUID)
+        versjonsnr:
+          type: string
+          description: semantic version id (SemVer)
         status:
           $ref: "#/components/schemas/Status"
         anbefaltTerm:
