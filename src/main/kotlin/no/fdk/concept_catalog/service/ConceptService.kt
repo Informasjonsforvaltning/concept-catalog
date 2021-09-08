@@ -27,7 +27,7 @@ import javax.json.JsonException
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 
-private const val newConceptVersion = "0.0.1"
+const val NEW_CONCEPT_VERSION = "0.0.1"
 
 @Service
 class ConceptService(
@@ -45,7 +45,8 @@ class ConceptService(
         conceptRepository.findByIdOrNull(id)
 
     fun createConcept(concept: Begrep, userId: String): Begrep {
-        val newConcept = concept.copy(id = UUID.randomUUID().toString(), versjonsnr = newConceptVersion, status = Status.UTKAST)
+        val newConcept =
+            concept.copy(id = UUID.randomUUID().toString(), versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
                 .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
                 .updateLastChangedAndByWhom(userId)
 
@@ -64,7 +65,7 @@ class ConceptService(
 
         val validationResultsMap = mutableMapOf<Begrep, ValidationResults>()
         val newConcepts = concepts.map {
-            it.copy(id = UUID.randomUUID().toString(), versjonsnr = newConceptVersion, status = Status.UTKAST)
+            it.copy(id = UUID.randomUUID().toString(), versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
                 .updateLastChangedAndByWhom(userId)
         }.onEach {
             val validation = it.validateSchema()
@@ -81,7 +82,8 @@ class ConceptService(
                         .plus("\n")
                         .plus(entry.value.toString())
                         .plus("\n\n")
-                }.joinToString("\n"))
+                }.joinToString("\n")
+            )
         }
 
         conceptRepository.saveAll(newConcepts)
@@ -89,10 +91,14 @@ class ConceptService(
 
     fun updateConcept(concept: Begrep, operations: List<JsonPatchOperation>, userId: String): Begrep {
         val patched = try {
-            patchBegrep(concept.copy(versjonsnr = concept.versjonsnr ?: newConceptVersion, endringslogelement = null), operations)
+            patchBegrep(
+                concept.copy(versjonsnr = concept.versjonsnr ?: NEW_CONCEPT_VERSION, endringslogelement = null),
+                operations
+            )
                 .copy(
                     id = concept.id,
-                    ansvarligVirksomhet = concept.ansvarligVirksomhet)
+                    ansvarligVirksomhet = concept.ansvarligVirksomhet
+                )
                 .updateLastChangedAndByWhom(userId)
         } catch (ex: Exception) {
             logger.error("PATCH failed for ${concept.id}", ex)
@@ -105,20 +111,28 @@ class ConceptService(
         }
 
         val validation = patched.validateSchema()
-        if (!validation.isValid) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
-        }
 
-        if (patched.status != Status.UTKAST && !patched.isValid()) {
-            val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
-            logger.error("Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.", badRequestException)
-            throw badRequestException
+        when {
+            concept.status == Status.PUBLISERT -> throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Unable to patch published concepts"
+            )
+            !validation.isValid -> throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                validation.results().toString()
+            )
+            patched.status != Status.UTKAST && !patched.isValid() -> {
+                val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
+                logger.error(
+                    "Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.",
+                    badRequestException
+                )
+                throw badRequestException
+            }
+            patched.status == Status.PUBLISERT -> concept.ansvarligVirksomhet?.id?.let { publisherId ->
+                conceptPublisher.send(publisherId)
+            }
         }
-
-        if (patched.status == Status.PUBLISERT || concept.status == Status.PUBLISERT) {
-            concept.ansvarligVirksomhet?.id?.let { publisherId -> conceptPublisher.send(publisherId) }
-        }
-
         return conceptRepository.save(patched)
     }
 
@@ -127,7 +141,7 @@ class ConceptService(
         else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status)
 
     fun statusFromString(str: String?): Status? =
-        when(str?.lowercase()) {
+        when (str?.lowercase()) {
             Status.UTKAST.value -> Status.UTKAST
             Status.GODKJENT.value -> Status.GODKJENT
             Status.PUBLISERT.value -> Status.PUBLISERT
@@ -142,7 +156,8 @@ class ConceptService(
             .all()
     }
 
-    fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> = conceptRepository.findByTermLike(orgNumber, query).toList()
+    fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
+        conceptRepository.findByTermLike(orgNumber, query).toList()
 
     private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
