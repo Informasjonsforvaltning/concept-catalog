@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
+import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
 import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
@@ -166,6 +167,18 @@ class UpdateConcept : ApiTestContext() {
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/eksempel/en", value = "invalid"))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+    }
+
+    @Test
+    fun `Bad request when concept is published`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/kildebeskrivelse", value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList())))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_0.id}",
             port, mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
