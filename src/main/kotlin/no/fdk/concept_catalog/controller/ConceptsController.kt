@@ -69,6 +69,28 @@ class ConceptsController(
         }
     }
 
+    @PostMapping(value = ["/{id}/revisjon"])
+    fun createRevision(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable("id") id: String
+    ): ResponseEntity<Begrep> {
+        val concept = conceptService.getConceptById(id)
+        val userId = endpointPermissions.getUserId(jwt)
+        return when {
+            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            concept.status != Status.PUBLISERT -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            else -> {
+                logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet?.id}")
+                conceptService.createRevisionOfConcept(concept, userId).id
+                    ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
+                    ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+            }
+        }
+    }
+
     @DeleteMapping(value = ["/{id}"])
     fun deleteBegrepById(
         @AuthenticationPrincipal jwt: Jwt,
