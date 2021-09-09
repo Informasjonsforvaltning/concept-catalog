@@ -274,12 +274,12 @@ components:
         originaltBegrep:
           type: string
           description: id for the original concept (GUID)
+        revisjonAv:
+          type: string
+          description: id for the concept this is a revision of (GUID)
         versjonsnr:
           type: string
           description: semantic version id (SemVer)
-        revisjonAv:
-          type: string
-          description: version id for the concept this is a revision of (SemVer)
         status:
           $ref: "#/components/schemas/Status"
         anbefaltTerm:
