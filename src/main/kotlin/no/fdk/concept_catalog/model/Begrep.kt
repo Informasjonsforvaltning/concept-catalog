@@ -8,7 +8,9 @@ import java.time.LocalDate
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Begrep (
     val id: String? = null,
+    val originaltBegrep: String? = null,
     val versjonsnr: String? = null,
+    val revisjonAv: String? = null,
     val status: Status? = null,
     val anbefaltTerm: Term? = null,
     val tillattTerm: Map<String, List<String>>? = HashMap(),

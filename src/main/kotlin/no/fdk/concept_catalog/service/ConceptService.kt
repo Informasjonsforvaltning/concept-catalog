@@ -45,8 +45,9 @@ class ConceptService(
         conceptRepository.findByIdOrNull(id)
 
     fun createConcept(concept: Begrep, userId: String): Begrep {
+        val newId = UUID.randomUUID().toString()
         val newConcept =
-            concept.copy(id = UUID.randomUUID().toString(), versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
+            concept.copy(id = newId, originaltBegrep = newId, versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
                 .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
                 .updateLastChangedAndByWhom(userId)
 
@@ -65,7 +66,8 @@ class ConceptService(
 
         val validationResultsMap = mutableMapOf<Begrep, ValidationResults>()
         val newConcepts = concepts.map {
-            it.copy(id = UUID.randomUUID().toString(), versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
+            val newId = UUID.randomUUID().toString()
+            it.copy(id = newId, originaltBegrep = newId, versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
                 .updateLastChangedAndByWhom(userId)
         }.onEach {
             val validation = it.validateSchema()
@@ -97,6 +99,7 @@ class ConceptService(
             )
                 .copy(
                     id = concept.id,
+                    originaltBegrep = concept.originaltBegrep,
                     ansvarligVirksomhet = concept.ansvarligVirksomhet
                 )
                 .updateLastChangedAndByWhom(userId)
