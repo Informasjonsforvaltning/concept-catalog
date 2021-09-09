@@ -123,7 +123,7 @@ fun populate() {
     client.close()
 }
 
-fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED, BEGREP_TO_BE_UPDATED)
+fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED, BEGREP_TO_BE_UPDATED, BEGREP_4)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =

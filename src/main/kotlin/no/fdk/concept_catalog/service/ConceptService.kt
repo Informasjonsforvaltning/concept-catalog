@@ -59,6 +59,21 @@ class ConceptService(
         return conceptRepository.save(newConcept)
     }
 
+    fun createRevisionOfConcept(concept: Begrep, userId: String): Begrep =
+        concept.copy(
+            id = UUID.randomUUID().toString(),
+            versjonsnr = incrementSemVer(concept.versjonsnr),
+            revisjonAv = concept.id,
+            status = Status.UTKAST
+        )
+            .updateLastChangedAndByWhom(userId)
+            .let { conceptRepository.save(it) }
+
+    private fun incrementSemVer(semVer: String?): String =
+        semVer?.split(".")
+            ?.let { "${it[0]}.${it[1]}.${it[2].toInt() + 1}" }
+            ?: NEW_CONCEPT_VERSION
+
     fun createConcepts(concepts: List<Begrep>, userId: String) {
         concepts.mapNotNull { it.ansvarligVirksomhet?.id }
             .distinct()
@@ -77,7 +92,8 @@ class ConceptService(
         }
 
         if (validationResultsMap.isNotEmpty()) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST,
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
                 validationResultsMap.entries.mapIndexed { index, entry ->
                     "Begrep ${index}"
                         .plus(entry.key.anbefaltTerm?.navn?.let { " - $it" } ?: "")

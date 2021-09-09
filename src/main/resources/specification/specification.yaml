@@ -138,6 +138,27 @@ paths:
       responses:
         '204':
           description: No Content
+  /begreper/{id}/revisjon:
+    post:
+      tags:
+        - begrepskatalog
+      description: oppretter en revisjon av et publisert begrep
+      operationId: createRevision
+      parameters:
+        - name: id
+          in: path
+          description: id for tidligere publisert begrep
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: url til det nye begrepet
   /begreper/import:
     post:
       tags:
