@@ -22,6 +22,7 @@ interface ConceptRepository : MongoRepository<Begrep, String?> {
     fun countBegrepByAnsvarligVirksomhetId(orgNr: String): Long
     fun getBegrepByAnsvarligVirksomhetId(orgNr: String): List<Begrep>
     fun getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: Status): List<Begrep>
+    fun getByOriginaltBegrepAndStatus(originaltBegrep: String, status: Status): List<Begrep>
 
     @Query(matchTerm)
     fun findByTermLike(

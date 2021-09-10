@@ -114,3 +114,21 @@ val BEGREP_4 = Begrep(
         id = "111222333"
     )
 )
+
+val BEGREP_5 = Begrep(
+    id = "id5",
+    originaltBegrep = "id5",
+    versjonsnr = "1.0.0",
+    status = Status.PUBLISERT,
+    anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
+    kildebeskrivelse = Kildebeskrivelse(
+        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
+    bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
+    gyldigTom = LocalDate.of(2030, 10, 10),
+    kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
+    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
+    ansvarligVirksomhet = Virksomhet(
+        id = "111222333"
+    )
+)

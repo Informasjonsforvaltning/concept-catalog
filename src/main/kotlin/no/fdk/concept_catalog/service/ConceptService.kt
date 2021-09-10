@@ -140,7 +140,7 @@ class ConceptService(
                 HttpStatus.BAD_REQUEST,
                 validation.results().toString()
             )
-            patched.status != Status.UTKAST && !patched.isValid() -> {
+            isNonDraftAndNotValid(patched) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.",
@@ -154,6 +154,16 @@ class ConceptService(
         }
         return conceptRepository.save(patched)
     }
+
+    fun isNonDraftAndNotValid(concept: Begrep): Boolean =
+        when {
+            concept.status == Status.UTKAST -> false
+            !concept.isValid() -> true
+            else -> {
+                val published = getLastPublished(concept.originaltBegrep)
+                SemVer(published?.versjonsnr) >= SemVer(concept.versjonsnr)
+            }
+        }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
         if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
@@ -174,6 +184,13 @@ class ConceptService(
             .`as`(String::class.java)
             .all()
     }
+
+    private fun getLastPublished(originaltBegrep: String?): Begrep? =
+        if (originaltBegrep == null) null
+        else {
+            conceptRepository.getByOriginaltBegrepAndStatus(originaltBegrep, Status.PUBLISERT)
+                .maxByOrNull {concept -> SemVer(concept.versjonsnr) }
+        }
 
     fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
         conceptRepository.findByTermLike(orgNumber, query).toList()
@@ -214,4 +231,14 @@ private fun Begrep.updateLastChangedAndByWhom(userId: String): Begrep =
             brukerId = userId
         )
     )
+
+private class SemVer(semVer: String? = null): Comparable<SemVer> {
+    private val splitVersion = semVer?.split(".")?.map { it.toInt() }
+        ?: NEW_CONCEPT_VERSION.split(".").map { it.toInt() }
+
+    override fun compareTo(other: SemVer): Int =
+        compareValuesBy(this, other, { it.splitVersion[0] }, { it.splitVersion[1] }, { it.splitVersion[2] })
+
+}
+
 
