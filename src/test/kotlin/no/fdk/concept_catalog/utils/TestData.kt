@@ -16,8 +16,27 @@ val MONGO_ENV_VALUES: Map<String, String> = ImmutableMap.of(
     "MONGO_INITDB_ROOT_PASSWORD", MONGO_PASSWORD
 )
 
+val BEGREP_0_OLD = Begrep(
+    id = "id0-old",
+    originaltBegrep = "id0-old",
+    versjonsnr = SemVer(1, 0, 0),
+    status = Status.PUBLISERT,
+    anbefaltTerm = Term(navn = mapOf(Pair("nb", "old anbefaltTerm"))),
+    tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
+    frarådetTerm = mapOf(Pair("nb", listOf("old fraraadetTerm"))),
+    definisjon = Definisjon(tekst = mapOf(Pair("nb", "old definisjon"))),
+    kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+    merknad = mapOf(Pair("nn", listOf("old merknad"))),
+    ansvarligVirksomhet = Virksomhet(
+        id = "123456789"
+    ),
+    seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322")
+)
+
 val BEGREP_0 = Begrep(
     id = "id0",
+    originaltBegrep = "id0-old",
+    versjonsnr = SemVer(1, 0, 1),
     status = Status.PUBLISERT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm"))),
@@ -33,6 +52,8 @@ val BEGREP_0 = Begrep(
 
 val BEGREP_1 = Begrep(
     id = "id1",
+    originaltBegrep = "id1",
+    versjonsnr = SemVer(1, 0, 0),
     status = Status.GODKJENT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"))),
     ansvarligVirksomhet = Virksomhet(
@@ -42,6 +63,8 @@ val BEGREP_1 = Begrep(
 
 val BEGREP_2 = Begrep(
     id = "id2",
+    originaltBegrep = "id2",
+    versjonsnr = SemVer(0, 0, 1),
     status = Status.UTKAST,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
     ansvarligVirksomhet = Virksomhet(
@@ -51,6 +74,8 @@ val BEGREP_2 = Begrep(
 
 val BEGREP_WRONG_ORG = Begrep(
     id = "id-wrong-org",
+    originaltBegrep = "id-wrong-org",
+    versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "999888777"
     )
@@ -66,6 +91,8 @@ val BEGREP_TO_BE_CREATED = Begrep(
 
 val BEGREP_TO_BE_DELETED = Begrep(
     id = "id-to-be-deleted",
+    originaltBegrep = "id-to-be-deleted",
+    versjonsnr = SemVer(0, 0, 1),
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
@@ -74,6 +101,8 @@ val BEGREP_TO_BE_DELETED = Begrep(
 
 val BEGREP_TO_BE_UPDATED = Begrep(
     id = "id-to-be-updated",
+    originaltBegrep = "id-to-be-updated",
+    versjonsnr = SemVer(1, 0, 0),
     anbefaltTerm = Term(navn = mapOf(Pair("en", "To be updated"))),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
     bruksområde = mapOf(Pair("en", listOf("To be copied"))),
@@ -86,6 +115,8 @@ val BEGREP_TO_BE_UPDATED = Begrep(
 
 val BEGREP_3 = Begrep(
     id = "id3",
+    originaltBegrep = "id3",
+    versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
     kildebeskrivelse = Kildebeskrivelse(
@@ -102,6 +133,8 @@ val BEGREP_3 = Begrep(
 
 val BEGREP_4 = Begrep(
     id = "id4",
+    originaltBegrep = "id4",
+    versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
     kildebeskrivelse = Kildebeskrivelse(

@@ -185,13 +185,18 @@ class ConceptService(
             .all()
     }
 
-    private fun getLastPublished(originaltBegrep: String?): Begrep? =
+    fun getLastPublished(originaltBegrep: String?): Begrep? =
         if (originaltBegrep == null) null
         else {
             conceptRepository.getByOriginaltBegrepAndStatus(originaltBegrep, Status.PUBLISERT)
                 .filter { it.versjonsnr != null }
                 .maxByOrNull { concept -> concept.versjonsnr!! }
         }
+
+    fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
+        conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, Status.PUBLISERT)
+            .sortedByDescending {concept -> concept.versjonsnr }
+            .distinctBy {concept -> concept.originaltBegrep }
 
     fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
         conceptRepository.findByTermLike(orgNumber, query).toList()

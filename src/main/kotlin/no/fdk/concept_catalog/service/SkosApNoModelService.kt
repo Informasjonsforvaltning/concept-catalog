@@ -3,7 +3,6 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
-import no.fdk.concept_catalog.model.Status
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.ConceptBuilder
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.DefinitionBuilder
@@ -50,7 +49,7 @@ class SkosApNoModelService(
 
     fun buildModelForConcept(collectionId: String, id: String): Model {
         logger.debug("Building model for concept: {}", id)
-        val concept = conceptService.getConceptById(id)
+        val concept = conceptService.getLastPublished(id)
         val modelBuilder = instantiateModelBuilder()
 
         if (concept?.ansvarligVirksomhet?.id == collectionId) {
@@ -75,14 +74,14 @@ class SkosApNoModelService(
         val collectionBuilder = instantiateCollectionBuilder(modelBuilder, publisherId)
 
         conceptService
-                .getConceptsForOrganization(publisherId, Status.PUBLISERT)
+                .getLastPublishedForOrganization(publisherId)
                 .forEach { addConceptToCollection(collectionBuilder, it) }
     }
 
     private fun addConceptToCollection(collectionBuilder: CollectionBuilder, concept: Begrep) {
-        if (concept.id == null) logger.error("Concept has no id, will not serialize.", Exception("Concept has no id, will not serialize."))
+        if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
-            val conceptURI = getConceptUri(collectionBuilder, concept.id)
+            val conceptURI = getConceptUri(collectionBuilder, concept.originaltBegrep)
             val conceptBuilder = collectionBuilder
                 .conceptBuilder(conceptURI)
                 .identifier(conceptURI)
@@ -96,9 +95,9 @@ class SkosApNoModelService(
     }
 
     private fun addConceptToModel(modelBuilder: ModelBuilder, concept: Begrep) {
-        if (concept.id == null || concept.ansvarligVirksomhet?.id == null) logger.error("Concept has no id, will not serialize.", Exception("Concept has no id, will not serialize."))
+        if (concept.originaltBegrep == null || concept.ansvarligVirksomhet?.id == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
-            val conceptURI = "${getCollectionUri(concept.ansvarligVirksomhet.id)}/${concept.id}"
+            val conceptURI = "${getCollectionUri(concept.ansvarligVirksomhet.id)}/${concept.originaltBegrep}"
             val conceptBuilder = modelBuilder
                 .conceptBuilder(conceptURI)
                 .identifier(conceptURI)
