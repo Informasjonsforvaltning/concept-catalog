@@ -118,7 +118,7 @@ val BEGREP_4 = Begrep(
 val BEGREP_5 = Begrep(
     id = "id5",
     originaltBegrep = "id5",
-    versjonsnr = "1.0.0",
+    versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
     kildebeskrivelse = Kildebeskrivelse(

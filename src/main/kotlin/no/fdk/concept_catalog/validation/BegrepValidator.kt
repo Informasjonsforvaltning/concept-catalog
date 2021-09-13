@@ -34,7 +34,8 @@ fun Begrep.validateSchema() : ValidationData<Void> {
 }
 
 fun Begrep.isValid(): Boolean = when {
-    !validPublishedSemVer(versjonsnr) -> false
+    versjonsnr == null -> false
+    versjonsnr.major == 0 -> false
     status == null -> false
     status == Status.UTKAST -> false
     anbefaltTerm == null -> false
@@ -77,10 +78,3 @@ private fun isValidValidityPeriod(validFrom: LocalDate?, validTo: LocalDate?): B
     validFrom != null && validTo != null && validFrom.isAfter(validTo) -> false
     else -> true
 }
-
-fun validPublishedSemVer(semVer: String?): Boolean =
-    when {
-        semVer == null -> false
-        semVer.split(".")[0] == "0" -> false
-        else -> Regex("""^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$""").matches(semVer)
-    }

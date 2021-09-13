@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.ApplicationProperties
-import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.model.Endringslogelement
-import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isValid
 import no.fdk.concept_catalog.validation.validateSchema
@@ -27,7 +24,7 @@ import javax.json.JsonException
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 
-const val NEW_CONCEPT_VERSION = "0.0.1"
+val NEW_CONCEPT_VERSION = SemVer(0, 0, 1)
 
 @Service
 class ConceptService(
@@ -69,10 +66,12 @@ class ConceptService(
             .updateLastChangedAndByWhom(userId)
             .let { conceptRepository.save(it) }
 
-    private fun incrementSemVer(semVer: String?): String =
-        semVer?.split(".")
-            ?.let { "${it[0]}.${it[1]}.${it[2].toInt() + 1}" }
-            ?: NEW_CONCEPT_VERSION
+    private fun incrementSemVer(semVer: SemVer?): SemVer =
+        SemVer(
+            major = semVer?.major ?: NEW_CONCEPT_VERSION.major,
+            minor = semVer?.minor ?: NEW_CONCEPT_VERSION.minor,
+            patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch
+        )
 
     fun createConcepts(concepts: List<Begrep>, userId: String) {
         concepts.mapNotNull { it.ansvarligVirksomhet?.id }
@@ -155,15 +154,16 @@ class ConceptService(
         return conceptRepository.save(patched)
     }
 
-    fun isNonDraftAndNotValid(concept: Begrep): Boolean =
-        when {
+    fun isNonDraftAndNotValid(concept: Begrep): Boolean {
+        val published = getLastPublished(concept.originaltBegrep)
+        return when {
             concept.status == Status.UTKAST -> false
+            concept.versjonsnr == null -> true
             !concept.isValid() -> true
-            else -> {
-                val published = getLastPublished(concept.originaltBegrep)
-                SemVer(published?.versjonsnr) >= SemVer(concept.versjonsnr)
-            }
+            published?.versjonsnr == null -> false
+            else -> published.versjonsnr >= concept.versjonsnr
         }
+    }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
         if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
@@ -189,7 +189,8 @@ class ConceptService(
         if (originaltBegrep == null) null
         else {
             conceptRepository.getByOriginaltBegrepAndStatus(originaltBegrep, Status.PUBLISERT)
-                .maxByOrNull {concept -> SemVer(concept.versjonsnr) }
+                .filter { it.versjonsnr != null }
+                .maxByOrNull { concept -> concept.versjonsnr!! }
         }
 
     fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
@@ -231,14 +232,3 @@ private fun Begrep.updateLastChangedAndByWhom(userId: String): Begrep =
             brukerId = userId
         )
     )
-
-private class SemVer(semVer: String? = null): Comparable<SemVer> {
-    private val splitVersion = semVer?.split(".")?.map { it.toInt() }
-        ?: NEW_CONCEPT_VERSION.split(".").map { it.toInt() }
-
-    override fun compareTo(other: SemVer): Int =
-        compareValuesBy(this, other, { it.splitVersion[0] }, { it.splitVersion[1] }, { it.splitVersion[2] })
-
-}
-
-

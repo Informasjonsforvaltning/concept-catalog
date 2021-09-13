@@ -299,8 +299,7 @@ components:
           type: string
           description: id for the concept this is a revision of (GUID)
         versjonsnr:
-          type: string
-          description: semantic version id (SemVer)
+          $ref: "#/components/schemas/SemVer"
         status:
           $ref: "#/components/schemas/Status"
         anbefaltTerm:
@@ -414,6 +413,22 @@ components:
       properties:
         melding:
           type: string
+          nullable: false
+    SemVer:
+      type: object
+      required:
+        - major
+        - minor
+        - patch
+      properties:
+        major:
+          type: integer
+          nullable: false
+        minor:
+          type: integer
+          nullable: false
+        patch:
+          type: integer
           nullable: false
     Endringslogelement:
       type: object
