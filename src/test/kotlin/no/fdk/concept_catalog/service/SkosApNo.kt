@@ -3,7 +3,6 @@ package no.fdk.concept_catalog.service
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import no.fdk.concept_catalog.configuration.ApplicationProperties
-import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_3
 import no.fdk.concept_catalog.utils.BEGREP_4
@@ -24,7 +23,7 @@ class SkosApNo {
 
         whenever(applicationProperties.collectionBaseUri)
             .thenReturn("https://registrering-begrep.fellesdatakatalog.brreg.no")
-        whenever(conceptService.getConceptsForOrganization("111222333", Status.PUBLISERT))
+        whenever(conceptService.getLastPublishedForOrganization("111222333"))
             .thenReturn(listOf(BEGREP_3, BEGREP_4))
 
         val model = skosApNo.buildModelForPublishersCollection("111222333")
@@ -39,9 +38,9 @@ class SkosApNo {
             .thenReturn("https://registrering-begrep.fellesdatakatalog.brreg.no")
         whenever(conceptService.getAllPublisherIds())
             .thenReturn(listOf("123456789", "111222333"))
-        whenever(conceptService.getConceptsForOrganization("123456789", Status.PUBLISERT))
+        whenever(conceptService.getLastPublishedForOrganization("123456789"))
             .thenReturn(listOf(BEGREP_0))
-        whenever(conceptService.getConceptsForOrganization("111222333", Status.PUBLISERT))
+        whenever(conceptService.getLastPublishedForOrganization("111222333"))
             .thenReturn(listOf(BEGREP_3, BEGREP_4))
 
         val model = skosApNo.buildModelForAllCollections()

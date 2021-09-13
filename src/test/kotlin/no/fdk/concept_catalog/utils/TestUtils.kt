@@ -123,12 +123,15 @@ fun populate() {
     client.close()
 }
 
-fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED, BEGREP_TO_BE_UPDATED, BEGREP_4)
+fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED,
+    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("_id", id)
+        .append("originaltBegrep", originaltBegrep)
+        .append("versjonsnr", versjonsnr?.mapDBO())
         .append("status", status?.toString())
         .append("anbefaltTerm", anbefaltTerm?.mapDBO())
         .append("tillattTerm", tillattTerm)
@@ -157,3 +160,9 @@ private fun Kildebeskrivelse.mapDBO(): org.bson.Document =
 private fun Virksomhet.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("_id", id)
+
+private fun SemVer.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("major", major)
+        .append("minor", minor)
+        .append("patch", patch)

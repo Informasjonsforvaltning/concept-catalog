@@ -28,7 +28,7 @@ class GetSkosApNoConcept: ApiTestContext() {
     fun `Get SKOS-AP-NO Concept`() {
         val expected = TestResponseReader().parseTurtleFile("concept.ttl")
 
-        val turtle = apiGet(port, "/collections/123456789/concepts/id0", MediaType.valueOf("text/turtle"))
+        val turtle = apiGet(port, "/collections/123456789/concepts/id0-old", MediaType.valueOf("text/turtle"))
 
         assertTrue { HttpStatus.OK.value() == turtle["status"] }
 
