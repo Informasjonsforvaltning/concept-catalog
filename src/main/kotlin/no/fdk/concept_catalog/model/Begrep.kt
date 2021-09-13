@@ -9,7 +9,7 @@ import java.time.LocalDate
 data class Begrep (
     val id: String? = null,
     val originaltBegrep: String? = null,
-    val versjonsnr: String? = null,
+    val versjonsnr: SemVer? = null,
     val revisjonAv: String? = null,
     val status: Status? = null,
     val anbefaltTerm: Term? = null,
@@ -29,3 +29,8 @@ data class Begrep (
     val endringslogelement: Endringslogelement? = null,
     val seOgså: List<String>? = ArrayList()
 )
+
+data class SemVer(val major: Int, val minor: Int, val patch: Int): Comparable<SemVer> {
+    override fun compareTo(other: SemVer): Int =
+        compareValuesBy(this, other, { it.major }, { it.minor }, { it.patch })
+}
