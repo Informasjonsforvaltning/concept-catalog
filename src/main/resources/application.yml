@@ -15,7 +15,7 @@ spring:
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
 application:
-  collectionBaseUri: ${COLLECTION_BASE_URI:https://registrering-begrep.fellesdatakatalog.brreg.no}
+  collectionBaseUri: ${COLLECTION_BASE_URI:https://concept-catalog.fellesdatakatalog.digdir.no}
 
 ---
 spring:

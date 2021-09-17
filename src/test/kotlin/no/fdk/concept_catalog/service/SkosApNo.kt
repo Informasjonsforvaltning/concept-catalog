@@ -22,7 +22,7 @@ class SkosApNo {
         val expected = TestResponseReader().parseTurtleFile("collection_1.ttl")
 
         whenever(applicationProperties.collectionBaseUri)
-            .thenReturn("https://registrering-begrep.fellesdatakatalog.brreg.no")
+            .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptService.getLastPublishedForOrganization("111222333"))
             .thenReturn(listOf(BEGREP_3, BEGREP_4))
 
@@ -35,7 +35,7 @@ class SkosApNo {
         val expected = TestResponseReader().parseTurtleFile("all_collections.ttl")
 
         whenever(applicationProperties.collectionBaseUri)
-            .thenReturn("https://registrering-begrep.fellesdatakatalog.brreg.no")
+            .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptService.getAllPublisherIds())
             .thenReturn(listOf("123456789", "111222333"))
         whenever(conceptService.getLastPublishedForOrganization("123456789"))
