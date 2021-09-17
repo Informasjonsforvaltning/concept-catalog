@@ -16,7 +16,7 @@ tags:
   - name: skos-ap-no
     description: SKOS-AP-NO API
 servers:
-  - url: 'https://registrering-begrep-api.fellesdatakatalog.digdir.no'
+  - url: 'https://concept-catalog.fellesdatakatalog.digdir.no'
     description: Produksjonsversjon av API server
 paths:
   /begreper:

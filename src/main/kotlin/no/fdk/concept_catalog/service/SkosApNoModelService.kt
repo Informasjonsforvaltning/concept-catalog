@@ -124,7 +124,7 @@ class SkosApNoModelService(
     }
 
     private fun getCollectionUri(publisherId: String): String {
-        return "${applicationProperties.collectionBaseUri}/$publisherId"
+        return "${applicationProperties.collectionBaseUri}/collections/$publisherId"
     }
 
     private fun getConceptUri(collectionBuilder: CollectionBuilder, conceptId: String): String {

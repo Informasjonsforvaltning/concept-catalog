@@ -25,7 +25,7 @@ class Rabbit {
     @Test
     fun `Publish collection when first concept is created`() {
         whenever(applicationProperties.collectionBaseUri)
-            .thenReturn("https://registrering-begrep.fellesdatakatalog.brreg.no")
+            .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptRepository.countBegrepByAnsvarligVirksomhetId("123456789"))
             .thenReturn(0L)
         whenever(conceptRepository.save(any())).thenReturn(BEGREP_0.toDBO())
@@ -35,14 +35,14 @@ class Rabbit {
         argumentCaptor<String, String>().apply {
             verify(conceptPublisher, times(1)).sendNewDataSource(first.capture(), second.capture())
             assertEquals("123456789", first.firstValue)
-            assertEquals("https://registrering-begrep.fellesdatakatalog.brreg.no/collections/123456789", second.firstValue)
+            assertEquals("https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789", second.firstValue)
         }
     }
 
     @Test
     fun `Only publish collection for publishers with no concepts in db`() {
         whenever(applicationProperties.collectionBaseUri)
-            .thenReturn("https://registrering-begrep.fellesdatakatalog.brreg.no")
+            .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptRepository.countBegrepByAnsvarligVirksomhetId("123456789"))
             .thenReturn(0L)
         whenever(conceptRepository.countBegrepByAnsvarligVirksomhetId("111222333"))
@@ -58,8 +58,8 @@ class Rabbit {
             verify(conceptPublisher, times(2)).sendNewDataSource(first.capture(), second.capture())
             assertEquals("123456789", first.firstValue)
             assertEquals("111222333", first.secondValue)
-            assertEquals("https://registrering-begrep.fellesdatakatalog.brreg.no/collections/123456789", second.firstValue)
-            assertEquals("https://registrering-begrep.fellesdatakatalog.brreg.no/collections/111222333", second.secondValue)
+            assertEquals("https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789", second.firstValue)
+            assertEquals("https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333", second.secondValue)
         }
     }
 
