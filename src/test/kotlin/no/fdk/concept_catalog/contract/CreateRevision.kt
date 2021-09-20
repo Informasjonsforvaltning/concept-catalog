@@ -3,6 +3,8 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.SemVer
+import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
@@ -28,7 +30,10 @@ class CreateRevision : ApiTestContext() {
 
     @Test
     fun `Unauthorized when access token is not included`() {
-        val rsp = authorizedRequest("/begreper/${BEGREP_4.id}/revisjon", port, null, null, HttpMethod.POST)
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_4.id}/revisjon", port,
+            mapper.writeValueAsString(BEGREP_REVISION), null, HttpMethod.POST
+        )
 
         assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
     }
@@ -36,7 +41,7 @@ class CreateRevision : ApiTestContext() {
     @Test
     fun `Forbidden for read access`() {
         val rsp = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon", port, null,
+            "/begreper/${BEGREP_4.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
 
@@ -46,7 +51,7 @@ class CreateRevision : ApiTestContext() {
     @Test
     fun `Bad request when attempting to create revision of unpublished concept`() {
         val rsp = authorizedRequest(
-            "/begreper/${BEGREP_2.id}/revisjon", port, null,
+            "/begreper/${BEGREP_2.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
         assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
@@ -60,7 +65,7 @@ class CreateRevision : ApiTestContext() {
         )
 
         val rsp = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon", port, null,
+            "/begreper/${BEGREP_4.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
         assertEquals(HttpStatus.CREATED.value(), rsp["status"])
@@ -73,5 +78,13 @@ class CreateRevision : ApiTestContext() {
         val beforeList: List<Begrep> = mapper.readValue(before["body"] as String)
         val afterList: List<Begrep> = mapper.readValue(after["body"] as String)
         assertEquals(beforeList.size + 1, afterList.size)
+
+        val revision: Begrep? = afterList.firstOrNull { it.id != "id4" }
+
+        assertEquals(BEGREP_4.originaltBegrep, revision?.originaltBegrep)
+        assertEquals(SemVer(1, 0, 1), revision?.versjonsnr)
+        assertEquals(Status.UTKAST, revision?.status)
+        assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
+        assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
     }
 }

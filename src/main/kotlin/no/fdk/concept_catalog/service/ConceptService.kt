@@ -56,12 +56,14 @@ class ConceptService(
         return conceptRepository.save(newConcept)
     }
 
-    fun createRevisionOfConcept(concept: Begrep, userId: String): Begrep =
-        concept.copy(
+    fun createRevisionOfConcept(revision: Begrep, concept: Begrep, userId: String): Begrep =
+        revision.copy(
             id = UUID.randomUUID().toString(),
+            originaltBegrep = concept.originaltBegrep,
             versjonsnr = incrementSemVer(concept.versjonsnr),
             revisjonAv = concept.id,
-            status = Status.UTKAST
+            status = Status.UTKAST,
+            ansvarligVirksomhet = concept.ansvarligVirksomhet
         )
             .updateLastChangedAndByWhom(userId)
             .let { conceptRepository.save(it) }
