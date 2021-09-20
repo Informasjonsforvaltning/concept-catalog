@@ -72,7 +72,8 @@ class ConceptsController(
     @PostMapping(value = ["/{id}/revisjon"])
     fun createRevision(
         @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable("id") id: String
+        @PathVariable("id") id: String,
+        @RequestBody revision: Begrep
     ): ResponseEntity<Begrep> {
         val concept = conceptService.getConceptById(id)
         val userId = endpointPermissions.getUserId(jwt)
@@ -84,7 +85,7 @@ class ConceptsController(
             concept.status != Status.PUBLISERT -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet?.id}")
-                conceptService.createRevisionOfConcept(concept, userId).id
+                conceptService.createRevisionOfConcept(revision, concept, userId).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             }
