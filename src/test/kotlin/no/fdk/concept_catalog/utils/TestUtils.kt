@@ -96,6 +96,31 @@ fun authorizedRequest(
 
 }
 
+fun Begrep.toDBO(): BegrepDBO =
+    BegrepDBO(
+        id = id!!,
+        originaltBegrep = originaltBegrep!!,
+        versjonsnr = versjonsnr!!,
+        revisjonAv,
+        status,
+        anbefaltTerm,
+        tillattTerm,
+        frarådetTerm,
+        definisjon,
+        kildebeskrivelse,
+        merknad,
+        ansvarligVirksomhet,
+        eksempel,
+        fagområde,
+        bruksområde,
+        omfang,
+        kontaktpunkt,
+        gyldigFom,
+        gyldigTom,
+        endringslogelement,
+        seOgså
+    )
+
 class TestResponseReader {
     private fun resourceAsReader(resourceName: String): Reader {
         return InputStreamReader(javaClass.classLoader.getResourceAsStream(resourceName)!!, StandardCharsets.UTF_8)
@@ -143,6 +168,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("eksempel", eksempel)
         .append("ansvarligVirksomhet", ansvarligVirksomhet?.mapDBO())
         .append("seOgså", seOgså)
+        .append("fagområde", fagområde)
 
 private fun Term.mapDBO(): org.bson.Document =
     org.bson.Document()

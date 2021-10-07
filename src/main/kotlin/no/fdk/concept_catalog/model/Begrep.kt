@@ -5,6 +5,30 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
 
 @Document(collection = "begrep")
+data class BegrepDBO (
+    val id: String,
+    val originaltBegrep: String,
+    val versjonsnr: SemVer,
+    val revisjonAv: String?,
+    val status: Status?,
+    val anbefaltTerm: Term?,
+    val tillattTerm: Map<String, List<String>>?,
+    val frarådetTerm: Map<String, List<String>>?,
+    val definisjon: Definisjon?,
+    val kildebeskrivelse: Kildebeskrivelse?,
+    val merknad: Map<String, List<String>>?,
+    val ansvarligVirksomhet: Virksomhet?,
+    val eksempel: Map<String, List<String>>?,
+    val fagområde: Map<String, String>?,
+    val bruksområde: Map<String, List<String>>?,
+    val omfang: URITekst?,
+    val kontaktpunkt: Kontaktpunkt?,
+    val gyldigFom: LocalDate?,
+    val gyldigTom: LocalDate?,
+    val endringslogelement: Endringslogelement?,
+    val seOgså: List<String>?
+)
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Begrep (
     val id: String? = null,

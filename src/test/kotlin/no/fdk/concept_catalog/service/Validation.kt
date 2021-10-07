@@ -8,6 +8,7 @@ import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.utils.BEGREP_5
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.MongoOperations
@@ -27,7 +28,7 @@ class Validation {
     @Test
     fun `New non draft concepts has higher version than what is published`() {
         whenever(conceptRepository.getByOriginaltBegrepAndStatus("id5", Status.PUBLISERT))
-            .thenReturn(listOf(BEGREP_5, BEGREP_5.copy(id = "id7", versjonsnr = SemVer(12,10, 0)), BEGREP_5.copy(id = "id6", versjonsnr = SemVer(9, 9, 1))))
+            .thenReturn(listOf(BEGREP_5, BEGREP_5.copy(id = "id7", versjonsnr = SemVer(12,10, 0)), BEGREP_5.copy(id = "id6", versjonsnr = SemVer(9, 9, 1))).map { it.toDBO() })
 
         assertFalse { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 10, 1))) }
         assertFalse { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 11, 0))) }
