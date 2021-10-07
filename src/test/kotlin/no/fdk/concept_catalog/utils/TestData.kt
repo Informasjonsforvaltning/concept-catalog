@@ -38,6 +38,7 @@ val BEGREP_0 = Begrep(
     originaltBegrep = "id0-old",
     versjonsnr = SemVer(1, 0, 1),
     status = Status.PUBLISERT,
+    erSistPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm"))),
     frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm"))),

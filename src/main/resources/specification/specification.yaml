@@ -306,6 +306,9 @@ components:
           description: id for the concept this is a revision of (GUID)
         versjonsnr:
           $ref: "#/components/schemas/SemVer"
+        erSistPublisert:
+          type: boolean
+          description: shows if the concept is the highest published version
         status:
           $ref: "#/components/schemas/Status"
         anbefaltTerm:

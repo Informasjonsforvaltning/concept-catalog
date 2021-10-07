@@ -36,7 +36,7 @@ class ConceptService(
         conceptRepository.delete(concept)
 
     fun getConceptById(id: String): Begrep? =
-        conceptRepository.findByIdOrNull(id)?.toDTO()
+        conceptRepository.findByIdOrNull(id)?.withHighestVersionDTO()
 
     fun getConceptDBO(id: String): BegrepDBO? =
         conceptRepository.findByIdOrNull(id)
@@ -51,14 +51,14 @@ class ConceptService(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
         }
 
-        return conceptRepository.save(newConcept).toDTO()
+        return conceptRepository.save(newConcept).withHighestVersionDTO()
     }
 
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, userId: String): Begrep =
         concept.let { revisionValues.createRevision(it) }
             .updateLastChangedAndByWhom(userId)
             .let { conceptRepository.save(it) }
-            .toDTO()
+            .withHighestVersionDTO()
 
     fun createConcepts(concepts: List<Begrep>, userId: String) {
         concepts.mapNotNull { it.ansvarligVirksomhet?.id }
@@ -124,7 +124,7 @@ class ConceptService(
                 HttpStatus.BAD_REQUEST,
                 validation.results().toString()
             )
-            isNonDraftAndNotValid(patched.toDTO()) -> {
+            isNonDraftAndNotValid(patched.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.",
@@ -136,7 +136,7 @@ class ConceptService(
                 conceptPublisher.send(publisherId)
             }
         }
-        return conceptRepository.save(patched).toDTO()
+        return conceptRepository.save(patched).withHighestVersionDTO()
     }
 
     fun isNonDraftAndNotValid(concept: Begrep): Boolean {
@@ -151,8 +151,8 @@ class ConceptService(
     }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
-        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.toDTO() }
-        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.toDTO() }
+        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.withHighestVersionDTO() }
+        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.withHighestVersionDTO() }
 
     fun statusFromString(str: String?): Status? =
         when (str?.lowercase()) {
@@ -175,17 +175,17 @@ class ConceptService(
         else {
             conceptRepository.getByOriginaltBegrepAndStatus(originaltBegrep, Status.PUBLISERT)
                 .maxByOrNull { concept -> concept.versjonsnr }
-                ?.toDTO()
+                ?.let { it.toDTO(it.versjonsnr) }
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
         conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, Status.PUBLISERT)
             .sortedByDescending {concept -> concept.versjonsnr }
             .distinctBy {concept -> concept.originaltBegrep }
-            .map { it.toDTO() }
+            .map { it.toDTO(it.versjonsnr) }
 
     fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
-        conceptRepository.findByTermLike(orgNumber, query).map { it.toDTO() }.toList()
+        conceptRepository.findByTermLike(orgNumber, query).map { it.withHighestVersionDTO() }.toList()
 
     private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
@@ -214,4 +214,8 @@ class ConceptService(
         }
         return begrep
     }
+
+    private fun BegrepDBO.withHighestVersionDTO(): Begrep =
+        toDTO(getLastPublished(originaltBegrep)?.versjonsnr)
+
 }

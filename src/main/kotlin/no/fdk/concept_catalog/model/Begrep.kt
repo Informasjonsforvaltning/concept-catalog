@@ -34,6 +34,7 @@ data class Begrep (
     val id: String? = null,
     val originaltBegrep: String? = null,
     val versjonsnr: SemVer? = null,
+    val erSistPublisert: Boolean = false,
     val revisjonAv: String? = null,
     val status: Status? = null,
     val anbefaltTerm: Term? = null,
