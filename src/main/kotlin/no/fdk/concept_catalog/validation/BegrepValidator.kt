@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Virksomhet
 import org.openapi4j.parser.OpenApi3Parser
@@ -24,7 +25,7 @@ private val mapper = ObjectMapper()
 private val openApi: OpenApi3? = OpenApi3Parser()
     .parse(ClassPathResource("specification/specification.yaml").url, true)
 
-fun Begrep.validateSchema() : ValidationData<Void> {
+fun BegrepDBO.validateSchema() : ValidationData<Void> {
     val json = mapper.writeValueAsString(this)
     val schema = openApi!!.components.getSchema("Begrep")
     val validator = SchemaValidator(null, flattenSchema(schema).toNode())

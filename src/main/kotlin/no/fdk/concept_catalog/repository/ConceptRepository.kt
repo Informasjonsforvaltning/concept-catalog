@@ -1,6 +1,6 @@
 package no.fdk.concept_catalog.repository
 
-import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.Status
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.data.mongodb.repository.Query
@@ -18,15 +18,15 @@ const val matchTerm =
     "}"
 
 @Repository
-interface ConceptRepository : MongoRepository<Begrep, String?> {
+interface ConceptRepository : MongoRepository<BegrepDBO, String?> {
     fun countBegrepByAnsvarligVirksomhetId(orgNr: String): Long
-    fun getBegrepByAnsvarligVirksomhetId(orgNr: String): List<Begrep>
-    fun getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: Status): List<Begrep>
-    fun getByOriginaltBegrepAndStatus(originaltBegrep: String, status: Status): List<Begrep>
+    fun getBegrepByAnsvarligVirksomhetId(orgNr: String): List<BegrepDBO>
+    fun getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: Status): List<BegrepDBO>
+    fun getByOriginaltBegrepAndStatus(originaltBegrep: String, status: Status): List<BegrepDBO>
 
     @Query(matchTerm)
     fun findByTermLike(
         @Param("id") ansvarligVirksomhetId: String,
         @Param("query") query: String
-    ) : Set<Begrep>
+    ) : Set<BegrepDBO>
 }

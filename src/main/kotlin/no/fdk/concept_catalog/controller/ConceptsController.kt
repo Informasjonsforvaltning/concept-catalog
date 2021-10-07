@@ -75,7 +75,7 @@ class ConceptsController(
         @PathVariable("id") id: String,
         @RequestBody revision: Begrep
     ): ResponseEntity<Begrep> {
-        val concept = conceptService.getConceptById(id)
+        val concept = conceptService.getConceptDBO(id)
         val userId = endpointPermissions.getUserId(jwt)
         return when {
             userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
@@ -97,7 +97,7 @@ class ConceptsController(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable("id") id: String
     ): ResponseEntity<Unit> {
-        val concept = conceptService.getConceptById(id)
+        val concept = conceptService.getConceptDBO(id)
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
@@ -150,12 +150,12 @@ class ConceptsController(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
-    fun setBegrepById(
+    fun patchBegrepById(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable("id") id: String,
         @RequestBody patchOperations: List<JsonPatchOperation>
     ): ResponseEntity<Begrep> {
-        val concept = conceptService.getConceptById(id)
+        val concept = conceptService.getConceptDBO(id)
         val userId = endpointPermissions.getUserId(jwt)
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)

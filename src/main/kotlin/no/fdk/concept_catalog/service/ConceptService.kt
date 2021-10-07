@@ -17,14 +17,11 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.io.StringReader
-import java.time.ZonedDateTime
 import java.util.*
 import javax.json.Json
 import javax.json.JsonException
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
-
-val NEW_CONCEPT_VERSION = SemVer(0, 0, 1)
 
 @Service
 class ConceptService(
@@ -35,16 +32,17 @@ class ConceptService(
     private val mapper: ObjectMapper
 ) {
 
-    fun deleteConcept(concept: Begrep) =
+    fun deleteConcept(concept: BegrepDBO) =
         conceptRepository.delete(concept)
 
     fun getConceptById(id: String): Begrep? =
+        conceptRepository.findByIdOrNull(id)?.toDTO()
+
+    fun getConceptDBO(id: String): BegrepDBO? =
         conceptRepository.findByIdOrNull(id)
 
     fun createConcept(concept: Begrep, userId: String): Begrep {
-        val newId = UUID.randomUUID().toString()
-        val newConcept =
-            concept.copy(id = newId, originaltBegrep = newId, versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
+        val newConcept: BegrepDBO = concept.mapForCreation()
                 .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
                 .updateLastChangedAndByWhom(userId)
 
@@ -53,39 +51,24 @@ class ConceptService(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
         }
 
-        return conceptRepository.save(newConcept)
+        return conceptRepository.save(newConcept).toDTO()
     }
 
-    fun createRevisionOfConcept(revision: Begrep, concept: Begrep, userId: String): Begrep =
-        revision.copy(
-            id = UUID.randomUUID().toString(),
-            originaltBegrep = concept.originaltBegrep,
-            versjonsnr = incrementSemVer(concept.versjonsnr),
-            revisjonAv = concept.id,
-            status = Status.UTKAST,
-            ansvarligVirksomhet = concept.ansvarligVirksomhet
-        )
+    fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, userId: String): Begrep =
+        concept.let { revisionValues.createRevision(it) }
             .updateLastChangedAndByWhom(userId)
             .let { conceptRepository.save(it) }
-
-    private fun incrementSemVer(semVer: SemVer?): SemVer =
-        SemVer(
-            major = semVer?.major ?: NEW_CONCEPT_VERSION.major,
-            minor = semVer?.minor ?: NEW_CONCEPT_VERSION.minor,
-            patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch
-        )
+            .toDTO()
 
     fun createConcepts(concepts: List<Begrep>, userId: String) {
         concepts.mapNotNull { it.ansvarligVirksomhet?.id }
             .distinct()
             .forEach { publishNewCollectionIfFirstSavedConcept(it) }
 
-        val validationResultsMap = mutableMapOf<Begrep, ValidationResults>()
-        val newConcepts = concepts.map {
-            val newId = UUID.randomUUID().toString()
-            it.copy(id = newId, originaltBegrep = newId, versjonsnr = NEW_CONCEPT_VERSION, status = Status.UTKAST)
-                .updateLastChangedAndByWhom(userId)
-        }.onEach {
+        val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
+        val newConcepts = concepts
+            .map { it.mapForCreation().updateLastChangedAndByWhom(userId) }
+            .onEach {
             val validation = it.validateSchema()
             if (!validation.isValid) {
                 validationResultsMap[it] = validation.results()
@@ -108,10 +91,10 @@ class ConceptService(
         conceptRepository.saveAll(newConcepts)
     }
 
-    fun updateConcept(concept: Begrep, operations: List<JsonPatchOperation>, userId: String): Begrep {
+    fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, userId: String): Begrep {
         val patched = try {
             patchBegrep(
-                concept.copy(versjonsnr = concept.versjonsnr ?: NEW_CONCEPT_VERSION, endringslogelement = null),
+                concept.copy(endringslogelement = null),
                 operations
             )
                 .copy(
@@ -141,7 +124,7 @@ class ConceptService(
                 HttpStatus.BAD_REQUEST,
                 validation.results().toString()
             )
-            isNonDraftAndNotValid(patched) -> {
+            isNonDraftAndNotValid(patched.toDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.",
@@ -153,7 +136,7 @@ class ConceptService(
                 conceptPublisher.send(publisherId)
             }
         }
-        return conceptRepository.save(patched)
+        return conceptRepository.save(patched).toDTO()
     }
 
     fun isNonDraftAndNotValid(concept: Begrep): Boolean {
@@ -168,8 +151,8 @@ class ConceptService(
     }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
-        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
-        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status)
+        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.toDTO() }
+        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.toDTO() }
 
     fun statusFromString(str: String?): Status? =
         when (str?.lowercase()) {
@@ -191,17 +174,18 @@ class ConceptService(
         if (originaltBegrep == null) null
         else {
             conceptRepository.getByOriginaltBegrepAndStatus(originaltBegrep, Status.PUBLISERT)
-                .filter { it.versjonsnr != null }
-                .maxByOrNull { concept -> concept.versjonsnr!! }
+                .maxByOrNull { concept -> concept.versjonsnr }
+                ?.toDTO()
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
         conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, Status.PUBLISERT)
             .sortedByDescending {concept -> concept.versjonsnr }
             .distinctBy {concept -> concept.originaltBegrep }
+            .map { it.toDTO() }
 
     fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
-        conceptRepository.findByTermLike(orgNumber, query).toList()
+        conceptRepository.findByTermLike(orgNumber, query).map { it.toDTO() }.toList()
 
     private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
@@ -218,7 +202,7 @@ class ConceptService(
         }
     }
 
-    private fun patchBegrep(begrep: Begrep, operations: List<JsonPatchOperation>): Begrep {
+    private fun patchBegrep(begrep: BegrepDBO, operations: List<JsonPatchOperation>): BegrepDBO {
         if (operations.isNotEmpty()) {
             with(mapper) {
                 val changes = Json.createReader(StringReader(writeValueAsString(operations))).readArray()
@@ -231,11 +215,3 @@ class ConceptService(
         return begrep
     }
 }
-
-private fun Begrep.updateLastChangedAndByWhom(userId: String): Begrep =
-    copy(
-        endringslogelement = Endringslogelement(
-            endringstidspunkt = ZonedDateTime.now().toInstant(),
-            brukerId = userId
-        )
-    )
