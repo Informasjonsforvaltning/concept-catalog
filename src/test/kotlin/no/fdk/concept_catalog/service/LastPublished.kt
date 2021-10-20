@@ -14,6 +14,8 @@ import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.MongoOperations
+import java.util.*
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @Tag("unit")
@@ -42,6 +44,26 @@ class LastPublished {
         assertTrue { result.contains("id3-2") }
         assertTrue { result.contains("id4-2") }
         assertTrue { result.contains("id5-2") }
+    }
+
+    @Test
+    fun `Sets revision of last published for relevant concepts`() {
+        val newPublished = BEGREP_3.copy(id = "id3-1", versjonsnr = SemVer(1, 9, 1), revisjonAv = "id3")
+        val invalid = BEGREP_3.copy(id = "id3-2", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3", status = Status.GODKJENT, revisjonAvSistPublisert = false)
+        val ok = BEGREP_3.copy(id = "id3-3", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1", status = Status.UTKAST, revisjonAvSistPublisert = true)
+
+        whenever(conceptRepository.findById("id3-2"))
+            .thenReturn(Optional.of(invalid.toDBO()))
+        whenever(conceptRepository.findById("id3-3"))
+            .thenReturn(Optional.of(ok.toDBO()))
+        whenever(conceptRepository.getByOriginaltBegrepAndStatus("id3", Status.PUBLISERT))
+            .thenReturn(listOf(BEGREP_3.toDBO(), newPublished.toDBO()))
+
+        val resultInvalid = conceptService.getConceptById("id3-2")
+        val resultOk = conceptService.getConceptById("id3-3")
+
+        assertEquals(invalid, resultInvalid)
+        assertEquals(ok, resultOk)
     }
 
 }

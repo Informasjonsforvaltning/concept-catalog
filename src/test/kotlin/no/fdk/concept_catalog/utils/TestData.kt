@@ -55,6 +55,7 @@ val BEGREP_1 = Begrep(
     id = "id1",
     originaltBegrep = "id1",
     versjonsnr = SemVer(1, 0, 0),
+    revisjonAvSistPublisert = true,
     status = Status.GODKJENT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"))),
     ansvarligVirksomhet = Virksomhet(
@@ -66,6 +67,7 @@ val BEGREP_2 = Begrep(
     id = "id2",
     originaltBegrep = "id2",
     versjonsnr = SemVer(0, 0, 1),
+    revisjonAvSistPublisert = true,
     status = Status.UTKAST,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
     ansvarligVirksomhet = Virksomhet(

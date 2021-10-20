@@ -175,14 +175,14 @@ class ConceptService(
         else {
             conceptRepository.getByOriginaltBegrepAndStatus(originaltBegrep, Status.PUBLISERT)
                 .maxByOrNull { concept -> concept.versjonsnr }
-                ?.let { it.toDTO(it.versjonsnr) }
+                ?.let { it.toDTO(it.versjonsnr, it.id) }
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
         conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, Status.PUBLISERT)
             .sortedByDescending {concept -> concept.versjonsnr }
             .distinctBy {concept -> concept.originaltBegrep }
-            .map { it.toDTO(it.versjonsnr) }
+            .map { it.toDTO(it.versjonsnr, it.id) }
 
     fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
         conceptRepository.findByTermLike(orgNumber, query).map { it.withHighestVersionDTO() }.toList()
@@ -216,6 +216,8 @@ class ConceptService(
     }
 
     private fun BegrepDBO.withHighestVersionDTO(): Begrep =
-        toDTO(getLastPublished(originaltBegrep)?.versjonsnr)
+        getLastPublished(originaltBegrep)
+            ?.let { toDTO(it.versjonsnr, it.id) }
+            ?: toDTO(null, null)
 
 }
