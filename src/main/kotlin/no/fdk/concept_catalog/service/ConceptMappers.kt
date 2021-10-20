@@ -6,12 +6,13 @@ import java.util.*
 
 val NEW_CONCEPT_VERSION = SemVer(0, 0, 1)
 
-fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?): Begrep =
+fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String?): Begrep =
     Begrep(
         id,
         originaltBegrep,
         versjonsnr,
         erSistPublisert = isHighestPublishedVersion(highestPublishedVersion),
+        revisjonAvSistPublisert = isRevisionOfHighestPublishedVersion(highestPublishedId),
         revisjonAv,
         status,
         anbefaltTerm,
@@ -37,6 +38,14 @@ private fun BegrepDBO.isHighestPublishedVersion(highestPublishedVersion: SemVer?
         status != Status.PUBLISERT -> false
         highestPublishedVersion == null -> false
         versjonsnr == highestPublishedVersion -> true
+        else -> false
+    }
+
+private fun BegrepDBO.isRevisionOfHighestPublishedVersion(highestPublishedId: String?): Boolean =
+    when {
+        status == Status.PUBLISERT -> false
+        highestPublishedId == null -> true
+        revisjonAv == highestPublishedId -> true
         else -> false
     }
 

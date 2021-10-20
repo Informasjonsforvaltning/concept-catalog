@@ -309,6 +309,9 @@ components:
         erSistPublisert:
           type: boolean
           description: shows if the concept is the highest published version
+        revisjonAvSistPublisert:
+          type: boolean
+          description: shows if the concept is a revision of the highest published version
         status:
           $ref: "#/components/schemas/Status"
         anbefaltTerm:
