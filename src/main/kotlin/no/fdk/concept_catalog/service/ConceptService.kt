@@ -158,6 +158,7 @@ class ConceptService(
         when (str?.lowercase()) {
             Status.UTKAST.value -> Status.UTKAST
             Status.GODKJENT.value -> Status.GODKJENT
+            Status.HOERING.value -> Status.HOERING
             Status.PUBLISERT.value -> Status.PUBLISERT
             else -> null
         }
