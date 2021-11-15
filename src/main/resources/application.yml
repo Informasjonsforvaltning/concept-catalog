@@ -14,6 +14,22 @@ spring:
     port: 5672
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
+management:
+  endpoints:
+    web:
+      path-mapping:
+        info: ping
+      exposure:
+        include: health, info, metrics
+  metrics:
+    export:
+      statsd:
+        enabled: true
+        flavor: telegraf
+        host: fdk-monitoring-services-telegraf
+        port: 8125
+    tags:
+      application: concept-catalog
 application:
   collectionBaseUri: ${COLLECTION_BASE_URI:https://concept-catalog.fellesdatakatalog.digdir.no}
 
