@@ -75,8 +75,8 @@ class GetConcepts : ApiTestContext() {
 
     @Test
     fun `Ok for specific status`() {
-        val rspUtkast = authorizedRequest(
-            "/begreper?orgNummer=123456789&status=utKASt",
+        val rspHøring = authorizedRequest(
+            "/begreper?orgNummer=123456789&status=Høring",
             port, null, JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
@@ -93,17 +93,17 @@ class GetConcepts : ApiTestContext() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), rspUtkast["status"])
+        assertEquals(HttpStatus.OK.value(), rspHøring["status"])
         assertEquals(HttpStatus.OK.value(), rspGodkjent["status"])
         assertEquals(HttpStatus.OK.value(), rspPublisert["status"])
 
-        val resultUtkast: List<Begrep> = mapper.readValue(rspUtkast["body"] as String)
+        val resultHøring: List<Begrep> = mapper.readValue(rspHøring["body"] as String)
         val resultGodkjent: List<Begrep> = mapper.readValue(rspGodkjent["body"] as String)
         val resultPublisert: List<Begrep> = mapper.readValue(rspPublisert["body"] as String)
 
         assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), resultPublisert)
         assertEquals(listOf(BEGREP_1), resultGodkjent)
-        assertEquals(listOf(BEGREP_2), resultUtkast)
+        assertEquals(listOf(BEGREP_2), resultHøring)
     }
 
 }
