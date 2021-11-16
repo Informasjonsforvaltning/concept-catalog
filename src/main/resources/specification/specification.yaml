@@ -417,7 +417,6 @@ components:
       enum:
         - utkast
         - godkjent
-        - høring
         - publisert
     Feilmelding:
       type: object

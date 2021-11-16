@@ -68,7 +68,7 @@ val BEGREP_2 = Begrep(
     originaltBegrep = "id2",
     versjonsnr = SemVer(0, 0, 1),
     revisjonAvSistPublisert = true,
-    status = Status.HOERING,
+    status = Status.UTKAST,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
