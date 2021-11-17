@@ -28,6 +28,8 @@ open class SecurityConfig : WebSecurityConfigurerAdapter() {
                     .permitAll()
                 .antMatchers(HttpMethod.GET,"/ready")
                     .permitAll()
+                .antMatchers(HttpMethod.GET,"/actuator/**")
+                    .permitAll()
                 .anyRequest()
                     .authenticated()
             .and()
