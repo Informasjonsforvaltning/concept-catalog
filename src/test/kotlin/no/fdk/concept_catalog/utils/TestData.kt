@@ -48,7 +48,8 @@ val BEGREP_0 = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
-    seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322")
+    seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
+    tildeltBruker = Bruker(id = "Test Testesen")
 )
 
 val BEGREP_1 = Begrep(
@@ -113,7 +114,8 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
-    )
+    ),
+    tildeltBruker = Bruker(id = "Test Testesen")
 )
 
 val BEGREP_3 = Begrep(
