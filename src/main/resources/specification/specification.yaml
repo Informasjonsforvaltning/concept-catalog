@@ -354,6 +354,8 @@ components:
           type: array
           items:
             type: string
+        tildeltBruker:
+          $ref: "#/components/schemas/Bruker"
     Kildebeskrivelse:
       type: object
       required:
@@ -505,6 +507,18 @@ components:
       description: A generic object to hold multilanguage texts, that has language code (according to ISO 639-1) as keys
       type: object
       additionalProperties: {}
+    Bruker:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          nullable: false
+        navn:
+          type: string
+        email:
+          type: string
     JsonSearchOperation:
       type: object
       description: 'A JSON document containing the desired query string'

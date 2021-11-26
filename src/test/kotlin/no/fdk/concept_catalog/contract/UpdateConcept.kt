@@ -198,4 +198,34 @@ class UpdateConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
     }
 
+    @Test
+    fun `Able to add new Bruker`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/tildeltBruker", value = Bruker(id="Test Testesen")))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Begrep = mapper.readValue(rsp["body"] as String)
+        assertEquals("Test Testesen", result.tildeltBruker?.id)
+    }
+
+    @Test
+    fun `Replace tildeltBruker`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/tildeltBruker/id", "fdk bruker"))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Begrep = mapper.readValue(rsp["body"] as String)
+        assertEquals("fdk bruker", result.tildeltBruker?.id)
+    }
+
 }

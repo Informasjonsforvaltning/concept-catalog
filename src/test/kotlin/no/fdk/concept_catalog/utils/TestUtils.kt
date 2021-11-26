@@ -118,7 +118,8 @@ fun Begrep.toDBO(): BegrepDBO =
         gyldigFom,
         gyldigTom,
         endringslogelement,
-        seOgså
+        seOgså,
+        tildeltBruker
     )
 
 class TestResponseReader {
@@ -169,6 +170,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("ansvarligVirksomhet", ansvarligVirksomhet?.mapDBO())
         .append("seOgså", seOgså)
         .append("fagområde", fagområde)
+        .append("tildeltBruker", tildeltBruker)
 
 private fun Term.mapDBO(): org.bson.Document =
     org.bson.Document()
