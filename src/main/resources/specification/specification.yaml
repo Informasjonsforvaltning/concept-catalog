@@ -378,8 +378,14 @@ components:
       properties:
         uri:
           type: string
-          format: uri
-          pattern: "^https?://"
+          nullable: true
+          oneOf: [
+            { enum: [ "" ] },
+            {
+              format: uri,
+              pattern: "^https?://"
+            }
+          ]
         tekst:
           type: string
     Kontaktpunkt:
@@ -388,7 +394,13 @@ components:
       properties:
         harEpost:
           type: string
-          format: email
+          nullable: true
+          oneOf: [
+            { enum: [ "" ] },
+            {
+              format: email
+            }
+          ]
           description: e-post adressen til kontaktpunkt
         harTelefon:
           type: string
