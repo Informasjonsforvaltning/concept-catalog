@@ -31,7 +31,8 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         gyldigTom,
         endringslogelement,
         seOgså,
-        tildeltBruker
+        tildeltBruker,
+        begrepsRelasjon
     )
 
 private fun BegrepDBO.isHighestPublishedVersion(highestPublishedVersion: SemVer?): Boolean =
@@ -73,7 +74,8 @@ fun Begrep.createRevision(original: BegrepDBO): BegrepDBO =
         gyldigTom,
         endringslogelement,
         seOgså,
-        tildeltBruker
+        tildeltBruker,
+        begrepsRelasjon
     )
 
 fun Begrep.mapForCreation(): BegrepDBO {
@@ -101,7 +103,8 @@ fun Begrep.mapForCreation(): BegrepDBO {
         gyldigTom,
         endringslogelement,
         seOgså,
-        tildeltBruker
+        tildeltBruker,
+        begrepsRelasjon
     )
 }
 
