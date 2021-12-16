@@ -356,6 +356,37 @@ components:
             type: string
         tildeltBruker:
           $ref: "#/components/schemas/Bruker"
+        begrepsRelasjon:
+          type: array
+          items:
+            $ref: "#/components/schemas/BegrepsRelasjon"
+    BegrepsRelasjon:
+      type: object
+      properties:
+        relasjon:
+          type: string
+          enum:
+            - assosiativ
+            - partitiv
+            - generisk
+            - seOgsaa
+            - erstattesAv
+        relasjonsType:
+          type: string
+          enum:
+            - overordnet
+            - underordnet
+        sistOppdatert:
+          type: string
+          format: date
+          nullable: false
+        beskrivelse:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+        inndelingskriterium:
+          $ref: '#/components/schemas/TekstMedSpraakKode'
+        related:
+          type: string
+          description: id of the related concept
     Kildebeskrivelse:
       type: object
       required:
