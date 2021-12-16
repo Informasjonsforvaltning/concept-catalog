@@ -49,7 +49,26 @@ val BEGREP_0 = Begrep(
         id = "123456789"
     ),
     seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
-    tildeltBruker = Bruker(id = "Test Testesen")
+    tildeltBruker = Bruker(id = "Test Testesen"),
+    begrepsRelasjon = listOf(
+        BegrepsRelasjon(
+            relasjon = "assosiativ",
+            beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
+            relatertBegrep = "uri-1"
+        ),
+        BegrepsRelasjon(
+            relasjon = "partitiv",
+            relasjonsType = "overordnet",
+            inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+            relatertBegrep = "uri-1"
+        ),
+        BegrepsRelasjon(
+            relasjon = "generisk",
+            relasjonsType = "underordnet",
+            inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+            relatertBegrep = "uri-1"
+        )
+    )
 )
 
 val BEGREP_1 = Begrep(

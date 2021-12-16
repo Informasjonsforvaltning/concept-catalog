@@ -27,7 +27,8 @@ data class BegrepDBO (
     val gyldigTom: LocalDate?,
     val endringslogelement: Endringslogelement?,
     val seOgså: List<String>?,
-    val tildeltBruker: Bruker?
+    val tildeltBruker: Bruker?,
+    val begrepsRelasjon: List<BegrepsRelasjon>?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -55,7 +56,8 @@ data class Begrep (
     val gyldigTom: LocalDate? = null,
     val endringslogelement: Endringslogelement? = null,
     val seOgså: List<String>? = ArrayList(),
-    val tildeltBruker: Bruker? = null
+    val tildeltBruker: Bruker? = null,
+    val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList()
 )
 
 data class SemVer(val major: Int, val minor: Int, val patch: Int): Comparable<SemVer> {
