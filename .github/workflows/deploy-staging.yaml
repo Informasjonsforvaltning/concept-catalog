@@ -14,7 +14,9 @@ jobs:
       app_name: concept-catalog
       caller_sha: ${{ github.sha }}
       repo: ${{ github.repository }}
-      java_version: 15
+      java_version: '15'
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GCP_SA_DIGDIR_FDK_GCR_KEY: ${{ secrets.GCP_SA_DIGDIR_FDK_GCR_KEY }}
+      DIGDIR_FDK_DEV_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
     if: github.event.pull_request.draft == false
