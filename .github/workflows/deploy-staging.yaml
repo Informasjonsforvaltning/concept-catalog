@@ -16,5 +16,5 @@ jobs:
       repo: ${{ github.repository }}
       java_version: 15
     secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     if: github.event.pull_request.draft == false
