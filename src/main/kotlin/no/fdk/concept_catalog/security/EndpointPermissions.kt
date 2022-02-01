@@ -11,6 +11,21 @@ private fun roleOrgRead(orgnr: String) = "organization:$orgnr:read"
 @Component
 class EndpointPermissions {
 
+    fun getOrgsByPermission(jwt: Jwt, permission: String): Set<String> {
+        val authorities: String? = jwt.claims["authorities"] as? String
+        val regex = when(permission){
+            "read" -> Regex("""[0-9]{9}""")
+            else -> Regex("""[0-9]{9}:$permission""")
+        }
+
+        return authorities
+            ?.let { regex.findAll(it)}
+            ?.map { matchResult -> matchResult.value
+                .replace(Regex("[A-Za-z:]"), "")}
+            ?.toSet()
+            ?: emptySet()
+    }
+
     fun hasOrgReadPermission(jwt: Jwt, orgnr: String?): Boolean {
         val authorities: String? = jwt.claims["authorities"] as? String
         return when {
