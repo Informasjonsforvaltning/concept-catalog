@@ -134,7 +134,7 @@ class TestResponseReader {
     }
 }
 
-fun populate() {
+fun resetDB() {
     val connectionString = ConnectionString("mongodb://${MONGO_USER}:${MONGO_PASSWORD}@localhost:${mongoContainer.getMappedPort(MONGO_PORT)}/$MONGO_DB_NAME?authSource=admin&authMechanism=SCRAM-SHA-1")
     val pojoCodecRegistry = CodecRegistries.fromRegistries(
         MongoClientSettings.getDefaultCodecRegistry(), CodecRegistries.fromProviders(

@@ -54,6 +54,21 @@ class ConceptService(
         return conceptRepository.save(newConcept).withHighestVersionDTO()
     }
 
+    fun getAllCollections(): List<Begrepssamling> =
+        getAllPublisherIds()
+            .map { getCollectionForPublisher(it) }
+
+    fun getCollectionsForOrganizations(publishers: Set<String>): List<Begrepssamling> =
+        publishers
+            .map { getCollectionForPublisher(it) }
+            .filter { it.antallBegrep > 0 }
+
+    private fun getCollectionForPublisher(publisherId: String): Begrepssamling =
+        Begrepssamling(
+            id = publisherId,
+            antallBegrep = getConceptsForOrganization(publisherId, null).size
+        )
+
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, userId: String): Begrep =
         concept.let { revisionValues.createRevision(it) }
             .updateLastChangedAndByWhom(userId)

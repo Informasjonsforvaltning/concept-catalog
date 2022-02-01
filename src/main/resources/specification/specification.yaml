@@ -227,6 +227,21 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/JsonSearchOperation'
+  /begrepssamlinger:
+    get:
+      tags:
+        - begrepssamlinger
+      description: Returnerer alle begrepssamlinger brukeren har tilgang til
+      operationId: getPermittedCollections
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Begrepssamling'
   /collections:
     get:
       tags:
@@ -529,6 +544,19 @@ components:
           type: string
           nullable: false
           description: 'The query string to search for'
+    Begrepssamling:
+      type: object
+      description: En begrepssamling
+      required:
+        - id
+        - antallBegrep
+      properties:
+        id:
+          type: string
+          nullable: false
+        antallBegrep:
+          type: string
+          nullable: false
   securitySchemes:
     bearerAuth:            # arbitrary name for the security scheme
       type: http
