@@ -119,6 +119,7 @@ fun Begrep.toDBO(): BegrepDBO =
         gyldigTom,
         endringslogelement,
         seOgså,
+        erstattesAv,
         tildeltBruker,
         begrepsRelasjon
     )
@@ -170,6 +171,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("eksempel", eksempel)
         .append("ansvarligVirksomhet", ansvarligVirksomhet?.mapDBO())
         .append("seOgså", seOgså)
+        .append("erstattesAv", erstattesAv)
         .append("fagområde", fagområde)
         .append("tildeltBruker", tildeltBruker)
         .append("begrepsRelasjon", begrepsRelasjon)

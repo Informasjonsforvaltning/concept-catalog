@@ -49,6 +49,7 @@ val BEGREP_0 = Begrep(
         id = "123456789"
     ),
     seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
+    erstattesAv = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
     tildeltBruker = Bruker(id = "Test Testesen"),
     begrepsRelasjon = listOf(
         BegrepsRelasjon(

@@ -27,6 +27,7 @@ data class BegrepDBO (
     val gyldigTom: LocalDate?,
     val endringslogelement: Endringslogelement?,
     val seOgså: List<String>?,
+    val erstattesAv: List<String>?,
     val tildeltBruker: Bruker?,
     val begrepsRelasjon: List<BegrepsRelasjon>?
 )
@@ -56,6 +57,7 @@ data class Begrep (
     val gyldigTom: LocalDate? = null,
     val endringslogelement: Endringslogelement? = null,
     val seOgså: List<String>? = ArrayList(),
+    val erstattesAv: List<String>? = ArrayList(),
     val tildeltBruker: Bruker? = null,
     val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList()
 )
