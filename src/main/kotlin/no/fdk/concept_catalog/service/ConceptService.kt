@@ -66,7 +66,9 @@ class ConceptService(
     private fun getCollectionForPublisher(publisherId: String): Begrepssamling =
         Begrepssamling(
             id = publisherId,
-            antallBegrep = getConceptsForOrganization(publisherId, null).size
+            antallBegrep = getConceptsForOrganization(publisherId, null)
+                .distinctBy { it.originaltBegrep }
+                .size
         )
 
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, userId: String): Begrep =
