@@ -209,11 +209,13 @@ class SkosApNoModelService(
             ?.filterValues { it.isNotEmpty() }
             ?.takeIf { it.isNotEmpty() }
             ?.let {
-                val altLabelBuilder = conceptBuilder.altLabelBuilder()
-
-                it.forEach { (key, entry) -> entry.forEach { value -> altLabelBuilder.label(value.toString(), key) } }
-
-                altLabelBuilder.build()
+                it.forEach { (key, entry) ->
+                    entry.forEach { value -> conceptBuilder
+                        .altLabelBuilder()
+                        .label(value, key)
+                        .build()
+                    }
+                }
             }
     }
 
@@ -222,11 +224,13 @@ class SkosApNoModelService(
             ?.filterValues { it.isNotEmpty() }
             ?.takeIf { it.isNotEmpty() }
             ?.let {
-                val hiddenLabelBuilder = conceptBuilder.hiddenLabelBuilder()
-
-                it.forEach { (key, entry) -> entry.forEach { value -> hiddenLabelBuilder.label(value.toString(), key) } }
-
-                hiddenLabelBuilder.build()
+                it.forEach { (key, entry) ->
+                    entry.forEach { value -> conceptBuilder
+                        .hiddenLabelBuilder()
+                        .label(value, key)
+                        .build()
+                    }
+                }
             }
     }
 
@@ -247,7 +251,7 @@ class SkosApNoModelService(
     private fun addDomainOfUseToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.bruksområde
             ?.filterValues { it.isNotEmpty() }
-            ?.forEach { (key, entry) -> entry.forEach { value -> conceptBuilder.domainOfUse(value.toString(), key) } }
+            ?.forEach { (key, entry) -> entry.forEach { value -> conceptBuilder.domainOfUse(value, key) } }
     }
 
     private fun addContactPointToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
@@ -277,8 +281,8 @@ class SkosApNoModelService(
     }
 
     private fun addValidityPeriodToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        val validFromIncluding = concept.gyldigFom;
-        val validToIncluding = concept.gyldigTom;
+        val validFromIncluding = concept.gyldigFom
+        val validToIncluding = concept.gyldigTom
 
         if (validFromIncluding != null && validToIncluding != null) {
             if (validFromIncluding.isBefore(validToIncluding)) {
