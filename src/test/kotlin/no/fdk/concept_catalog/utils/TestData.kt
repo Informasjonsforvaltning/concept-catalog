@@ -55,19 +55,31 @@ val BEGREP_0 = Begrep(
         BegrepsRelasjon(
             relasjon = "assosiativ",
             beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
-            relatertBegrep = "uri-1"
+            relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"
         ),
         BegrepsRelasjon(
             relasjon = "partitiv",
-            relasjonsType = "overordnet",
+            relasjonsType = "omfatter",
             inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
-            relatertBegrep = "uri-1"
+            relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"
+        ),
+        BegrepsRelasjon(
+            relasjon = "partitiv",
+            relasjonsType = "erDelAv",
+            inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+            relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"
         ),
         BegrepsRelasjon(
             relasjon = "generisk",
             relasjonsType = "underordnet",
             inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
-            relatertBegrep = "uri-1"
+            relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"
+        ),
+        BegrepsRelasjon(
+            relasjon = "generisk",
+            relasjonsType = "overordnet",
+            inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+            relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"
         )
     )
 )
