@@ -195,9 +195,11 @@ class SkosApNoModelService(
                 }
 
                 if (!it.kilde.isNullOrEmpty()) {
-                    val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
-                    it.kilde.forEach { source -> sourceBuilder.label(source.tekst, NB).seeAlso(source.uri) }
-                    sourceBuilder.build()
+                    it.kilde.forEach { source ->
+                        val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
+                        sourceBuilder.label(source.tekst, NB).seeAlso(source.uri)
+                        sourceBuilder.build()
+                    }
                 }
 
                 sourceDescriptionBuilder.build()

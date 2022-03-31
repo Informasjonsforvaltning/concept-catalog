@@ -187,11 +187,16 @@ private fun Definisjon.mapDBO(): org.bson.Document =
 private fun Kildebeskrivelse.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("forholdTilKilde", forholdTilKilde.toString())
-        .append("kilde", kilde)
+        .append("kilde", kilde?.map { it.mapDBO() })
 
 private fun Virksomhet.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("_id", id)
+
+private fun URITekst.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("uri", uri)
+        .append("tekst", tekst)
 
 private fun SemVer.mapDBO(): org.bson.Document =
     org.bson.Document()
