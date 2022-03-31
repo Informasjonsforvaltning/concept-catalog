@@ -144,9 +144,12 @@ val BEGREP_3 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
+    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
+        kilde = listOf(
+            URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
+            URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet"))),
     eksempel = mapOf(Pair("en", listOf("example"))),
     fagområde = mapOf(Pair("nb", "fagområde")),
     omfang = URITekst(uri = "https://test.no", tekst = "Test"),
