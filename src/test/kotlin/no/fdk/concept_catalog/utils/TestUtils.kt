@@ -174,7 +174,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("erstattesAv", erstattesAv)
         .append("fagområde", fagområde)
         .append("tildeltBruker", tildeltBruker)
-        .append("begrepsRelasjon", begrepsRelasjon)
+        .append("begrepsRelasjon", begrepsRelasjon?.map { it.mapDBO() })
 
 private fun Term.mapDBO(): org.bson.Document =
     org.bson.Document()
@@ -203,3 +203,11 @@ private fun SemVer.mapDBO(): org.bson.Document =
         .append("major", major)
         .append("minor", minor)
         .append("patch", patch)
+
+private fun BegrepsRelasjon.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("relasjon", relasjon)
+        .append("relasjonsType", relasjonsType)
+        .append("beskrivelse", beskrivelse)
+        .append("inndelingskriterium", inndelingskriterium)
+        .append("relatertBegrep", relatertBegrep)
