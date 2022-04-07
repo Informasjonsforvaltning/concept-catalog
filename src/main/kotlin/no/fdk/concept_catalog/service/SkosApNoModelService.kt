@@ -24,6 +24,13 @@ class SkosApNoModelService(
 ) {
 
     private val NB = "nb"
+    private val ASSOCIATIVE = "assosiativ"
+    private val PARTITIVE = "partitiv"
+    private val GENERIC = "generisk"
+    private val OMFATTER = "omfatter"
+    private val ERDELAV = "erDelAv"
+    private val UNDERORDNET = "underordnet"
+    private val OVERORDNET = "overordnet"
 
     fun buildModelForPublishersCollection(publisherId: String): Model {
         logger.debug("Building concept collection model for publisher: {}", publisherId)
@@ -121,6 +128,7 @@ class SkosApNoModelService(
         addContactPointToConcept(conceptBuilder, concept)
         addSeeAlsoReferencesToConcept(conceptBuilder, concept)
         addValidityPeriodToConcept(conceptBuilder, concept)
+        addBegrepsRelasjonToConcept(conceptBuilder, concept)
     }
 
     private fun getCollectionUri(publisherId: String): String {
@@ -273,6 +281,74 @@ class SkosApNoModelService(
                 }
 
                 contactPointBuilder.build()
+            }
+    }
+
+    private fun addBegrepsRelasjonToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+        concept.begrepsRelasjon
+            ?.forEach {
+                val relasjon = it.relasjon
+                val relatertBegrep = it.relatertBegrep
+
+                if (relasjon == ASSOCIATIVE) {
+                    val associativeRelationBuilder = conceptBuilder.associativeRelationBuilder()
+
+                    it.beskrivelse
+                        ?.filterValues { beskrivelse -> beskrivelse.isNotBlank() }
+                        ?.takeIf { beskrivelse -> beskrivelse.isNotEmpty() }
+                        ?.forEach { (key, value) -> associativeRelationBuilder.description(value, key) }
+
+                    if (relatertBegrep?.isNotBlank() == true) {
+                        associativeRelationBuilder.associatedConcept(relatertBegrep)
+                    }
+                    associativeRelationBuilder.build()
+                }
+                if (relasjon == PARTITIVE) {
+                    val partitiveRelationBuilder = conceptBuilder.partitiveRelationBuilder()
+
+                    val relasjonsType = it.relasjonsType
+
+                    it.inndelingskriterium
+                        ?.filterValues { inndelingskriterium -> inndelingskriterium.isNotBlank() }
+                        ?.takeIf { inndelingskriterium -> inndelingskriterium.isNotEmpty() }
+                        ?.forEach { (key, value) ->
+                            partitiveRelationBuilder.divisioncriterion(
+                                value,
+                                key
+                            )
+                        }
+
+                    if (relasjonsType == OMFATTER) {
+                        partitiveRelationBuilder.narrowerConcept(relatertBegrep)
+                    }
+                    if (relasjonsType == ERDELAV) {
+                        partitiveRelationBuilder.broaderConcept(relatertBegrep)
+                    }
+                    partitiveRelationBuilder.build()
+                }
+                if (relasjon == GENERIC) {
+                    val genericRelationBuilder = conceptBuilder.genericRelationBuilder()
+
+                    val relasjonsType = it.relasjonsType
+
+                    it.inndelingskriterium
+                        ?.filterValues { inndelingskriterium -> inndelingskriterium.isNotBlank() }
+                        ?.takeIf { inndelingskriterium -> inndelingskriterium.isNotEmpty() }
+                        ?.forEach { (key, value) ->
+                            genericRelationBuilder.divisioncriterion(
+                                value,
+                                key
+                            )
+                        }
+
+                    if (relasjonsType == OVERORDNET) {
+                        genericRelationBuilder.broaderConcept(relatertBegrep)
+                    }
+                    if (relasjonsType == UNDERORDNET) {
+                        genericRelationBuilder.narrowerConcept(relatertBegrep)
+                    }
+                    genericRelationBuilder.build()
+                }
             }
     }
 
