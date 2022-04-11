@@ -129,6 +129,7 @@ class SkosApNoModelService(
         addSeeAlsoReferencesToConcept(conceptBuilder, concept)
         addValidityPeriodToConcept(conceptBuilder, concept)
         addBegrepsRelasjonToConcept(conceptBuilder, concept)
+        addReplacedByReferencesToConcept(conceptBuilder, concept)
     }
 
     private fun getCollectionUri(publisherId: String): String {
@@ -356,6 +357,12 @@ class SkosApNoModelService(
         concept.seOgså
             ?.filter { it.isNotBlank() }
             ?.forEach { conceptBuilder.seeAlso(it) }
+    }
+
+    private fun addReplacedByReferencesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+        concept.erstattesAv
+            ?.filter { it.isNotBlank() }
+            ?.forEach { conceptBuilder.replacedBy(it) }
     }
 
     private fun addValidityPeriodToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
