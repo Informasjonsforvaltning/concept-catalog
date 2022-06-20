@@ -3,6 +3,8 @@ package no.fdk.concept_catalog.service
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import jakarta.json.Json
+import jakarta.json.JsonException
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
@@ -18,8 +20,6 @@ import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.io.StringReader
 import java.util.*
-import javax.json.Json
-import javax.json.JsonException
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 
