@@ -23,7 +23,7 @@
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/id0-old>
         rdf:type            skos:Concept ;
         rdfs:seeAlso        "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322" ;
-        dct:identifier      <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/id0-old> ;
+        dct:identifier      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/id0-old" ;
         dct:isReplacedBy    "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322" ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         skosxl:altLabel     [ rdf:type            skosxl:Label ;
@@ -70,13 +70,13 @@
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789>
         rdf:type        skos:Collection ;
         rdfs:label      "Concept collection belonging to 123456789" ;
-        dct:identifier  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789> ;
+        dct:identifier  "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789" ;
         dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         skos:member     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/id0-old> .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id3>
         rdf:type          skos:Concept ;
-        dct:identifier    <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id3> ;
+        dct:identifier    "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id3" ;
         dct:publisher     <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
         dct:subject       "fagområde"@nb ;
         dct:temporal      [ rdf:type          dct:PeriodOfTime ;
@@ -103,13 +103,13 @@
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333>
         rdf:type        skos:Collection ;
         rdfs:label      "Concept collection belonging to 111222333" ;
-        dct:identifier  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333> ;
+        dct:identifier  "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333" ;
         dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
         skos:member     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id4> , <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id3> .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id4>
         rdf:type            skos:Concept ;
-        dct:identifier      <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id4> ;
+        dct:identifier      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/id4" ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
         dct:temporal        [ rdf:type        dct:PeriodOfTime ;
                               schema:endDate  "2030-10-10"^^xsd:date
