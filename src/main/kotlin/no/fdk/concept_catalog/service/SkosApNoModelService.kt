@@ -104,7 +104,7 @@ class SkosApNoModelService(
     private fun addConceptToModel(modelBuilder: ModelBuilder, concept: Begrep) {
         if (concept.originaltBegrep == null || concept.ansvarligVirksomhet?.id == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
-            val conceptURI = "${getCollectionUri(concept.ansvarligVirksomhet.id)}/${concept.originaltBegrep}"
+            val conceptURI = "${getCollectionUri(concept.ansvarligVirksomhet.id)}/concepts/${concept.originaltBegrep}"
             val conceptBuilder = modelBuilder
                 .conceptBuilder(conceptURI)
                 .identifier(conceptURI)
@@ -137,7 +137,7 @@ class SkosApNoModelService(
     }
 
     private fun getConceptUri(collectionBuilder: CollectionBuilder, conceptId: String): String {
-        return "${getCollectionUri(collectionBuilder.publisher)}/$conceptId"
+        return "${getCollectionUri(collectionBuilder.publisher)}/concepts/$conceptId"
     }
 
     private fun addPrefLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
