@@ -217,3 +217,19 @@ val BEGREP_REVISION = Begrep(
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766")
 )
+
+val BEGREP_6 = Begrep(
+    id = "id6",
+    originaltBegrep = "id6",
+    versjonsnr = SemVer(1, 0, 0),
+    revisjonAvSistPublisert = false,
+    status = Status.PUBLISERT,
+    ansvarligVirksomhet = Virksomhet(
+        id = "987654321"
+    ),
+    kildebeskrivelse = Kildebeskrivelse(
+        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+        kilde = listOf(URITekst(uri="", tekst="hei"))
+    ),
+    omfang = URITekst(uri="", tekst = "omfangtekst6")
+)

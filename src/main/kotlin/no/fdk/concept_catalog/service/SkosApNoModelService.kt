@@ -3,9 +3,11 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
+import no.fdk.concept_catalog.model.URITekst
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.ConceptBuilder
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.DefinitionBuilder
+import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.SourceDescription.SourcedescriptionBuilder
 import no.norge.data.skos_ap_no.concept.builder.ModelBuilder
 import no.norge.data.skos_ap_no.concept.builder.generic.SourceType
 import org.apache.jena.rdf.model.Model
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.net.URI
 import java.time.ZoneId
 
 private val logger = LoggerFactory.getLogger(SkosApNoModelService::class.java)
@@ -173,8 +176,12 @@ class SkosApNoModelService(
 
     private fun addScopeToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
         concept.omfang
-            ?.takeIf { it.tekst?.isNotBlank() == true || it.uri?.isNotBlank() == true }
-            ?.let { definitionBuilder.scopeBuilder().label(it.tekst, NB).seeAlso(it.uri).build() }
+            ?.takeIf { it.tekst?.isNotBlank() == true || it.uri?.isValidURI() == true }
+            ?.let { source ->
+                val scopeBuilder = definitionBuilder.scopeBuilder()
+                if (!source.tekst.isNullOrBlank()) scopeBuilder.label(source.tekst, NB)
+                if (source.uri.isValidURI()) scopeBuilder.seeAlso(source.uri).build()
+            }
     }
 
     private fun addScopeNoteToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
@@ -204,16 +211,33 @@ class SkosApNoModelService(
                 }
 
                 if (!it.kilde.isNullOrEmpty()) {
-                    it.kilde.forEach { source ->
-                        val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
-                        sourceBuilder.label(source.tekst, NB).seeAlso(source.uri)
-                        sourceBuilder.build()
-                    }
+                    it.kilde
+                        .filter { source -> !source.tekst.isNullOrBlank() || source.uri.isValidURI() }
+                        .forEach { source -> buildSource(source, sourceDescriptionBuilder) }
                 }
 
                 sourceDescriptionBuilder.build()
             }
     }
+
+    private fun buildSource(source: URITekst, sourceDescriptionBuilder: SourcedescriptionBuilder) {
+        val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
+        if (!source.tekst.isNullOrBlank()) sourceBuilder.label(source.tekst, NB)
+        if (source.uri.isValidURI()) sourceBuilder.seeAlso(source.uri)
+        sourceBuilder.build()
+    }
+
+    private fun String?.isValidURI(): Boolean =
+        if (this.isNullOrBlank()) {
+            false
+        } else {
+            try {
+                URI(this)
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
 
     private fun addAltLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.tillattTerm
