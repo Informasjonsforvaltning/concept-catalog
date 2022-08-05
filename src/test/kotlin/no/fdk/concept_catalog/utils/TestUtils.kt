@@ -152,7 +152,7 @@ fun resetDB() {
 }
 
 fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED,
-    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD)
+    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD, BEGREP_6)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =
@@ -175,6 +175,10 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("fagområde", fagområde)
         .append("tildeltBruker", tildeltBruker)
         .append("begrepsRelasjon", begrepsRelasjon?.map { it.mapDBO() })
+        .append("kontaktpunkt", kontaktpunkt?.mapDBO())
+        .append("gyldigFom", gyldigFom)
+        .append("gyldigTom", gyldigTom)
+        .append("omfang", omfang?.mapDBO())
 
 private fun Term.mapDBO(): org.bson.Document =
     org.bson.Document()
@@ -211,3 +215,8 @@ private fun BegrepsRelasjon.mapDBO(): org.bson.Document =
         .append("beskrivelse", beskrivelse)
         .append("inndelingskriterium", inndelingskriterium)
         .append("relatertBegrep", relatertBegrep)
+
+private fun Kontaktpunkt.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("harTelefon", harTelefon)
+        .append("harEpost", harEpost)

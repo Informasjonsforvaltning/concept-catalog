@@ -37,4 +37,12 @@ class GetSkosApNoConcept: ApiTestContext() {
         assertTrue { expected.isIsomorphicWith(turtleModel) }
     }
 
+    @Test
+    fun `Handles Blank URIs in Omfang and Kildebeskrivelse`() {
+        val rdfXml = apiGet(port, "/collections/987654321/concepts/id6", MediaType.valueOf("application/rdf+xml"))
+        assertTrue { HttpStatus.OK.value() == rdfXml["status"] }
+
+        val ldJson = apiGet(port, "/collections/987654321/concepts/id6", MediaType.valueOf("application/rdf+xml"))
+        assertTrue { HttpStatus.OK.value() == ldJson["status"] }
+    }
 }
