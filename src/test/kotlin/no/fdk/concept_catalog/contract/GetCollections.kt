@@ -50,6 +50,7 @@ class GetCollections : ApiTestContext() {
             Begrepssamling("111111111", 2),
             Begrepssamling("111222333", 1),
             Begrepssamling("123456789", 3),
+            Begrepssamling("987654321", 1),
             Begrepssamling("999888777", 1)
         ), result.sortedBy { it.id })
     }
