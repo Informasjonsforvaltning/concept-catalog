@@ -18,12 +18,13 @@ import kotlin.test.assertTrue
 @Tag("unit")
 class Validation {
     private val conceptRepository: ConceptRepository = mock()
+    private val conceptSearch: ConceptSearchService = mock()
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
 
     @Test
     fun `New non draft concepts has higher version than what is published`() {

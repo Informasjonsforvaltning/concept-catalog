@@ -89,6 +89,7 @@ val BEGREP_1 = Begrep(
     originaltBegrep = "id1",
     versjonsnr = SemVer(1, 0, 0),
     revisjonAvSistPublisert = true,
+    definisjon = Definisjon(tekst = mapOf(Pair("nb", "is searchable"))),
     status = Status.GODKJENT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"))),
     ansvarligVirksomhet = Virksomhet(

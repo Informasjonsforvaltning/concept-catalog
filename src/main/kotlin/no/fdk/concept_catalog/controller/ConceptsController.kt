@@ -2,10 +2,11 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.JsonSearchOperation
+import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
+import no.fdk.concept_catalog.service.statusFromString
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -123,7 +124,7 @@ class ConceptsController(
             required = false
         ) status: String?
     ): ResponseEntity<List<Begrep>> {
-        val parsedStatus = conceptService.statusFromString(status)
+        val parsedStatus = statusFromString(status)
         return when {
             !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
             status != null && parsedStatus == null -> ResponseEntity(HttpStatus.BAD_REQUEST)
@@ -177,12 +178,11 @@ class ConceptsController(
             value = "orgNummer",
             required = true
         ) orgNumber: String,
-        @RequestBody request: JsonSearchOperation
+        @RequestBody searchOperation: SearchOperation
     ): ResponseEntity<List<Begrep>> {
         return when {
             !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            request.query.isEmpty() -> ResponseEntity(HttpStatus.BAD_REQUEST)
-            else -> ResponseEntity(conceptService.searchConceptsByTerm(orgNumber, request.query), HttpStatus.OK)
+            else -> ResponseEntity(conceptService.searchConcepts(orgNumber, searchOperation), HttpStatus.OK)
         }
     }
 

@@ -15,12 +15,13 @@ import kotlin.test.assertEquals
 @Tag("unit")
 class Rabbit {
     private val conceptRepository: ConceptRepository = mock()
+    private val conceptSearch: ConceptSearchService = mock()
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
 
     @Test
     fun `Publish collection when first concept is created`() {

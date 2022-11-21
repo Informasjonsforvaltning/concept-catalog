@@ -2,9 +2,9 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
-import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.model.JsonSearchOperation
+import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
+import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_1
 import no.fdk.concept_catalog.utils.BEGREP_2
 import no.fdk.concept_catalog.utils.authorizedRequest
@@ -32,7 +32,7 @@ class SearchConcepts : ApiTestContext() {
 
     @Test
     fun `Unauthorized when access token is not included`() {
-        val rsp = authorizedRequest("/begreper/search?orgNummer=123456789", port, mapper.writeValueAsString(JsonSearchOperation("test")), null, HttpMethod.POST)
+        val rsp = authorizedRequest("/begreper/search?orgNummer=123456789", port, mapper.writeValueAsString(SearchOperation("test")), null, HttpMethod.POST)
 
         assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
     }
@@ -41,7 +41,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Forbidden for wrong orgnr`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=999888777",
-            port, mapper.writeValueAsString(JsonSearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
+            port, mapper.writeValueAsString(SearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
             HttpMethod.POST
         )
 
@@ -52,7 +52,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Ok for read access`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(JsonSearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
+            port, mapper.writeValueAsString(SearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
             HttpMethod.POST
         )
 
@@ -63,22 +63,10 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    fun `Empty query returns bad request`() {
-        val rsp = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(JsonSearchOperation("")), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
-
-        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
-
-    }
-
-    @Test
     fun `Query returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(JsonSearchOperation("Begrep")), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("Begrep")), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -90,10 +78,105 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
+    fun `Query returns correct results when searching in definisjon`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("ABLE")), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1), result)
+
+    }
+
+    @Test
+    fun `Query with status filter returns correct results`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("Begrep", filters = SearchFilters(SearchFilter("godkjent")))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1), result)
+    }
+
+    @Test
+    fun `Query returns correct results when only title is active`() {
+        val titleResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("Begrep", fields = QueryFields(definisjon = false))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), titleResponse["status"])
+
+        val titleResult: List<Begrep> = mapper.readValue(titleResponse["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), titleResult)
+
+        val descriptionResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("able", fields = QueryFields(definisjon = false))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), descriptionResponse["status"])
+
+        val descriptionResult: List<Begrep> = mapper.readValue(descriptionResponse["body"] as String)
+        assertEquals(emptyList(), descriptionResult)
+
+        val statusResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation(
+                query = "Begrep", fields = QueryFields(definisjon = false),
+                filters = SearchFilters(SearchFilter("godkjent")))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), statusResponse["status"])
+
+        val statusResult: List<Begrep> = mapper.readValue(statusResponse["body"] as String)
+        assertEquals(listOf(BEGREP_1), statusResult)
+    }
+
+    @Test
+    fun `Status filter returns correct results`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(SearchFilter("godkjent")))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1), result)
+    }
+
+    @Test
+    fun `Query with current version filter returns correct results`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("definisjon", filters = SearchFilters(onlyCurrentVersions = true))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0), result)
+    }
+
+    @Test
     fun `Query returns no results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(JsonSearchOperation("zxcvbnm")), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("zxcvbnm")), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 

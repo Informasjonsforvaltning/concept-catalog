@@ -25,6 +25,7 @@ private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 @Service
 class ConceptService(
     private val conceptRepository: ConceptRepository,
+    private val conceptSearchService: ConceptSearchService,
     private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
     private val conceptPublisher: ConceptPublisher,
@@ -170,15 +171,6 @@ class ConceptService(
         if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.withHighestVersionDTO() }
         else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.withHighestVersionDTO() }
 
-    fun statusFromString(str: String?): Status? =
-        when (str?.lowercase()) {
-            Status.UTKAST.value -> Status.UTKAST
-            Status.GODKJENT.value -> Status.GODKJENT
-            Status.HOERING.value -> Status.HOERING
-            Status.PUBLISERT.value -> Status.PUBLISERT
-            else -> null
-        }
-
     fun getAllPublisherIds(): List<String> {
         return mongoOperations
             .query(Begrep::class.java)
@@ -201,8 +193,11 @@ class ConceptService(
             .distinctBy {concept -> concept.originaltBegrep }
             .map { it.toDTO(it.versjonsnr, it.id) }
 
-    fun searchConceptsByTerm(orgNumber: String, query: String): List<Begrep> =
-        conceptRepository.findByTermLike(orgNumber, query).map { it.withHighestVersionDTO() }.toList()
+    fun searchConcepts(orgNumber: String, search: SearchOperation): List<Begrep> =
+        conceptSearchService.searchConcepts(orgNumber, search)
+            .map { it.withHighestVersionDTO() }
+            .filter { if(search.filters?.onlyCurrentVersions == true) it.isCurrentVersion() else true }
+            .toList()
 
     private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
@@ -236,5 +231,11 @@ class ConceptService(
         getLastPublished(originaltBegrep)
             ?.let { toDTO(it.versjonsnr, it.id) }
             ?: toDTO(null, null)
+
+    private fun Begrep.isCurrentVersion(): Boolean =
+        erSistPublisert || isUnpublished()
+
+    private fun Begrep.isUnpublished(): Boolean =
+        id == originaltBegrep && status != Status.PUBLISERT
 
 }
