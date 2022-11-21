@@ -14,6 +14,7 @@ import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.MongoOperations
+import org.springframework.data.mongodb.core.MongoTemplate
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -21,12 +22,13 @@ import kotlin.test.assertTrue
 @Tag("unit")
 class LastPublished {
     private val conceptRepository: ConceptRepository = mock()
+    private val conceptSearch: ConceptSearchService = mock()
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
 
     @Test
     fun `Able to get a list with the highest version of concepts for a publisher`() {
