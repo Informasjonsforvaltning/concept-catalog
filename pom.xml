@@ -28,7 +28,7 @@
         <maven.exec.skip>false</maven.exec.skip>
         <!--end standard properties-->
 
-        <kotlin.version>1.7.20</kotlin.version>
+        <kotlin.version>1.8.0</kotlin.version>
         <testcontainers.version>1.17.4</testcontainers.version>
         <jena.version>4.6.1</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
