@@ -2,7 +2,7 @@ package no.fdk.concept_catalog.utils
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.test.util.TestPropertyValues
-import org.springframework.boot.web.server.LocalServerPort
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 import org.testcontainers.containers.GenericContainer
