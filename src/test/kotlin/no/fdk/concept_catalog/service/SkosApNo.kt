@@ -1,7 +1,5 @@
 package no.fdk.concept_catalog.service
 
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.Kildebeskrivelse
@@ -14,6 +12,8 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.springframework.web.server.ResponseStatusException
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
