@@ -1,6 +1,5 @@
 package no.fdk.concept_catalog.service
 
-import com.nhaarman.mockitokotlin2.*
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Virksomhet
@@ -9,6 +8,12 @@ import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.springframework.data.mongodb.core.MongoOperations
 import kotlin.test.assertEquals
 
