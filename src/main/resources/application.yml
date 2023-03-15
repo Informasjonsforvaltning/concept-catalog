@@ -20,14 +20,8 @@ management:
       path-mapping:
         info: ping
       exposure:
-        include: health, info, metrics
+        include: health, info, prometheus
   metrics:
-    export:
-      statsd:
-        enabled: true
-        flavor: telegraf
-        host: fdk-monitoring-services-telegraf
-        port: 8125
     tags:
       application: concept-catalog
 application:
