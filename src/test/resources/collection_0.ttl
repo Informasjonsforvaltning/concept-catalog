@@ -68,7 +68,8 @@
                               rdfs:label              "definisjon"@nb ;
                               skos:scopeNote          "merknad"@nn ;
                               skosno:forholdTilKilde  skosno:egendefinert
-                            ] .
+                            ]  ;
+        dct:modified         "2020-01-02"^^xsd:date .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789>
         rdf:type        skos:Collection ;

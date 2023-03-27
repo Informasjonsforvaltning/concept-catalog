@@ -178,11 +178,17 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("kontaktpunkt", kontaktpunkt?.mapDBO())
         .append("gyldigFom", gyldigFom)
         .append("gyldigTom", gyldigTom)
+        .append("endringslogelement", endringslogelement?.mapDBO())
         .append("omfang", omfang?.mapDBO())
 
 private fun Term.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("navn", navn)
+
+private fun Endringslogelement.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("brukerId", brukerId)
+        .append("endringstidspunkt", endringstidspunkt)
 
 private fun Definisjon.mapDBO(): org.bson.Document =
     org.bson.Document()

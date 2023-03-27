@@ -9,6 +9,7 @@ import no.fdk.concept_catalog.utils.BEGREP_0_OLD
 import no.fdk.concept_catalog.utils.BEGREP_1
 import no.fdk.concept_catalog.utils.BEGREP_2
 import no.fdk.concept_catalog.utils.authorizedRequest
+import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.Tag
@@ -189,7 +190,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2), result)
+        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result)
 
     }
 
@@ -236,5 +237,39 @@ class SearchConcepts : ApiTestContext() {
 
     }
 
+    @Test
+    fun `Query returns sorted results ordered by sistEndret ascending`() {
+        val searchOp = SearchOperation(
+            query = "",
+            sort = SortField(field=SortFieldEnum.SIST_ENDRET, direction=SortDirection.ASC)
+        )
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
 
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0_OLD, BEGREP_2, BEGREP_0, BEGREP_1), result)
+    }
+
+    @Test
+    fun `Query returns sorted results ordered by anbefaltTerm descending`() {
+        val searchOp = SearchOperation(
+            query = "",
+            sort = SortField(field=SortFieldEnum.ANBEFALT_TERM_NB, direction=SortDirection.DESC)
+        )
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0_OLD, BEGREP_0, BEGREP_2, BEGREP_1), result)
+    }
 }
