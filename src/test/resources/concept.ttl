@@ -68,4 +68,5 @@
                               rdfs:label              "definisjon"@nb ;
                               skos:scopeNote          "merknad"@nn ;
                               skosno:forholdTilKilde  skosno:egendefinert
-                            ] .
+                            ] ;
+        dct:modified        "2020-01-02"^^xsd:date .

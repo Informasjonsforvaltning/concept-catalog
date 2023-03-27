@@ -2,7 +2,8 @@ package no.fdk.concept_catalog.utils
 
 import no.fdk.concept_catalog.model.*
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap
-import java.time.LocalDate
+import java.time.*
+import java.util.*
 
 const val LOCAL_SERVER_PORT = 5000
 
@@ -30,7 +31,12 @@ val BEGREP_0_OLD = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
-    seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322")
+    seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
+    endringslogelement = Endringslogelement(
+        brukerId = "bruker1",
+        endringstidspunkt = ZonedDateTime.of(
+            2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
+        ).toInstant())
 )
 
 val BEGREP_0 = Begrep(
@@ -81,7 +87,12 @@ val BEGREP_0 = Begrep(
             inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
             relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"
         )
-    )
+    ),
+    endringslogelement = Endringslogelement(
+        brukerId = "bruker1",
+        endringstidspunkt = ZonedDateTime.of(
+            2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")
+        ).toInstant())
 )
 
 val BEGREP_1 = Begrep(
@@ -94,7 +105,12 @@ val BEGREP_1 = Begrep(
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"), Pair("en", "Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
-    )
+    ),
+    endringslogelement = Endringslogelement(
+        brukerId = "bruker1",
+        endringstidspunkt = ZonedDateTime.of(
+            2020, 12, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
+        ).toInstant())
 )
 
 val BEGREP_2 = Begrep(
@@ -107,7 +123,12 @@ val BEGREP_2 = Begrep(
     tillattTerm = mapOf(Pair("nn", listOf("Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
-    )
+    ),
+    endringslogelement = Endringslogelement(
+        brukerId = "bruker1",
+        endringstidspunkt = ZonedDateTime.of(
+            2020, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
+        ).toInstant())
 )
 
 val BEGREP_WRONG_ORG = Begrep(

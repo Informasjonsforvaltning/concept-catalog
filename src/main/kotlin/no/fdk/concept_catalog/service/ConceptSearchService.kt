@@ -1,8 +1,7 @@
 package no.fdk.concept_catalog.service
 
-import no.fdk.concept_catalog.model.BegrepDBO
-import no.fdk.concept_catalog.model.QueryFields
-import no.fdk.concept_catalog.model.SearchOperation
+import no.fdk.concept_catalog.model.*
+import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Criteria
@@ -15,7 +14,8 @@ class ConceptSearchService(
 ) {
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): List<BegrepDBO> =
-        conceptRepository.find(search.toMongoQuery(orgNumber))
+        conceptRepository.find(search.toMongoQuery(orgNumber)
+            .with(search.sort.toSort()))
 
     private fun SearchOperation.toMongoQuery(orgNumber: String): Query {
         val searchCriteria = Criteria.where("ansvarligVirksomhet.id").`is`(orgNumber)
@@ -54,6 +54,19 @@ class ConceptSearchService(
                 languageCriteria(langPath = "merknad", query = query)
             } else emptyList()
         ).flatten()
+
+    private fun SortField.toSort(): Sort =
+        when (field) {
+            SortFieldEnum.ANBEFALT_TERM_NB ->
+                Sort.by(sortDirection(), "anbefaltTerm.navn.nb")
+            else -> Sort.by(sortDirection(), "endringslogelement.endringstidspunkt")
+        }
+
+    private fun SortField.sortDirection(): Sort.Direction =
+        when (direction) {
+            SortDirection.ASC -> Sort.Direction.ASC
+            else -> Sort.Direction.DESC
+        }
 
     private fun languageCriteria(langPath: String, query: String): List<Criteria> =
         listOf(
