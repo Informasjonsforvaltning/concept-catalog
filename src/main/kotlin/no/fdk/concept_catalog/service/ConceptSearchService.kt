@@ -38,8 +38,20 @@ class ConceptSearchService(
                 languageCriteria(langPath = "anbefaltTerm.navn", query = query)
             } else emptyList(),
 
+            if (frarådetTerm) {
+                languageCriteria(langPath = "frarådetTerm", query = query)
+            } else emptyList(),
+
+            if (tillattTerm) {
+                languageCriteria(langPath = "tillattTerm", query = query)
+            } else emptyList(),
+
             if (definisjon) {
                 languageCriteria(langPath = "definisjon.tekst", query = query)
+            } else emptyList(),
+
+            if (merknad) {
+                languageCriteria(langPath = "merknad", query = query)
             } else emptyList()
         ).flatten()
 

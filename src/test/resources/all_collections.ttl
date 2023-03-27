@@ -38,6 +38,9 @@
         skosxl:hiddenLabel  [ rdf:type            skosxl:Label ;
                               skosxl:literalForm  "fraraadetTerm2"@nb
                             ] ;
+        skosxl:hiddenLabel  [ rdf:type            skosxl:Label ;
+                              skosxl:literalForm  "Lorem ipsum"@nb
+                            ] ;
         skosxl:prefLabel    [ rdf:type            skosxl:Label ;
                               skosxl:literalForm  "anbefaltTerm"@nb
                             ] ;
