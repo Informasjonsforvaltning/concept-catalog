@@ -41,7 +41,7 @@ val BEGREP_0 = Begrep(
     erSistPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm", "tillattTerm2"))),
-    frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm", "fraraadetTerm2"))),
+    frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm", "fraraadetTerm2", "Lorem ipsum"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
     merknad = mapOf(Pair("nn", listOf("merknad"))),
@@ -91,7 +91,7 @@ val BEGREP_1 = Begrep(
     revisjonAvSistPublisert = true,
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "is searchable"))),
     status = Status.GODKJENT,
-    anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"))),
+    anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"), Pair("en", "Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     )
@@ -104,6 +104,7 @@ val BEGREP_2 = Begrep(
     revisjonAvSistPublisert = true,
     status = Status.HOERING,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
+    tillattTerm = mapOf(Pair("nn", listOf("Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     )

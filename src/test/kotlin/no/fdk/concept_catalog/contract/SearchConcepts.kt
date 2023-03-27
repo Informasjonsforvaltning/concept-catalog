@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_0_OLD
 import no.fdk.concept_catalog.utils.BEGREP_1
 import no.fdk.concept_catalog.utils.BEGREP_2
 import no.fdk.concept_catalog.utils.authorizedRequest
@@ -108,9 +109,10 @@ class SearchConcepts : ApiTestContext() {
 
     @Test
     fun `Query returns correct results when only title is active`() {
+        val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, tillattTerm = false)
         val titleResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("Begrep", fields = QueryFields(definisjon = false))), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("Begrep", fields = queryFields)), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -121,7 +123,7 @@ class SearchConcepts : ApiTestContext() {
 
         val descriptionResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("able", fields = QueryFields(definisjon = false))), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("able", fields = queryFields)), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -133,7 +135,7 @@ class SearchConcepts : ApiTestContext() {
         val statusResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
             port, mapper.writeValueAsString(SearchOperation(
-                query = "Begrep", fields = QueryFields(definisjon = false),
+                query = "Begrep", fields = queryFields,
                 filters = SearchFilters(SearchFilter("godkjent")))), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
@@ -142,6 +144,53 @@ class SearchConcepts : ApiTestContext() {
 
         val statusResult: List<Begrep> = mapper.readValue(statusResponse["body"] as String)
         assertEquals(listOf(BEGREP_1), statusResult)
+    }
+
+    @Test
+    fun `Query returns correct results when searching in tillattTerm`() {
+        val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, anbefaltTerm = false)
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("Lorem ipsum", fields = queryFields)), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_2), result)
+
+    }
+
+    @Test
+    fun `Query returns correct results when searching in merknad`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("merknad")), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), result)
+
+    }
+
+    @Test
+    fun `Query returns correct results when searching in terms`() {
+        val queryFields = QueryFields(definisjon = false, merknad = false)
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("Lorem ipsum", fields = queryFields)), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2), result)
+
     }
 
     @Test

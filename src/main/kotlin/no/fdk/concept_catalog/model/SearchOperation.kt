@@ -13,7 +13,10 @@ class SearchOperation(
 @JsonIgnoreProperties(ignoreUnknown = true)
 class QueryFields(
     val anbefaltTerm: Boolean = true,
-    val definisjon: Boolean = true
+    val frarådetTerm: Boolean = true,
+    val tillattTerm: Boolean = true,
+    val definisjon: Boolean = true,
+    val merknad: Boolean = true
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
