@@ -9,6 +9,7 @@ class SearchOperation(
     val fields: QueryFields = QueryFields(),
     val filters: SearchFilters? = null,
     val sort: SortField = SortField(),
+    val pagination: Pagination = Pagination()
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

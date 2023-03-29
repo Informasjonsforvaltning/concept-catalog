@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
+import no.fdk.concept_catalog.model.Paginated
 import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.security.EndpointPermissions
@@ -179,7 +180,7 @@ class ConceptsController(
             required = true
         ) orgNumber: String,
         @RequestBody searchOperation: SearchOperation
-    ): ResponseEntity<List<Begrep>> {
+    ): ResponseEntity<Paginated> {
         return when {
             !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
             else -> ResponseEntity(conceptService.searchConcepts(orgNumber, searchOperation), HttpStatus.OK)

@@ -12,6 +12,7 @@ import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -60,8 +61,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(), result.hits)
     }
 
     @Test
@@ -74,8 +75,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_2), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
 
     }
 
@@ -89,8 +90,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1), result.hits)
 
     }
 
@@ -104,8 +105,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1), result.hits)
     }
 
     @Test
@@ -118,8 +119,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_2), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
     }
 
     @Test
@@ -133,8 +134,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), titleResponse["status"])
 
-        val titleResult: List<Begrep> = mapper.readValue(titleResponse["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_2), titleResult)
+        val titleResult: Paginated = mapper.readValue(titleResponse["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), titleResult.hits)
 
         val descriptionResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -144,8 +145,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), descriptionResponse["status"])
 
-        val descriptionResult: List<Begrep> = mapper.readValue(descriptionResponse["body"] as String)
-        assertEquals(emptyList(), descriptionResult)
+        val descriptionResult: Paginated = mapper.readValue(descriptionResponse["body"] as String)
+        assertEquals(emptyList(), descriptionResult.hits)
 
         val statusResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -157,8 +158,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), statusResponse["status"])
 
-        val statusResult: List<Begrep> = mapper.readValue(statusResponse["body"] as String)
-        assertEquals(listOf(BEGREP_1), statusResult)
+        val statusResult: Paginated = mapper.readValue(statusResponse["body"] as String)
+        assertEquals(listOf(BEGREP_1), statusResult.hits)
     }
 
     @Test
@@ -172,8 +173,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_2), result)
+        val result: Paginated= mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_2), result.hits)
 
     }
 
@@ -187,8 +188,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), result.hits)
 
     }
 
@@ -203,9 +204,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result)
-
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result.hits)
     }
 
     @Test
@@ -218,8 +218,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1), result.hits)
     }
 
     @Test
@@ -232,8 +232,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0), result.hits)
     }
 
     @Test
@@ -246,9 +246,61 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(), result.hits)
+    }
 
+    @Nested
+    internal inner class Paginate {
+        @Test
+        fun `Paginate handles invalid values`() {
+            val rsp = authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = -1, size = -1))), JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST
+            )
+
+            assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+            val result: Paginated = mapper.readValue(rsp["body"] as String)
+            assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result.hits)
+        }
+
+        @Test
+        fun `Empty list when exceeding actual page count`() {
+            val rsp = authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = 99, size = 10))), JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST
+            )
+
+            assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+            val result: Paginated = mapper.readValue(rsp["body"] as String)
+            assertEquals(emptyList(), result.hits)
+        }
+
+        @Test
+        fun `Pages handled correctly`() {
+            val rsp0 = authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = 0, size = 2))), JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST
+            )
+            val rsp1 = authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = 1, size = 2))), JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST
+            )
+
+            assertEquals(HttpStatus.OK.value(), rsp0["status"])
+            assertEquals(HttpStatus.OK.value(), rsp1["status"])
+
+            val result0: Paginated = mapper.readValue(rsp0["body"] as String)
+            val result1: Paginated = mapper.readValue(rsp1["body"] as String)
+            assertEquals(listOf(BEGREP_1, BEGREP_0), result0.hits)
+            assertEquals(listOf(BEGREP_2), result1.hits)
+        }
     }
 
     @Test
@@ -265,8 +317,8 @@ class SearchConcepts : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0_OLD, BEGREP_2, BEGREP_0, BEGREP_1), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0_OLD, BEGREP_2, BEGREP_0, BEGREP_1), result.hits)
     }
 
     @Test
@@ -280,10 +332,9 @@ class SearchConcepts : ApiTestContext() {
             port, mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
-
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0_OLD, BEGREP_0, BEGREP_2, BEGREP_1), result)
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0_OLD, BEGREP_0, BEGREP_2, BEGREP_1), result.hits)
     }
 }

@@ -12,6 +12,7 @@ import no.fdk.concept_catalog.validation.isValid
 import no.fdk.concept_catalog.validation.validateSchema
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.io.StringReader
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 
@@ -193,11 +196,39 @@ class ConceptService(
             .distinctBy {concept -> concept.originaltBegrep }
             .map { it.toDTO(it.versjonsnr, it.id) }
 
-    fun searchConcepts(orgNumber: String, search: SearchOperation): List<Begrep> =
+    fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated =
         conceptSearchService.searchConcepts(orgNumber, search)
             .map { it.withHighestVersionDTO() }
             .filter { if(search.filters?.onlyCurrentVersions == true) it.isCurrentVersion() else true }
             .toList()
+            .paginate(search.pagination)
+
+    private fun List<Begrep>.paginate(pagination: Pagination): Paginated {
+        val currentPage = if (pagination.page > 0) pagination.page else 0
+        val pageSize = if (pagination.size > 0) pagination.size else 10
+        val totalElements = size
+        val totalPages = ceil(totalElements.toDouble() / pageSize).roundToInt()
+        val nextPage = currentPage.inc()
+
+        val fromIndex = currentPage.times(pageSize)
+        val toIndex = nextPage.times(pageSize)
+
+        val hits = when {
+            currentPage >= totalPages -> emptyList()
+            nextPage == totalPages -> subList(fromIndex, totalElements)
+            else -> subList(fromIndex, toIndex)
+        }
+
+        return Paginated(
+            hits = hits,
+            page = PageMeta(
+                currentPage = currentPage,
+                size = pageSize,
+                totalElements = totalElements,
+                totalPages = totalPages
+            )
+        )
+    }
 
     private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
