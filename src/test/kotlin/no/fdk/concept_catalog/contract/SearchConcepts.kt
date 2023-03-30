@@ -98,7 +98,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Query with status filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("Begrep", filters = SearchFilters(SearchFilter("godkjent")))), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("Begrep", filters = SearchFilters(SearchFilter(listOf("godkjent"))))), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -106,6 +106,20 @@ class SearchConcepts : ApiTestContext() {
 
         val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
         assertEquals(listOf(BEGREP_1), result)
+    }
+
+    @Test
+    fun `Query filter with several values returns correct results`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("Begrep", filters = SearchFilters(SearchFilter(listOf("godkjent", "høring"))))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), result)
     }
 
     @Test
@@ -137,7 +151,7 @@ class SearchConcepts : ApiTestContext() {
             "/begreper/search?orgNummer=123456789",
             port, mapper.writeValueAsString(SearchOperation(
                 query = "Begrep", fields = queryFields,
-                filters = SearchFilters(SearchFilter("godkjent")))), JwtToken(Access.ORG_WRITE).toString(),
+                filters = SearchFilters(SearchFilter(listOf("godkjent"))))), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -198,7 +212,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Status filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(SearchFilter("godkjent")))), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(SearchFilter(listOf("godkjent"))))), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
