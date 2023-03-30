@@ -23,9 +23,9 @@ class ConceptSearchService(
         if (query != null) searchCriteria.orOperator(fields.queryCriteria(query))
 
         if (filters?.status != null) {
-            val status = statusFromString(filters.status.value)
+            val statuses = filters.status.value.map { statusFromString(it) }
             searchCriteria.andOperator(
-                Criteria.where("status").`is`(status)
+                Criteria.where("status").`in`(statuses)
             )
         }
 

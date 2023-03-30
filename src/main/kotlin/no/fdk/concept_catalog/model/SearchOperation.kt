@@ -27,5 +27,5 @@ class SearchFilters(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchFilter(
-    val value: String
+    val value: List<String>
 )
