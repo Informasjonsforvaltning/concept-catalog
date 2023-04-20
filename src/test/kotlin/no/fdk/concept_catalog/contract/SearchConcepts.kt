@@ -110,6 +110,29 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
+    fun `Query with published filter returns correct results`() {
+        val unPublishedResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(published = BooleanFilter(false)))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+        val publishedResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(published = BooleanFilter(true)))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), publishedResponse["status"])
+        assertEquals(HttpStatus.OK.value(), unPublishedResponse["status"])
+
+        val unPublished: Paginated = mapper.readValue(unPublishedResponse["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), unPublished.hits)
+
+        val published: Paginated = mapper.readValue(publishedResponse["body"] as String)
+        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), published.hits)
+    }
+
+    @Test
     fun `Query filter with several values returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",

@@ -29,6 +29,12 @@ class ConceptSearchService(
             )
         }
 
+        if (filters?.published != null) {
+            searchCriteria.andOperator(
+                Criteria.where("erPublisert").`is`(filters.published.value)
+            )
+        }
+
         return Query(searchCriteria)
     }
 

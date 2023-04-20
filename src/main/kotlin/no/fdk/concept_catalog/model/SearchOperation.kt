@@ -24,10 +24,16 @@ class QueryFields(
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchFilters(
     val status: SearchFilter? = null,
+    val published: BooleanFilter? = null,
     val onlyCurrentVersions: Boolean = false
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchFilter(
     val value: List<String>
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+class BooleanFilter(
+    val value: Boolean
 )
