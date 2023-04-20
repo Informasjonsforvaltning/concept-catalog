@@ -122,6 +122,7 @@ class ConceptService(
                     originaltBegrep = concept.originaltBegrep,
                     ansvarligVirksomhet = concept.ansvarligVirksomhet
                 )
+                .let { it.copy(erPublisert = it.status == Status.PUBLISERT) }
                 .updateLastChangedAndByWhom(userId)
         } catch (ex: Exception) {
             logger.error("PATCH failed for ${concept.id}", ex)
@@ -136,7 +137,7 @@ class ConceptService(
         val validation = patched.validateSchema()
 
         when {
-            concept.status == Status.PUBLISERT -> throw ResponseStatusException(
+            concept.erPublisert -> throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "Unable to patch published concepts"
             )
@@ -152,7 +153,7 @@ class ConceptService(
                 )
                 throw badRequestException
             }
-            patched.status == Status.PUBLISERT -> concept.ansvarligVirksomhet?.id?.let { publisherId ->
+            patched.erPublisert -> concept.ansvarligVirksomhet?.id?.let { publisherId ->
                 conceptPublisher.send(publisherId)
             }
         }
@@ -185,13 +186,13 @@ class ConceptService(
     fun getLastPublished(originaltBegrep: String?): Begrep? =
         if (originaltBegrep == null) null
         else {
-            conceptRepository.getByOriginaltBegrepAndStatus(originaltBegrep, Status.PUBLISERT)
+            conceptRepository.getByOriginaltBegrepAndErPublisert(originaltBegrep, true)
                 .maxByOrNull { concept -> concept.versjonsnr }
                 ?.let { it.toDTO(it.versjonsnr, it.id) }
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
-        conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, Status.PUBLISERT)
+        conceptRepository.getBegrepByAnsvarligVirksomhetIdAndErPublisert(orgNr, true)
             .sortedByDescending {concept -> concept.versjonsnr }
             .distinctBy {concept -> concept.originaltBegrep }
             .map { it.toDTO(it.versjonsnr, it.id) }
@@ -267,6 +268,6 @@ class ConceptService(
         erSistPublisert || isUnpublished()
 
     private fun Begrep.isUnpublished(): Boolean =
-        id == originaltBegrep && status != Status.PUBLISERT
+        id == originaltBegrep && !erPublisert
 
 }

@@ -4,7 +4,6 @@ import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.Paginated
 import no.fdk.concept_catalog.model.SearchOperation
-import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.statusFromString
@@ -84,7 +83,7 @@ class ConceptsController(
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
-            concept.status != Status.PUBLISERT -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            !concept.erPublisert -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet?.id}")
                 conceptService.createRevisionOfConcept(revision, concept, userId).id
@@ -104,7 +103,7 @@ class ConceptsController(
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
-            concept.status == Status.PUBLISERT -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            concept.erPublisert -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("deleting concept $id")
                 conceptService.deleteConcept(concept)

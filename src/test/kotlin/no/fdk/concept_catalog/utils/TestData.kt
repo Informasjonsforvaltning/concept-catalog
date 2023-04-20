@@ -22,6 +22,7 @@ val BEGREP_0_OLD = Begrep(
     originaltBegrep = "id0-old",
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
+    erPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "old anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
     frarådetTerm = mapOf(Pair("nb", listOf("old fraraadetTerm"))),
@@ -44,6 +45,7 @@ val BEGREP_0 = Begrep(
     originaltBegrep = "id0-old",
     versjonsnr = SemVer(1, 0, 1),
     status = Status.PUBLISERT,
+    erPublisert = true,
     erSistPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm", "tillattTerm2"))),
@@ -178,6 +180,7 @@ val BEGREP_3 = Begrep(
     originaltBegrep = "id3",
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
+    erPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
@@ -199,6 +202,7 @@ val BEGREP_4 = Begrep(
     originaltBegrep = "id4",
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
+    erPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -216,6 +220,7 @@ val BEGREP_5 = Begrep(
     originaltBegrep = "id5",
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
+    erPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -232,6 +237,7 @@ val BEGREP_5 = Begrep(
 val BEGREP_REVISION = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
+    erPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep revisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -247,6 +253,7 @@ val BEGREP_6 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     revisjonAvSistPublisert = false,
     status = Status.PUBLISERT,
+    erPublisert = true,
     ansvarligVirksomhet = Virksomhet(
         id = "987654321"
     ),
