@@ -15,6 +15,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         revisjonAvSistPublisert = isRevisionOfHighestPublishedVersion(highestPublishedId),
         revisjonAv,
         status,
+        erPublisert,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,
@@ -38,7 +39,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
 
 private fun BegrepDBO.isHighestPublishedVersion(highestPublishedVersion: SemVer?): Boolean =
     when {
-        status != Status.PUBLISERT -> false
+        !erPublisert -> false
         highestPublishedVersion == null -> false
         versjonsnr == highestPublishedVersion -> true
         else -> false
@@ -46,7 +47,7 @@ private fun BegrepDBO.isHighestPublishedVersion(highestPublishedVersion: SemVer?
 
 private fun BegrepDBO.isRevisionOfHighestPublishedVersion(highestPublishedId: String?): Boolean =
     when {
-        status == Status.PUBLISERT -> false
+        erPublisert -> false
         highestPublishedId == null -> true
         revisjonAv == highestPublishedId -> true
         else -> false
@@ -59,6 +60,7 @@ fun Begrep.createRevision(original: BegrepDBO): BegrepDBO =
         versjonsnr = incrementSemVer(original.versjonsnr),
         revisjonAv = original.id,
         status = Status.UTKAST,
+        erPublisert,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,
@@ -89,6 +91,7 @@ fun Begrep.mapForCreation(): BegrepDBO {
         versjonsnr = NEW_CONCEPT_VERSION,
         revisjonAv = null,
         status,
+        erPublisert,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,

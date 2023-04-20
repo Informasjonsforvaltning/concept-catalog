@@ -31,7 +31,7 @@ class LastPublished {
 
     @Test
     fun `Able to get a list with the highest version of concepts for a publisher`() {
-        whenever(conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus("111222333", Status.PUBLISERT))
+        whenever(conceptRepository.getBegrepByAnsvarligVirksomhetIdAndErPublisert("111222333", true))
             .thenReturn(listOf(BEGREP_3, BEGREP_4, BEGREP_3.copy(id = "id3-2", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1"),
                 BEGREP_3.copy(id = "id3-1", versjonsnr = SemVer(1, 9, 1), revisjonAv = "id3"), BEGREP_5,
                 BEGREP_4.copy(id = "id4-1", versjonsnr = SemVer(1, 0, 1), revisjonAv = "id4"),
@@ -50,14 +50,14 @@ class LastPublished {
     @Test
     fun `Sets revision of last published for relevant concepts`() {
         val newPublished = BEGREP_3.copy(id = "id3-1", versjonsnr = SemVer(1, 9, 1), revisjonAv = "id3")
-        val invalid = BEGREP_3.copy(id = "id3-2", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3", status = Status.GODKJENT, revisjonAvSistPublisert = false)
-        val ok = BEGREP_3.copy(id = "id3-3", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1", status = Status.UTKAST, revisjonAvSistPublisert = true)
+        val invalid = BEGREP_3.copy(id = "id3-2", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3", status = Status.GODKJENT, erPublisert = false, revisjonAvSistPublisert = false)
+        val ok = BEGREP_3.copy(id = "id3-3", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1", status = Status.UTKAST, erPublisert = false, revisjonAvSistPublisert = true)
 
         whenever(conceptRepository.findById("id3-2"))
             .thenReturn(Optional.of(invalid.toDBO()))
         whenever(conceptRepository.findById("id3-3"))
             .thenReturn(Optional.of(ok.toDBO()))
-        whenever(conceptRepository.getByOriginaltBegrepAndStatus("id3", Status.PUBLISERT))
+        whenever(conceptRepository.getByOriginaltBegrepAndErPublisert("id3", true))
             .thenReturn(listOf(BEGREP_3.toDBO(), newPublished.toDBO()))
 
         val resultInvalid = conceptService.getConceptById("id3-2")
