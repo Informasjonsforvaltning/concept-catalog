@@ -12,7 +12,6 @@ import no.fdk.concept_catalog.validation.isValid
 import no.fdk.concept_catalog.validation.validateSchema
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Page
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
@@ -188,14 +187,14 @@ class ConceptService(
         else {
             conceptRepository.getByOriginaltBegrepAndErPublisert(originaltBegrep, true)
                 .maxByOrNull { concept -> concept.versjonsnr }
-                ?.let { it.toDTO(it.versjonsnr, it.id) }
+                ?.let { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
         conceptRepository.getBegrepByAnsvarligVirksomhetIdAndErPublisert(orgNr, true)
             .sortedByDescending {concept -> concept.versjonsnr }
             .distinctBy {concept -> concept.originaltBegrep }
-            .map { it.toDTO(it.versjonsnr, it.id) }
+            .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated =
         conceptSearchService.searchConcepts(orgNumber, search)
@@ -261,8 +260,15 @@ class ConceptService(
 
     private fun BegrepDBO.withHighestVersionDTO(): Begrep =
         getLastPublished(originaltBegrep)
-            ?.let { toDTO(it.versjonsnr, it.id) }
-            ?: toDTO(null, null)
+            ?.let { toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(this)) }
+            ?: toDTO(null, null, findIdOfUnpublishedRevision(this))
+
+    fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
+        when {
+            !concept.erPublisert -> null
+            else -> conceptRepository.getByOriginaltBegrepAndErPublisert(concept.originaltBegrep, false)
+                .firstOrNull()?.id
+        }
 
     private fun Begrep.isCurrentVersion(): Boolean =
         erSistPublisert || isUnpublished()

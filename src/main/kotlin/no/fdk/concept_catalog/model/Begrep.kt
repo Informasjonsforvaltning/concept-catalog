@@ -43,6 +43,7 @@ data class Begrep (
     val revisjonAv: String? = null,
     val status: Status? = null,
     val erPublisert: Boolean = false,
+    val upublisertRevisjon: String? = null,
     val anbefaltTerm: Term? = null,
     val tillattTerm: Map<String, List<String>>? = HashMap(),
     val frarådetTerm: Map<String, List<String>>? = HashMap(),

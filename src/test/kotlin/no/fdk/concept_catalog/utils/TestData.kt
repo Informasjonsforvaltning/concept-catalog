@@ -23,6 +23,7 @@ val BEGREP_0_OLD = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "old anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
     frarådetTerm = mapOf(Pair("nb", listOf("old fraraadetTerm"))),
@@ -46,6 +47,7 @@ val BEGREP_0 = Begrep(
     versjonsnr = SemVer(1, 0, 1),
     status = Status.PUBLISERT,
     erPublisert = true,
+    upublisertRevisjon = null,
     erSistPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm", "tillattTerm2"))),
@@ -102,6 +104,7 @@ val BEGREP_1 = Begrep(
     originaltBegrep = "id1",
     versjonsnr = SemVer(1, 0, 0),
     revisjonAvSistPublisert = true,
+    upublisertRevisjon = null,
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "is searchable"))),
     status = Status.GODKJENT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"), Pair("en", "Lorem ipsum"))),
@@ -120,6 +123,7 @@ val BEGREP_2 = Begrep(
     originaltBegrep = "id2",
     versjonsnr = SemVer(0, 0, 1),
     revisjonAvSistPublisert = true,
+    upublisertRevisjon = null,
     status = Status.HOERING,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
     tillattTerm = mapOf(Pair("nn", listOf("Lorem ipsum"))),
@@ -136,6 +140,7 @@ val BEGREP_2 = Begrep(
 val BEGREP_WRONG_ORG = Begrep(
     id = "id-wrong-org",
     originaltBegrep = "id-wrong-org",
+    upublisertRevisjon = null,
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "999888777"
@@ -145,6 +150,7 @@ val BEGREP_WRONG_ORG = Begrep(
 val BEGREP_TO_BE_CREATED = Begrep(
     status = Status.UTKAST,
     anbefaltTerm = Term(navn = emptyMap()),
+    upublisertRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
     )
@@ -154,6 +160,7 @@ val BEGREP_TO_BE_DELETED = Begrep(
     id = "id-to-be-deleted",
     originaltBegrep = "id-to-be-deleted",
     versjonsnr = SemVer(0, 0, 1),
+    upublisertRevisjon = null,
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
@@ -164,6 +171,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     id = "id-to-be-updated",
     originaltBegrep = "id-to-be-updated",
     versjonsnr = SemVer(1, 0, 0),
+    upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "To be updated"))),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
     bruksområde = mapOf(Pair("en", listOf("To be copied"))),
@@ -181,6 +189,7 @@ val BEGREP_3 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
@@ -203,6 +212,7 @@ val BEGREP_4 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -221,6 +231,7 @@ val BEGREP_5 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -238,6 +249,7 @@ val BEGREP_REVISION = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep revisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -254,6 +266,7 @@ val BEGREP_6 = Begrep(
     revisjonAvSistPublisert = false,
     status = Status.PUBLISERT,
     erPublisert = true,
+    upublisertRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
         id = "987654321"
     ),
@@ -263,4 +276,28 @@ val BEGREP_6 = Begrep(
     ),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     omfang = URITekst(uri = "", tekst = "omfangtekst6"),
+)
+
+val BEGREP_HAS_REVISION = Begrep(
+    id = "id-has-revision",
+    originaltBegrep = "id-has-revision",
+    status = Status.PUBLISERT,
+    erPublisert = true,
+    upublisertRevisjon = null,
+    versjonsnr = SemVer(0, 0, 1),
+    ansvarligVirksomhet = Virksomhet(
+        id = "111111111"
+    )
+)
+
+val BEGREP_UNPUBLISHED_REVISION = Begrep(
+    id = "id-unpublished-revision",
+    originaltBegrep = "id-has-revision",
+    status = Status.UTKAST,
+    erPublisert = false,
+    upublisertRevisjon = null,
+    versjonsnr = SemVer(0, 0, 1),
+    ansvarligVirksomhet = Virksomhet(
+        id = "111111111"
+    )
 )

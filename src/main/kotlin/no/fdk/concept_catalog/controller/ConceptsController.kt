@@ -84,6 +84,7 @@ class ConceptsController(
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             !concept.erPublisert -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            conceptService.findIdOfUnpublishedRevision(concept) != null -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet?.id}")
                 conceptService.createRevisionOfConcept(revision, concept, userId).id
