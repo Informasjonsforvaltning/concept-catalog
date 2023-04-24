@@ -58,6 +58,15 @@ class CreateRevision : ApiTestContext() {
     }
 
     @Test
+    fun `Bad request when attempting to create revision of concept with existing unpublished revision`() {
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_HAS_REVISION.id}/revisjon", port, mapper.writeValueAsString(BEGREP_UNPUBLISHED_REVISION),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+        )
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+    }
+
+    @Test
     fun `Ok - Created - for write access`() {
         val before = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet?.id}",
@@ -80,11 +89,14 @@ class CreateRevision : ApiTestContext() {
         assertEquals(beforeList.size + 1, afterList.size)
 
         val revision: Begrep? = afterList.firstOrNull { it.id != "id4" }
+        val concept4After: Begrep? = afterList.firstOrNull { it.id == "id4" }
 
         assertEquals(BEGREP_4.originaltBegrep, revision?.originaltBegrep)
         assertEquals(SemVer(1, 0, 1), revision?.versjonsnr)
         assertEquals(Status.UTKAST, revision?.status)
+        assertEquals(false, revision?.erPublisert)
         assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
         assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
+        assertEquals(revision?.id, concept4After?.upublisertRevisjon)
     }
 }

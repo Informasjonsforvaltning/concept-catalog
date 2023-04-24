@@ -6,7 +6,7 @@ import java.util.*
 
 val NEW_CONCEPT_VERSION = SemVer(0, 0, 1)
 
-fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String?): Begrep =
+fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String?, unpublishedRevision: String?): Begrep =
     Begrep(
         id,
         originaltBegrep,
@@ -16,6 +16,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         revisjonAv,
         status,
         erPublisert,
+        upublisertRevisjon = unpublishedRevision,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,
@@ -60,7 +61,7 @@ fun Begrep.createRevision(original: BegrepDBO): BegrepDBO =
         versjonsnr = incrementSemVer(original.versjonsnr),
         revisjonAv = original.id,
         status = Status.UTKAST,
-        erPublisert,
+        erPublisert = false,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,

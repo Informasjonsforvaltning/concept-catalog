@@ -153,7 +153,7 @@ fun resetDB() {
 }
 
 fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED,
-    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD, BEGREP_6)
+    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD, BEGREP_6, BEGREP_HAS_REVISION, BEGREP_UNPUBLISHED_REVISION)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =
