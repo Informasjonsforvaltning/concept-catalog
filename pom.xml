@@ -13,7 +13,7 @@
     <parent>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
-      <version>3.0.5</version>
+      <version>3.0.6</version>
       <relativePath/>
     </parent>
 
@@ -28,8 +28,8 @@
         <maven.exec.skip>false</maven.exec.skip>
         <!--end standard properties-->
 
-        <kotlin.version>1.8.10</kotlin.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
+        <kotlin.version>1.8.20</kotlin.version>
+        <testcontainers.version>1.18.0</testcontainers.version>
         <jena.version>4.7.0</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
     </properties>
@@ -159,7 +159,7 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>
-            <version>3.0.0-beta-5</version>
+            <version>3.0.0-beta-8</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -261,7 +261,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.11.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -299,7 +299,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.8</version>
+                <version>0.8.9</version>
                 <executions>
                     <execution>
                         <id>before-unit-test-execution</id>
