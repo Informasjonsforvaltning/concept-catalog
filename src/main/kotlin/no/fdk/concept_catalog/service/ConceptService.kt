@@ -185,13 +185,15 @@ class ConceptService(
     fun getLastPublished(originaltBegrep: String?): Begrep? =
         if (originaltBegrep == null) null
         else {
-            conceptRepository.getByOriginaltBegrepAndErPublisert(originaltBegrep, true)
+            conceptRepository.getByOriginaltBegrep(originaltBegrep)
+                .filter { it.erPublisert }
                 .maxByOrNull { concept -> concept.versjonsnr }
                 ?.let { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
-        conceptRepository.getBegrepByAnsvarligVirksomhetIdAndErPublisert(orgNr, true)
+        conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
+            .filter { it.erPublisert }
             .sortedByDescending {concept -> concept.versjonsnr }
             .distinctBy {concept -> concept.originaltBegrep }
             .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
@@ -266,8 +268,8 @@ class ConceptService(
     fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
         when {
             !concept.erPublisert -> null
-            else -> conceptRepository.getByOriginaltBegrepAndErPublisert(concept.originaltBegrep, false)
-                .firstOrNull()?.id
+            else -> conceptRepository.getByOriginaltBegrep(concept.originaltBegrep)
+                .firstOrNull { !it.erPublisert }?.id
         }
 
     private fun Begrep.isCurrentVersion(): Boolean =

@@ -10,7 +10,5 @@ interface ConceptRepository : MongoRepository<BegrepDBO, String?> {
     fun countBegrepByAnsvarligVirksomhetId(orgNr: String): Long
     fun getBegrepByAnsvarligVirksomhetId(orgNr: String): List<BegrepDBO>
     fun getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: Status): List<BegrepDBO>
-    fun getByOriginaltBegrepAndStatus(originaltBegrep: String, status: Status): List<BegrepDBO>
-    fun getBegrepByAnsvarligVirksomhetIdAndErPublisert(orgNr: String, erPublisert: Boolean): List<BegrepDBO>
-    fun getByOriginaltBegrepAndErPublisert(originaltBegrep: String, erPublisert: Boolean): List<BegrepDBO>
+    fun getByOriginaltBegrep(originaltBegrep: String): List<BegrepDBO>
 }
