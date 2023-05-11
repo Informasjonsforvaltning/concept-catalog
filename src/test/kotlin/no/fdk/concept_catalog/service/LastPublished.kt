@@ -31,7 +31,7 @@ class LastPublished {
 
     @Test
     fun `Able to get a list with the highest version of concepts for a publisher`() {
-        whenever(conceptRepository.getBegrepByAnsvarligVirksomhetIdAndErPublisert("111222333", true))
+        whenever(conceptRepository.getBegrepByAnsvarligVirksomhetId("111222333"))
             .thenReturn(listOf(BEGREP_3, BEGREP_4, BEGREP_3.copy(id = "id3-2", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1"),
                 BEGREP_3.copy(id = "id3-1", versjonsnr = SemVer(1, 9, 1), revisjonAv = "id3"), BEGREP_5,
                 BEGREP_4.copy(id = "id4-1", versjonsnr = SemVer(1, 0, 1), revisjonAv = "id4"),
@@ -57,7 +57,7 @@ class LastPublished {
             .thenReturn(Optional.of(invalid.toDBO()))
         whenever(conceptRepository.findById("id3-3"))
             .thenReturn(Optional.of(ok.toDBO()))
-        whenever(conceptRepository.getByOriginaltBegrepAndErPublisert("id3", true))
+        whenever(conceptRepository.getByOriginaltBegrep("id3"))
             .thenReturn(listOf(BEGREP_3.toDBO(), newPublished.toDBO()))
 
         val resultInvalid = conceptService.getConceptById("id3-2")

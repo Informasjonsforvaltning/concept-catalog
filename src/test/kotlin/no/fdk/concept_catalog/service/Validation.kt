@@ -28,7 +28,7 @@ class Validation {
 
     @Test
     fun `New non draft concepts has higher version than what is published`() {
-        whenever(conceptRepository.getByOriginaltBegrepAndErPublisert("id5", true))
+        whenever(conceptRepository.getByOriginaltBegrep("id5"))
             .thenReturn(listOf(BEGREP_5, BEGREP_5.copy(id = "id7", versjonsnr = SemVer(12,10, 0)), BEGREP_5.copy(id = "id6", versjonsnr = SemVer(9, 9, 1))).map { it.toDBO() })
 
         assertFalse { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 10, 1))) }
