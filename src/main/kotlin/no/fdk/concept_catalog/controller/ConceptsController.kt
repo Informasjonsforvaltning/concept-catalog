@@ -147,6 +147,20 @@ class ConceptsController(
         }
     }
 
+    @GetMapping(value = ["/{id}/revisions"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getBegrepVersionsById(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable("id") id: String
+    ): ResponseEntity<List<Begrep>> {
+        val concept = conceptService.getConceptDBO(id)
+        return when {
+            concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
+            endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet?.id) ->
+                ResponseEntity(conceptService.findRevisions(concept), HttpStatus.OK)
+            else -> ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+    }
+
     @PatchMapping(
         value = ["/{id}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
