@@ -3,10 +3,7 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.utils.ApiTestContext
-import no.fdk.concept_catalog.utils.BEGREP_0
-import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
-import no.fdk.concept_catalog.utils.authorizedRequest
+import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.Tag
@@ -27,11 +24,11 @@ private val mapper = JacksonConfigurer().objectMapper()
 )
 @ContextConfiguration(initializers = [ApiTestContext.Initializer::class])
 @Tag("contract")
-class GetConcept : ApiTestContext() {
+class GetConceptRevisions : ApiTestContext() {
 
     @Test
     fun `Unauthorized when access token is not included`() {
-        val rsp = authorizedRequest("/begreper/${BEGREP_0.id}", port, null, null, HttpMethod.GET)
+        val rsp = authorizedRequest("/begreper/${BEGREP_0.id}/revisions", port, null, null, HttpMethod.GET)
 
         assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
     }
@@ -39,7 +36,7 @@ class GetConcept : ApiTestContext() {
     @Test
     fun `Forbidden for wrong orgnr`() {
         val rsp = authorizedRequest(
-            "/begreper/${BEGREP_WRONG_ORG.id}",
+            "/begreper/${BEGREP_WRONG_ORG.id}/revisions",
             port,
             null,
             JwtToken(Access.ORG_READ).toString(),
@@ -52,7 +49,7 @@ class GetConcept : ApiTestContext() {
     @Test
     fun `Not found`() {
         val rsp = authorizedRequest(
-            "/begreper/not-found",
+            "/begreper/not-found/revisions",
             port,
             null,
             JwtToken(Access.ORG_READ).toString(),
@@ -65,7 +62,7 @@ class GetConcept : ApiTestContext() {
     @Test
     fun `Ok for read access`() {
         val rsp = authorizedRequest(
-            "/begreper/${BEGREP_0.id}",
+            "/begreper/${BEGREP_0.id}/revisions",
             port,
             null,
             JwtToken(Access.ORG_READ).toString(),
@@ -74,14 +71,16 @@ class GetConcept : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_0, result)
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(2, result.size)
+        assertEquals(BEGREP_0, result[0])
+        assertEquals(BEGREP_0_OLD, result[1])
     }
 
     @Test
     fun `Ok for write access`() {
         val rsp = authorizedRequest(
-            "/begreper/${BEGREP_0.id}",
+            "/begreper/${BEGREP_0.id}/revisions",
             port,
             null,
             JwtToken(Access.ORG_WRITE).toString(),
@@ -90,8 +89,8 @@ class GetConcept : ApiTestContext() {
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
-        val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_0, result)
+        val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(BEGREP_0, result[0])
     }
 
 }

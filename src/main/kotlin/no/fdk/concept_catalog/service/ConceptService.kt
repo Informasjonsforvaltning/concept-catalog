@@ -265,6 +265,10 @@ class ConceptService(
             ?.let { toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(this)) }
             ?: toDTO(null, null, findIdOfUnpublishedRevision(this))
 
+    fun findRevisions(concept: BegrepDBO): List<Begrep> =
+        conceptRepository.getByOriginaltBegrep(concept.originaltBegrep)
+            .map { it.withHighestVersionDTO() }
+
     fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
         when {
             !concept.erPublisert -> null
