@@ -90,7 +90,9 @@ class GetConceptRevisions : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
+        assertEquals(2, result.size)
         assertEquals(BEGREP_0, result[0])
+        assertEquals(BEGREP_0_OLD, result[1])
     }
 
 }
