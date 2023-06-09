@@ -186,6 +186,21 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
+    fun `Empty query returns all`() {
+        val queryFields = QueryFields(definisjon = false, anbefaltTerm = false, frarådetTerm = false, tillattTerm = false)
+        val response = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("", fields = queryFields)), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), response["status"])
+
+        val titleResult: Paginated = mapper.readValue(response["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2, BEGREP_0_OLD), titleResult.hits)
+    }
+
+    @Test
     fun `Query returns correct results when searching in tillattTerm`() {
         val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, anbefaltTerm = false)
         val rsp = authorizedRequest(

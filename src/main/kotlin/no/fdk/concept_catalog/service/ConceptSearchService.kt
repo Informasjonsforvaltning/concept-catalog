@@ -20,7 +20,7 @@ class ConceptSearchService(
     private fun SearchOperation.toMongoQuery(orgNumber: String): Query {
         val searchCriteria = Criteria.where("ansvarligVirksomhet.id").`is`(orgNumber)
 
-        if (query != null) searchCriteria.orOperator(fields.queryCriteria(query))
+        if (!query.isNullOrBlank()) searchCriteria.orOperator(fields.queryCriteria(query))
 
         if (filters?.status != null) {
             val statuses = filters.status.value.map { statusFromString(it) }
