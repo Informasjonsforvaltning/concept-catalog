@@ -1,7 +1,9 @@
 package no.fdk.concept_catalog.model
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.springframework.data.mongodb.core.mapping.Document
+import java.time.Instant
 import java.time.LocalDate
 
 @Document(collection = "begrep")
@@ -12,6 +14,8 @@ data class BegrepDBO (
     val revisjonAv: String?,
     val status: Status?,
     val erPublisert: Boolean = false,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
+    val publiseringsTidspunkt: Instant? = null,
     val anbefaltTerm: Term?,
     val tillattTerm: Map<String, List<String>>?,
     val frarådetTerm: Map<String, List<String>>?,
@@ -43,6 +47,8 @@ data class Begrep (
     val revisjonAv: String? = null,
     val status: Status? = null,
     val erPublisert: Boolean = false,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
+    val publiseringsTidspunkt: Instant? = null,
     val upublisertRevisjon: String? = null,
     val anbefaltTerm: Term? = null,
     val tillattTerm: Map<String, List<String>>? = HashMap(),

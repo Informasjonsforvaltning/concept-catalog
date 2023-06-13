@@ -19,6 +19,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 private val mapper = JacksonConfigurer().objectMapper()
 
@@ -103,7 +104,13 @@ class PublishConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_TO_BE_UPDATED.copy(erPublisert = true, erSistPublisert = true, status = Status.PUBLISERT), result)
+        assertNotNull(result.publiseringsTidspunkt)
+        assertEquals(BEGREP_TO_BE_UPDATED.copy(
+            erPublisert = true,
+            erSistPublisert = true,
+            status = Status.PUBLISERT,
+            publiseringsTidspunkt = result.publiseringsTidspunkt
+        ), result)
     }
 
 }
