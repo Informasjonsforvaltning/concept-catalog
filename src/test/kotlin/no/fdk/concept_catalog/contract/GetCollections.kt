@@ -27,11 +27,6 @@ private val mapper = JacksonConfigurer().objectMapper()
 @Tag("contract")
 class GetCollections : ApiTestContext() {
 
-    @BeforeAll
-    fun resetDatabase() {
-        resetDB()
-    }
-
     @Test
     fun `Unauthorized when access token is not included`() {
         val rsp = authorizedRequest("/begrepssamlinger", port, null, null, HttpMethod.GET)

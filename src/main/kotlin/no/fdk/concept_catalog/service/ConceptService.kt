@@ -121,7 +121,6 @@ class ConceptService(
                     originaltBegrep = concept.originaltBegrep,
                     ansvarligVirksomhet = concept.ansvarligVirksomhet
                 )
-                .let { it.copy(erPublisert = it.status == Status.PUBLISERT) }
                 .updateLastChangedAndByWhom(userId)
         } catch (ex: Exception) {
             logger.error("PATCH failed for ${concept.id}", ex)
@@ -152,9 +151,10 @@ class ConceptService(
                 )
                 throw badRequestException
             }
-            patched.erPublisert -> concept.ansvarligVirksomhet?.id?.let { publisherId ->
-                conceptPublisher.send(publisherId)
-            }
+            patched.erPublisert -> throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Unable to publish concepts as part of normal update"
+            )
         }
         return conceptRepository.save(patched).withHighestVersionDTO()
     }
@@ -268,6 +268,32 @@ class ConceptService(
     fun findRevisions(concept: BegrepDBO): List<Begrep> =
         conceptRepository.getByOriginaltBegrep(concept.originaltBegrep)
             .map { it.withHighestVersionDTO() }
+
+    fun publish(concept: BegrepDBO): Begrep {
+        val published = concept.copy(erPublisert = true, status = Status.PUBLISERT)
+
+        when {
+            concept.erPublisert -> throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Unable to publish already published concepts"
+            )
+            isNonDraftAndNotValid(published.withHighestVersionDTO()) -> {
+                val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
+                logger.error(
+                    "Concept ${concept.id} has not passed validation and has not been published.",
+                    badRequestException
+                )
+                throw badRequestException
+            }
+        }
+
+        concept.ansvarligVirksomhet?.id?.let { publisherId ->
+            conceptPublisher.send(publisherId)
+        }
+
+        return conceptRepository.save(published)
+            .withHighestVersionDTO()
+    }
 
     fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
         when {

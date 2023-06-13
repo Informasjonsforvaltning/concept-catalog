@@ -138,19 +138,6 @@ class UpdateConcept : ApiTestContext() {
     }
 
     @Test
-    fun `Bad request when publishing Concept that does not validate`() {
-        val operations = listOf(
-                JsonPatchOperation(op = OpEnum.REPLACE, "/status", Status.PUBLISERT))
-        val rsp = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
-
-        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
-    }
-
-    @Test
     fun `Bad request when patch path is wrong`() {
         val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/nn"))
         val rsp = authorizedRequest(
@@ -179,6 +166,18 @@ class UpdateConcept : ApiTestContext() {
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/kildebeskrivelse", value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList())))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_0.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+    }
+
+    @Test
+    fun `Bad request when trying to publish as part of normal update`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/erPublisert", value = true))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )

@@ -173,6 +173,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "To be updated"))),
+    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
     bruksområde = mapOf(Pair("en", listOf("To be copied"))),
     eksempel = mapOf(Pair("en", listOf("Will be replaced by copy"))),
