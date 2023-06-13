@@ -186,6 +186,18 @@ class UpdateConcept : ApiTestContext() {
     }
 
     @Test
+    fun `Bad request when trying to add published date`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/publiseringsTidspunkt", value = "2020-01-02T12:00:00.000+01:00"))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+    }
+
+    @Test
     fun `Able to add new Kildebeskrivelse`() {
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/kildebeskrivelse", value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList())))
         val rsp = authorizedRequest(

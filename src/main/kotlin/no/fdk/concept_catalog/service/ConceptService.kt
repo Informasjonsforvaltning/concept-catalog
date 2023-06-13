@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.io.StringReader
+import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
@@ -151,7 +152,7 @@ class ConceptService(
                 )
                 throw badRequestException
             }
-            patched.erPublisert -> throw ResponseStatusException(
+            patched.erPublisert || patched.publiseringsTidspunkt != null -> throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 "Unable to publish concepts as part of normal update"
             )
@@ -270,7 +271,7 @@ class ConceptService(
             .map { it.withHighestVersionDTO() }
 
     fun publish(concept: BegrepDBO): Begrep {
-        val published = concept.copy(erPublisert = true, status = Status.PUBLISERT)
+        val published = concept.copy(erPublisert = true, status = Status.PUBLISERT, publiseringsTidspunkt = Instant.now())
 
         when {
             concept.erPublisert -> throw ResponseStatusException(

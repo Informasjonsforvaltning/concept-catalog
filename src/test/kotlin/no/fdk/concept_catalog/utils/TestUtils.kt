@@ -104,6 +104,7 @@ fun Begrep.toDBO(): BegrepDBO =
         revisjonAv,
         status,
         erPublisert,
+        publiseringsTidspunkt,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,
@@ -163,6 +164,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("versjonsnr", versjonsnr?.mapDBO())
         .append("status", status?.toString())
         .append("erPublisert", erPublisert)
+        .append("publiseringsTidspunkt", publiseringsTidspunkt)
         .append("anbefaltTerm", anbefaltTerm?.mapDBO())
         .append("tillattTerm", tillattTerm)
         .append("frarådetTerm", frarådetTerm)

@@ -23,6 +23,7 @@ val BEGREP_0_OLD = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "old anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
@@ -47,6 +48,7 @@ val BEGREP_0 = Begrep(
     versjonsnr = SemVer(1, 0, 1),
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     erSistPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
@@ -190,6 +192,7 @@ val BEGREP_3 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
@@ -213,6 +216,7 @@ val BEGREP_4 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
     kildebeskrivelse = Kildebeskrivelse(
@@ -232,6 +236,7 @@ val BEGREP_5 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
     kildebeskrivelse = Kildebeskrivelse(
@@ -250,6 +255,7 @@ val BEGREP_REVISION = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep revisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
@@ -267,6 +273,7 @@ val BEGREP_6 = Begrep(
     revisjonAvSistPublisert = false,
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
         id = "987654321"
@@ -284,6 +291,7 @@ val BEGREP_HAS_REVISION = Begrep(
     originaltBegrep = "id-has-revision",
     status = Status.PUBLISERT,
     erPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     upublisertRevisjon = null,
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
