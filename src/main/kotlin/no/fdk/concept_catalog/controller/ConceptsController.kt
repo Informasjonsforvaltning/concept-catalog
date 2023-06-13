@@ -161,6 +161,21 @@ class ConceptsController(
         }
     }
 
+    @PostMapping(value = ["/{id}/publish"])
+    fun publish(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable("id") id: String
+    ): ResponseEntity<Begrep> {
+        val concept = conceptService.getConceptDBO(id)
+        return when {
+            concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
+            endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) -> {
+                ResponseEntity(conceptService.publish(concept), HttpStatus.OK)
+            }
+            else -> ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+    }
+
     @PatchMapping(
         value = ["/{id}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
