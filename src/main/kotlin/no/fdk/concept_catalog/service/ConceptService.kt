@@ -271,7 +271,12 @@ class ConceptService(
             .map { it.withHighestVersionDTO() }
 
     fun publish(concept: BegrepDBO): Begrep {
-        val published = concept.copy(erPublisert = true, status = Status.PUBLISERT, publiseringsTidspunkt = Instant.now())
+        val published = concept.copy(
+            erPublisert = true,
+            versjonsnr = getVersionOrMinimum(concept),
+            status = Status.PUBLISERT,
+            publiseringsTidspunkt = Instant.now()
+        )
 
         when {
             concept.erPublisert -> throw ResponseStatusException(
@@ -294,6 +299,14 @@ class ConceptService(
 
         return conceptRepository.save(published)
             .withHighestVersionDTO()
+    }
+
+    private fun getVersionOrMinimum(concept: BegrepDBO): SemVer {
+        return if (concept.versjonsnr.major == 0) {
+            SemVer(major = 1, minor = 0, patch = 0)
+        } else {
+            concept.versjonsnr
+        }
     }
 
     fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
