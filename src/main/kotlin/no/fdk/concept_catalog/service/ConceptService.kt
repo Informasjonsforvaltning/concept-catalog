@@ -202,7 +202,7 @@ class ConceptService(
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated =
         conceptSearchService.searchConcepts(orgNumber, search)
             .map { it.withHighestVersionDTO() }
-            .filter { if(search.filters?.onlyCurrentVersions == true) it.isCurrentVersion() else true }
+            .filter { if(search.filters.onlyCurrentVersions) it.isCurrentVersion() else true }
             .toList()
             .paginate(search.pagination)
 

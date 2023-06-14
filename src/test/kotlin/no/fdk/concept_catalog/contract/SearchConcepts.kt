@@ -129,7 +129,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(listOf(BEGREP_1, BEGREP_2), unPublished.hits)
 
         val published: Paginated = mapper.readValue(publishedResponse["body"] as String)
-        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), published.hits)
+        assertEquals(listOf(BEGREP_0), published.hits)
     }
 
     @Test
@@ -186,7 +186,7 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    fun `Empty query returns all`() {
+    fun `Empty query returns all current versions`() {
         val queryFields = QueryFields(definisjon = false, anbefaltTerm = false, frarådetTerm = false, tillattTerm = false)
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -197,7 +197,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), response["status"])
 
         val titleResult: Paginated = mapper.readValue(response["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2, BEGREP_0_OLD), titleResult.hits)
+        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), titleResult.hits)
     }
 
     @Test
@@ -227,7 +227,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), result.hits)
+        assertEquals(listOf(BEGREP_0), result.hits)
 
     }
 
@@ -264,7 +264,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Query with current version filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("definisjon", filters = SearchFilters(onlyCurrentVersions = true))), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("definisjon")), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -272,6 +272,20 @@ class SearchConcepts : ApiTestContext() {
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
         assertEquals(listOf(BEGREP_0), result.hits)
+    }
+
+    @Test
+    fun `Query with false value for current version filter returns correct results`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("definisjon", filters = SearchFilters(onlyCurrentVersions = false))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), result.hits)
     }
 
     @Test
@@ -294,7 +308,7 @@ class SearchConcepts : ApiTestContext() {
         fun `Paginate handles invalid values`() {
             val rsp = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
-                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = -1, size = -1))), JwtToken(Access.ORG_WRITE).toString(),
+                port, mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = -1, size = -1))), JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
 
@@ -308,7 +322,7 @@ class SearchConcepts : ApiTestContext() {
         fun `Empty list when exceeding actual page count`() {
             val rsp = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
-                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = 99, size = 10))), JwtToken(Access.ORG_WRITE).toString(),
+                port, mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = 99, size = 10))), JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
 
@@ -322,12 +336,12 @@ class SearchConcepts : ApiTestContext() {
         fun `Pages handled correctly`() {
             val rsp0 = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
-                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = 0, size = 2))), JwtToken(Access.ORG_WRITE).toString(),
+                port, mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = 0, size = 2))), JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
             val rsp1 = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
-                port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(onlyCurrentVersions = true), pagination = Pagination(page = 1, size = 2))), JwtToken(Access.ORG_WRITE).toString(),
+                port, mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = 1, size = 2))), JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
 
@@ -345,6 +359,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Query returns sorted results ordered by sistEndret ascending`() {
         val searchOp = SearchOperation(
             query = "",
+            filters = SearchFilters(onlyCurrentVersions = false),
             sort = SortField(field=SortFieldEnum.SIST_ENDRET, direction=SortDirection.ASC)
         )
         val rsp = authorizedRequest(
@@ -363,6 +378,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Query returns sorted results ordered by anbefaltTerm descending`() {
         val searchOp = SearchOperation(
             query = "",
+            filters = SearchFilters(onlyCurrentVersions = false),
             sort = SortField(field=SortFieldEnum.ANBEFALT_TERM_NB, direction=SortDirection.DESC)
         )
         val rsp = authorizedRequest(

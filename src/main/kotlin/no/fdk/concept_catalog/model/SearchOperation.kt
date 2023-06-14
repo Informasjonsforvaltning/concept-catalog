@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 class SearchOperation(
     val query: String?,
     val fields: QueryFields = QueryFields(),
-    val filters: SearchFilters? = null,
+    val filters: SearchFilters = SearchFilters(),
     val sort: SortField = SortField(),
     val pagination: Pagination = Pagination()
 )
@@ -25,7 +25,7 @@ class QueryFields(
 class SearchFilters(
     val status: SearchFilter? = null,
     val published: BooleanFilter? = null,
-    val onlyCurrentVersions: Boolean = false
+    val onlyCurrentVersions: Boolean = true
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
