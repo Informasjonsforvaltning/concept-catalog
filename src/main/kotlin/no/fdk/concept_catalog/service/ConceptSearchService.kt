@@ -22,14 +22,14 @@ class ConceptSearchService(
 
         if (!query.isNullOrBlank()) searchCriteria.orOperator(fields.queryCriteria(query))
 
-        if (filters?.status != null) {
+        if (filters.status != null) {
             val statuses = filters.status.value.map { statusFromString(it) }
             searchCriteria.andOperator(
                 Criteria.where("status").`in`(statuses)
             )
         }
 
-        if (filters?.published != null) {
+        if (filters.published != null) {
             searchCriteria.andOperator(
                 Criteria.where("erPublisert").`is`(filters.published.value)
             )
