@@ -118,11 +118,11 @@ fun Begrep.mapForCreation(): BegrepDBO {
     )
 }
 
-fun BegrepDBO.updateLastChangedAndByWhom(userId: String): BegrepDBO =
+fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =
     copy(
         endringslogelement = Endringslogelement(
             endringstidspunkt = ZonedDateTime.now().toInstant(),
-            brukerId = userId
+            brukerId = user.id
         )
     )
 

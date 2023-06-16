@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.security
 
+import no.fdk.concept_catalog.model.User
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Component
 
@@ -57,7 +58,14 @@ class EndpointPermissions {
         return authorities?.contains(ROLE_ROOT_ADMIN) ?: false
     }
 
-    fun getUserId(jwt: Jwt): String? =
-        jwt.claims["user_name"] as? String
+    fun getUser(jwt: Jwt): User? =
+        jwt.let { it.claims["user_name"] as? String }
+            ?.let { id ->
+                User(
+                    id=id,
+                    email=jwt.claims["email"] as? String,
+                    name=jwt.claims["name"] as? String
+                )
+            }
 
 }

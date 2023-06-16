@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_DELETED
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
 import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
@@ -237,6 +238,18 @@ class UpdateConcept : ApiTestContext() {
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
         assertEquals("fdk bruker", result.tildeltBruker?.id)
+    }
+
+    @Test
+    fun `Patch fails when history-service fails`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", listOf("Ny merknad")))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_TO_BE_DELETED.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), rsp["status"])
     }
 
 }

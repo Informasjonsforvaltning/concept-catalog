@@ -34,14 +34,14 @@ class ConceptsController(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody concept: Begrep
     ): ResponseEntity<Unit> {
-        val userId = endpointPermissions.getUserId(jwt)
+        val user = endpointPermissions.getUser(jwt)
         return when {
-            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 logger.info("creating concept for ${concept.ansvarligVirksomhet?.id}")
-                conceptService.createConcept(concept, userId).id
+                conceptService.createConcept(concept, user).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             }
@@ -57,14 +57,14 @@ class ConceptsController(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody concepts: List<Begrep>
     ): ResponseEntity<Unit> {
-        val userId = endpointPermissions.getUserId(jwt)
+        val user = endpointPermissions.getUser(jwt)
         return when {
-            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             concepts.any { !endpointPermissions.hasOrgWritePermission(jwt, it.ansvarligVirksomhet?.id) } ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
-                conceptService.createConcepts(concepts, userId)
+                conceptService.createConcepts(concepts, user)
                 return ResponseEntity<Unit>(HttpStatus.CREATED)
             }
         }
@@ -77,9 +77,9 @@ class ConceptsController(
         @RequestBody revision: Begrep
     ): ResponseEntity<Begrep> {
         val concept = conceptService.getConceptDBO(id)
-        val userId = endpointPermissions.getUserId(jwt)
+        val user = endpointPermissions.getUser(jwt)
         return when {
-            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
@@ -87,7 +87,7 @@ class ConceptsController(
             conceptService.findIdOfUnpublishedRevision(concept) != null -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet?.id}")
-                conceptService.createRevisionOfConcept(revision, concept, userId).id
+                conceptService.createRevisionOfConcept(revision, concept, user).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             }
@@ -187,13 +187,13 @@ class ConceptsController(
         @RequestBody patchOperations: List<JsonPatchOperation>
     ): ResponseEntity<Begrep> {
         val concept = conceptService.getConceptDBO(id)
-        val userId = endpointPermissions.getUserId(jwt)
+        val user = endpointPermissions.getUser(jwt)
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
-            userId == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
-            else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, userId), HttpStatus.OK)
+            else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, user, jwt), HttpStatus.OK)
         }
     }
 
