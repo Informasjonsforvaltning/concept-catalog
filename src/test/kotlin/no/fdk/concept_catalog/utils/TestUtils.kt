@@ -13,6 +13,7 @@ import org.bson.codecs.pojo.PojoCodecProvider
 import org.springframework.http.*
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -82,7 +83,13 @@ fun authorizedRequest(
 
     } catch (e: HttpClientErrorException) {
         mapOf(
-            "status" to e.rawStatusCode,
+            "status" to e.statusCode.value(),
+            "header" to " ",
+            "body" to e.toString()
+        )
+    } catch (e: HttpServerErrorException) {
+        mapOf(
+            "status" to e.statusCode.value(),
             "header" to " ",
             "body" to e.toString()
         )

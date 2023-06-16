@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
+import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.utils.BEGREP_0
@@ -24,9 +25,10 @@ class Rabbit {
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
+    private val historyService: HistoryService = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
 
     @Test
     fun `Publish collection when first concept is created`() {
@@ -36,7 +38,7 @@ class Rabbit {
             .thenReturn(0L)
         whenever(conceptRepository.save(any())).thenReturn(BEGREP_0.toDBO())
 
-        conceptService.createConcept(BEGREP_0, "user_id")
+        conceptService.createConcept(BEGREP_0, User("user_id", null, null))
 
         argumentCaptor<String, String>().apply {
             verify(conceptPublisher, times(1)).sendNewDataSource(first.capture(), second.capture())
@@ -58,7 +60,8 @@ class Rabbit {
         whenever(conceptRepository.save(any())).thenReturn(BEGREP_0.toDBO())
 
         conceptService.createConcepts(listOf(BEGREP_0, BEGREP_0.copy(ansvarligVirksomhet = Virksomhet(id = "111222333")),
-            BEGREP_0.copy(ansvarligVirksomhet = Virksomhet(id = "444555666"))), "user_id")
+            BEGREP_0.copy(ansvarligVirksomhet = Virksomhet(id = "444555666"))), User("user_id", null, null)
+        )
 
         argumentCaptor<String, String>().apply {
             verify(conceptPublisher, times(2)).sendNewDataSource(first.capture(), second.capture())

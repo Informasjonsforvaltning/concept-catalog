@@ -14,6 +14,10 @@ fun startMockServer() {
         )
         mockserver.stubFor(get(urlEqualTo("/auth/realms/fdk/protocol/openid-connect/certs"))
             .willReturn(okJson(JwkStore.get())))
+        mockserver.stubFor(post(urlEqualTo("/111111111/id-to-be-updated/updates"))
+            .willReturn(aResponse().withStatus(200)))
+        mockserver.stubFor(post(urlEqualTo("/111111111/id-to-be-deleted/updates"))
+            .willReturn(aResponse().withStatus(500)))
         mockserver.start()
     }
 }

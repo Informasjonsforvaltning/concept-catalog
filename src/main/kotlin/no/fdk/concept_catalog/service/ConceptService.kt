@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
@@ -32,6 +33,7 @@ class ConceptService(
     private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
     private val conceptPublisher: ConceptPublisher,
+    private val historyService: HistoryService,
     private val mapper: ObjectMapper
 ) {
 
@@ -44,10 +46,10 @@ class ConceptService(
     fun getConceptDBO(id: String): BegrepDBO? =
         conceptRepository.findByIdOrNull(id)
 
-    fun createConcept(concept: Begrep, userId: String): Begrep {
+    fun createConcept(concept: Begrep, user: User): Begrep {
         val newConcept: BegrepDBO = concept.mapForCreation()
                 .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
-                .updateLastChangedAndByWhom(userId)
+                .updateLastChangedAndByWhom(user)
 
         val validation = newConcept.validateSchema()
         if (!validation.isValid) {
@@ -74,20 +76,20 @@ class ConceptService(
                 .size
         )
 
-    fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, userId: String): Begrep =
+    fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User): Begrep =
         concept.let { revisionValues.createRevision(it) }
-            .updateLastChangedAndByWhom(userId)
+            .updateLastChangedAndByWhom(user)
             .let { conceptRepository.save(it) }
             .withHighestVersionDTO()
 
-    fun createConcepts(concepts: List<Begrep>, userId: String) {
+    fun createConcepts(concepts: List<Begrep>, user: User) {
         concepts.mapNotNull { it.ansvarligVirksomhet?.id }
             .distinct()
             .forEach { publishNewCollectionIfFirstSavedConcept(it) }
 
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val newConcepts = concepts
-            .map { it.mapForCreation().updateLastChangedAndByWhom(userId) }
+            .map { it.mapForCreation().updateLastChangedAndByWhom(user) }
             .onEach {
             val validation = it.validateSchema()
             if (!validation.isValid) {
@@ -111,7 +113,7 @@ class ConceptService(
         conceptRepository.saveAll(newConcepts)
     }
 
-    fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, userId: String): Begrep {
+    fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
         val patched = try {
             patchBegrep(
                 concept.copy(endringslogelement = null),
@@ -122,7 +124,7 @@ class ConceptService(
                     originaltBegrep = concept.originaltBegrep,
                     ansvarligVirksomhet = concept.ansvarligVirksomhet
                 )
-                .updateLastChangedAndByWhom(userId)
+                .updateLastChangedAndByWhom(user)
         } catch (ex: Exception) {
             logger.error("PATCH failed for ${concept.id}", ex)
             when (ex) {
@@ -157,6 +159,7 @@ class ConceptService(
                 "Unable to publish concepts as part of normal update"
             )
         }
+        historyService.updateHistory(concept, operations, user, jwt)
         return conceptRepository.save(patched).withHighestVersionDTO()
     }
 

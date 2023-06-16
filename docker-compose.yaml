@@ -7,7 +7,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin
     ports:
-      - 27017:27017
+      - "27017:27017"
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -15,5 +15,14 @@ services:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
     ports:
-      - 5672:5672
-      - 15672:15672
+      - "5672:5672"
+      - "15672:15672"
+
+  catalog-history-service:
+    image: eu.gcr.io/digdir-fdk-infra/catalog-history-service:latest
+    environment:
+      - MONGO_USERNAME=admin
+      - MONGO_PASSWORD=admin
+      - MONGO_HOST=mongodb:27017
+    ports:
+      - "9090:8080"

@@ -22,9 +22,10 @@ class Validation {
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
+    private val historyService: HistoryService = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
 
     @Test
     fun `New non draft concepts has higher version than what is published`() {
