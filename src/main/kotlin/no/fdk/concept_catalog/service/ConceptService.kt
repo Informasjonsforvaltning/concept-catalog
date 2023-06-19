@@ -159,8 +159,14 @@ class ConceptService(
                 "Unable to publish concepts as part of normal update"
             )
         }
-        historyService.updateHistory(concept, operations, user, jwt)
-        return conceptRepository.save(patched).withHighestVersionDTO()
+        val location = historyService.updateHistory(concept, operations, user, jwt)
+        try {
+            return conceptRepository.save(patched).withHighestVersionDTO()
+        } catch (ex: Exception) {
+            if (location != null) historyService.removeHistoryUpdate(location, jwt)
+            else logger.error("unable to remove failing update of ${concept.id} from history, missing location")
+            throw ex
+        }
     }
 
     fun isNonDraftAndNotValid(concept: Begrep): Boolean {
