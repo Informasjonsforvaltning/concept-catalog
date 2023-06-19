@@ -391,4 +391,27 @@ class SearchConcepts : ApiTestContext() {
         val result: Paginated = mapper.readValue(rsp["body"] as String)
         assertEquals(listOf(BEGREP_0_OLD, BEGREP_0, BEGREP_2, BEGREP_1), result.hits)
     }
+
+    @Test
+    fun `Combination of status and published filter returns correct results`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port,
+            mapper.writeValueAsString(
+                SearchOperation(
+                    query = "",
+                    filters = SearchFilters(
+                        status = SearchFilter(listOf("godkjent")),
+                        published = BooleanFilter(false))
+                )
+            ),
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1), result.hits)
+    }
 }
