@@ -21,21 +21,18 @@ class ConceptSearchService(
         val searchCriteria = Criteria.where("ansvarligVirksomhet.id").`is`(orgNumber)
 
         if (!query.isNullOrBlank()) searchCriteria.orOperator(fields.queryCriteria(query))
+        val mongoQuery = Query(searchCriteria)
 
         if (filters.status != null) {
             val statuses = filters.status.value.map { statusFromString(it) }
-            searchCriteria.andOperator(
-                Criteria.where("status").`in`(statuses)
-            )
+            mongoQuery.addCriteria(Criteria.where("status").`in`(statuses))
         }
 
         if (filters.published != null) {
-            searchCriteria.andOperator(
-                Criteria.where("erPublisert").`is`(filters.published.value)
-            )
+            mongoQuery.addCriteria(Criteria.where("erPublisert").`is`(filters.published.value))
         }
 
-        return Query(searchCriteria)
+        return mongoQuery
     }
 
     private fun QueryFields.queryCriteria(query: String): List<Criteria> =
