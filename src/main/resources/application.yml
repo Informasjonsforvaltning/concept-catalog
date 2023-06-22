@@ -27,6 +27,7 @@ management:
 application:
   collectionBaseUri: ${COLLECTION_BASE_URI:https://concept-catalog.fellesdatakatalog.digdir.no}
   historyServiceUri: ${CATALOG_HISTORY_SERVICE_URI:http://localhost:9090}
+  namespace: ${NAMESPACE:staging}
 
 ---
 spring:
