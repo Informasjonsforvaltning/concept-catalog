@@ -49,7 +49,7 @@ data class Begrep (
     val erPublisert: Boolean = false,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
-    val upublisertRevisjon: String? = null,
+    val gjeldendeRevisjon: String? = null,
     val anbefaltTerm: Term? = null,
     val tillattTerm: Map<String, List<String>>? = HashMap(),
     val frarådetTerm: Map<String, List<String>>? = HashMap(),

@@ -24,7 +24,7 @@ val BEGREP_0_OLD = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "old anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
     frarådetTerm = mapOf(Pair("nb", listOf("old fraraadetTerm"))),
@@ -49,7 +49,7 @@ val BEGREP_0 = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     erSistPublisert = true,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm", "tillattTerm2"))),
@@ -106,7 +106,7 @@ val BEGREP_1 = Begrep(
     originaltBegrep = "id1",
     versjonsnr = SemVer(1, 0, 0),
     revisjonAvSistPublisert = true,
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "is searchable"))),
     status = Status.GODKJENT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"), Pair("en", "Lorem ipsum"))),
@@ -125,7 +125,7 @@ val BEGREP_2 = Begrep(
     originaltBegrep = "id2",
     versjonsnr = SemVer(0, 0, 1),
     revisjonAvSistPublisert = true,
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     status = Status.HOERING,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
     tillattTerm = mapOf(Pair("nn", listOf("Lorem ipsum"))),
@@ -142,7 +142,7 @@ val BEGREP_2 = Begrep(
 val BEGREP_WRONG_ORG = Begrep(
     id = "id-wrong-org",
     originaltBegrep = "id-wrong-org",
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "999888777"
@@ -152,7 +152,7 @@ val BEGREP_WRONG_ORG = Begrep(
 val BEGREP_TO_BE_CREATED = Begrep(
     status = Status.UTKAST,
     anbefaltTerm = Term(navn = emptyMap()),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
     )
@@ -162,7 +162,7 @@ val BEGREP_TO_BE_DELETED = Begrep(
     id = "id-to-be-deleted",
     originaltBegrep = "id-to-be-deleted",
     versjonsnr = SemVer(0, 0, 1),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
@@ -173,7 +173,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     id = "id-to-be-updated",
     originaltBegrep = "id-to-be-updated",
     versjonsnr = SemVer(1, 0, 0),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "To be updated"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
@@ -193,7 +193,7 @@ val BEGREP_3 = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
@@ -217,7 +217,7 @@ val BEGREP_4 = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -237,7 +237,7 @@ val BEGREP_5 = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -256,7 +256,7 @@ val BEGREP_REVISION = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep revisjon"))),
     kildebeskrivelse = Kildebeskrivelse(
         forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
@@ -274,7 +274,7 @@ val BEGREP_6 = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
         id = "987654321"
     ),
@@ -292,7 +292,7 @@ val BEGREP_HAS_REVISION = Begrep(
     status = Status.PUBLISERT,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
@@ -304,7 +304,7 @@ val BEGREP_UNPUBLISHED_REVISION = Begrep(
     originaltBegrep = "id-has-revision",
     status = Status.UTKAST,
     erPublisert = false,
-    upublisertRevisjon = null,
+    gjeldendeRevisjon = null,
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
