@@ -17,7 +17,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         status,
         erPublisert,
         publiseringsTidspunkt,
-        upublisertRevisjon = unpublishedRevision,
+        gjeldendeRevisjon = unpublishedRevision,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,

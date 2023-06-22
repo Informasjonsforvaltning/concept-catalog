@@ -323,8 +323,10 @@ class ConceptService(
     fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
         when {
             !concept.erPublisert -> null
-            else -> conceptRepository.getByOriginaltBegrep(concept.originaltBegrep)
-                .firstOrNull { !it.erPublisert }?.id
+            else -> conceptRepository.getByOriginaltBegrepAndErPublisert(
+                originaltBegrep = concept.originaltBegrep,
+                erPublisert = false
+            )?.id
         }
 
     private fun Begrep.isCurrentVersion(): Boolean =
