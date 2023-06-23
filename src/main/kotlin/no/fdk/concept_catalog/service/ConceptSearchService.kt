@@ -29,7 +29,9 @@ class ConceptSearchService(
         }
 
         if (filters.published != null) {
-            mongoQuery.addCriteria(Criteria.where("erPublisert").`is`(filters.published.value))
+            // Use not equal to 'true' instead of is 'false', to also get hits on erPublisert with null value
+            if (filters.published.value) mongoQuery.addCriteria(Criteria.where("erPublisert").`is`(true))
+            else mongoQuery.addCriteria(Criteria.where("erPublisert").ne(true))
         }
 
         return mongoQuery
