@@ -127,6 +127,8 @@ fun Begrep.toDBO(): BegrepDBO =
         gyldigFom,
         gyldigTom,
         endringslogelement,
+        opprettet,
+        opprettetAv,
         seOgså,
         erstattesAv,
         tildeltBruker,

@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.model.*
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -33,6 +34,8 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         gyldigFom,
         gyldigTom,
         endringslogelement,
+        opprettet,
+        opprettetAv,
         seOgså,
         erstattesAv,
         tildeltBruker,
@@ -79,13 +82,15 @@ fun Begrep.createRevision(original: BegrepDBO): BegrepDBO =
         gyldigFom,
         gyldigTom,
         endringslogelement,
+        opprettet,
+        opprettetAv,
         seOgså,
         erstattesAv,
         tildeltBruker,
         begrepsRelasjon
     )
 
-fun Begrep.mapForCreation(): BegrepDBO {
+fun Begrep.mapForCreation(user: User): BegrepDBO {
     val newId = UUID.randomUUID().toString()
 
     return BegrepDBO(
@@ -93,28 +98,30 @@ fun Begrep.mapForCreation(): BegrepDBO {
         originaltBegrep = newId,
         versjonsnr = NEW_CONCEPT_VERSION,
         revisjonAv = null,
-        status,
+        status = status,
         erPublisert = false,
         publiseringsTidspunkt = null,
-        anbefaltTerm,
-        tillattTerm,
-        frarådetTerm,
-        definisjon,
-        kildebeskrivelse,
-        merknad,
-        ansvarligVirksomhet,
-        eksempel,
-        fagområde,
-        bruksområde,
-        omfang,
-        kontaktpunkt,
-        gyldigFom,
-        gyldigTom,
-        endringslogelement,
-        seOgså,
-        erstattesAv,
-        tildeltBruker,
-        begrepsRelasjon
+        opprettet = Instant.now(),
+        opprettetAv = user.name,
+        anbefaltTerm = anbefaltTerm,
+        tillattTerm = tillattTerm,
+        frarådetTerm = frarådetTerm,
+        definisjon = definisjon,
+        kildebeskrivelse = kildebeskrivelse,
+        merknad = merknad,
+        ansvarligVirksomhet = ansvarligVirksomhet,
+        eksempel = eksempel,
+        fagområde = fagområde,
+        bruksområde = bruksområde,
+        omfang = omfang,
+        kontaktpunkt = kontaktpunkt,
+        gyldigFom = gyldigFom,
+        gyldigTom = gyldigTom,
+        endringslogelement = endringslogelement,
+        seOgså = seOgså,
+        erstattesAv = erstattesAv,
+        tildeltBruker = tildeltBruker,
+        begrepsRelasjon = begrepsRelasjon
     )
 }
 

@@ -47,7 +47,7 @@ class ConceptService(
         conceptRepository.findByIdOrNull(id)
 
     fun createConcept(concept: Begrep, user: User): Begrep {
-        val newConcept: BegrepDBO = concept.mapForCreation()
+        val newConcept: BegrepDBO = concept.mapForCreation(user)
                 .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
                 .updateLastChangedAndByWhom(user)
 
@@ -89,7 +89,7 @@ class ConceptService(
 
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val newConcepts = concepts
-            .map { it.mapForCreation().updateLastChangedAndByWhom(user) }
+            .map { it.mapForCreation(user).updateLastChangedAndByWhom(user) }
             .onEach {
             val validation = it.validateSchema()
             if (!validation.isValid) {
