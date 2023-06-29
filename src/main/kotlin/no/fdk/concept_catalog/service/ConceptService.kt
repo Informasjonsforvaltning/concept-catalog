@@ -1,10 +1,6 @@
 package no.fdk.concept_catalog.service
 
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import jakarta.json.Json
-import jakarta.json.JsonException
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
@@ -19,7 +15,6 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
-import java.io.StringReader
 import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -114,26 +109,13 @@ class ConceptService(
     }
 
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
-        val patched = try {
-            patchBegrep(
-                concept.copy(endringslogelement = null),
-                operations
+        val patched = patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
+            .copy(
+                id = concept.id,
+                originaltBegrep = concept.originaltBegrep,
+                ansvarligVirksomhet = concept.ansvarligVirksomhet
             )
-                .copy(
-                    id = concept.id,
-                    originaltBegrep = concept.originaltBegrep,
-                    ansvarligVirksomhet = concept.ansvarligVirksomhet
-                )
-                .updateLastChangedAndByWhom(user)
-        } catch (ex: Exception) {
-            logger.error("PATCH failed for ${concept.id}", ex)
-            when (ex) {
-                is JsonException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)
-                is JsonProcessingException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)
-                is IllegalArgumentException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)
-                else -> throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ex.message)
-            }
-        }
+            .updateLastChangedAndByWhom(user)
 
         val validation = patched.validateSchema()
 
@@ -257,19 +239,6 @@ class ConceptService(
                 .build().toUriString()
             conceptPublisher.sendNewDataSource(publisherId, harvestUrl)
         }
-    }
-
-    private fun patchBegrep(begrep: BegrepDBO, operations: List<JsonPatchOperation>): BegrepDBO {
-        if (operations.isNotEmpty()) {
-            with(mapper) {
-                val changes = Json.createReader(StringReader(writeValueAsString(operations))).readArray()
-                val original = Json.createReader(StringReader(writeValueAsString(begrep))).readObject()
-
-                return Json.createPatch(changes).apply(original)
-                    .let { readValue(it.toString()) }
-            }
-        }
-        return begrep
     }
 
     private fun BegrepDBO.withHighestVersionDTO(): Begrep =
