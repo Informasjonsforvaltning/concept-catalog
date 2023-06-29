@@ -325,3 +325,13 @@ val BEGREP_UNPUBLISHED_REVISION = Begrep(
     ),
     interneFelt = null
 )
+
+val CHANGE_REQUEST_0 = ChangeRequest(
+    id = "cr0",
+    conceptId = null,
+    catalogId = "111111111",
+    anbefaltTerm = null,
+    tillattTerm = null,
+    frarådetTerm = null,
+    definisjon = null
+)

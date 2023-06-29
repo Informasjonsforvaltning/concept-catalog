@@ -160,11 +160,19 @@ fun resetDB() {
     val catalogCollection = mongoDatabase.getCollection("begrep")
     catalogCollection.deleteMany(org.bson.Document())
     catalogCollection.insertMany(conceptDbPopulation())
+
+    val changeRequestCollection = mongoDatabase.getCollection("changeRequest")
+    changeRequestCollection.deleteMany(org.bson.Document())
+    changeRequestCollection.insertMany(changeRequestPopulation())
+
     client.close()
 }
 
 fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED,
     BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD, BEGREP_6, BEGREP_HAS_REVISION, BEGREP_UNPUBLISHED_REVISION)
+    .map { it.mapDBO() }
+
+fun changeRequestPopulation() = listOf(CHANGE_REQUEST_0)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =
@@ -241,3 +249,13 @@ private fun Kontaktpunkt.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("harTelefon", harTelefon)
         .append("harEpost", harEpost)
+
+private fun ChangeRequest.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("_id", id)
+        .append("conceptId", conceptId)
+        .append("catalogId", catalogId)
+        .append("anbefaltTerm", anbefaltTerm)
+        .append("tillattTerm", tillattTerm)
+        .append("frarådetTerm", frarådetTerm)
+        .append("definisjon", definisjon)
