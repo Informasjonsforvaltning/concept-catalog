@@ -36,7 +36,8 @@ data class BegrepDBO (
     val seOgså: List<String>?,
     val erstattesAv: List<String>?,
     val tildeltBruker: Bruker?,
-    val begrepsRelasjon: List<BegrepsRelasjon>?
+    val begrepsRelasjon: List<BegrepsRelasjon>?,
+    val interneFelt: List<InterntFelt>?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -72,7 +73,8 @@ data class Begrep (
     val seOgså: List<String>? = ArrayList(),
     val erstattesAv: List<String>? = ArrayList(),
     val tildeltBruker: Bruker? = null,
-    val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList()
+    val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList(),
+    val interneFelt: List<InterntFelt>?
 )
 
 data class SemVer(val major: Int, val minor: Int, val patch: Int): Comparable<SemVer> {
