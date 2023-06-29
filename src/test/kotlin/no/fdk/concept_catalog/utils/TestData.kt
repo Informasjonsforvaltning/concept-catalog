@@ -39,7 +39,8 @@ val BEGREP_0_OLD = Begrep(
         brukerId = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant())
+        ).toInstant()),
+    interneFelt = emptyList()
 )
 
 val BEGREP_0 = Begrep(
@@ -98,7 +99,8 @@ val BEGREP_0 = Begrep(
         brukerId = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant())
+        ).toInstant()),
+    interneFelt = listOf(InterntFelt("felt-id", FeltType.BOOLEAN, FeltLokasjon.RIGHT_COLUMN, mapOf(Pair("nb", "feltnavn")), mapOf(Pair("nb", "feltbeskrivelse")), "feltverdi", null))
 )
 
 val BEGREP_1 = Begrep(
@@ -117,7 +119,8 @@ val BEGREP_1 = Begrep(
         brukerId = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2020, 12, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant())
+        ).toInstant()),
+    interneFelt = null
 )
 
 val BEGREP_2 = Begrep(
@@ -136,7 +139,8 @@ val BEGREP_2 = Begrep(
         brukerId = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant())
+        ).toInstant()),
+    interneFelt = null
 )
 
 val BEGREP_WRONG_ORG = Begrep(
@@ -146,7 +150,8 @@ val BEGREP_WRONG_ORG = Begrep(
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "999888777"
-    )
+    ),
+    interneFelt = null
 )
 
 val BEGREP_TO_BE_CREATED = Begrep(
@@ -155,7 +160,8 @@ val BEGREP_TO_BE_CREATED = Begrep(
     gjeldendeRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
-    )
+    ),
+    interneFelt = null
 )
 
 val BEGREP_TO_BE_DELETED = Begrep(
@@ -166,7 +172,8 @@ val BEGREP_TO_BE_DELETED = Begrep(
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
-    )
+    ),
+    interneFelt = null
 )
 
 val BEGREP_TO_BE_UPDATED = Begrep(
@@ -183,7 +190,8 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
     ),
-    tildeltBruker = Bruker(id = "Test Testesen")
+    tildeltBruker = Bruker(id = "Test Testesen"),
+    interneFelt = null
 )
 
 val BEGREP_3 = Begrep(
@@ -207,7 +215,8 @@ val BEGREP_3 = Begrep(
     gyldigFom = LocalDate.of(2020, 10, 10),
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
-    )
+    ),
+    interneFelt = null
 )
 
 val BEGREP_4 = Begrep(
@@ -227,7 +236,8 @@ val BEGREP_4 = Begrep(
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
-    )
+    ),
+    interneFelt = null
 )
 
 val BEGREP_5 = Begrep(
@@ -248,7 +258,8 @@ val BEGREP_5 = Begrep(
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
-    )
+    ),
+    interneFelt = null
 )
 
 val BEGREP_REVISION = Begrep(
@@ -263,7 +274,8 @@ val BEGREP_REVISION = Begrep(
         kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
     bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
-    kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766")
+    kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
+    interneFelt = null
 )
 
 val BEGREP_6 = Begrep(
@@ -284,6 +296,7 @@ val BEGREP_6 = Begrep(
     ),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
     omfang = URITekst(uri = "", tekst = "omfangtekst6"),
+    interneFelt = null
 )
 
 val BEGREP_HAS_REVISION = Begrep(
@@ -296,7 +309,8 @@ val BEGREP_HAS_REVISION = Begrep(
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
-    )
+    ),
+    interneFelt = null
 )
 
 val BEGREP_UNPUBLISHED_REVISION = Begrep(
@@ -308,5 +322,6 @@ val BEGREP_UNPUBLISHED_REVISION = Begrep(
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
-    )
+    ),
+    interneFelt = null
 )

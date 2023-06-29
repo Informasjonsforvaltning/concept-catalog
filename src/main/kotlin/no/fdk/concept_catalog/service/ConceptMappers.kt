@@ -39,7 +39,8 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         seOgså,
         erstattesAv,
         tildeltBruker,
-        begrepsRelasjon
+        begrepsRelasjon,
+        interneFelt
     )
 
 private fun BegrepDBO.isHighestPublishedVersion(highestPublishedVersion: SemVer?): Boolean =
@@ -87,7 +88,8 @@ fun Begrep.createRevision(original: BegrepDBO): BegrepDBO =
         seOgså,
         erstattesAv,
         tildeltBruker,
-        begrepsRelasjon
+        begrepsRelasjon,
+        interneFelt
     )
 
 fun Begrep.mapForCreation(user: User): BegrepDBO {
@@ -121,7 +123,8 @@ fun Begrep.mapForCreation(user: User): BegrepDBO {
         seOgså = seOgså,
         erstattesAv = erstattesAv,
         tildeltBruker = tildeltBruker,
-        begrepsRelasjon = begrepsRelasjon
+        begrepsRelasjon = begrepsRelasjon,
+        interneFelt = interneFelt
     )
 }
 
