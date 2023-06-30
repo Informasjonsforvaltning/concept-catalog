@@ -6,7 +6,7 @@ import java.time.Instant
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Endringslogelement(
-    val brukerId: String,
+    val endretAv: String?,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val endringstidspunkt: Instant
 )
