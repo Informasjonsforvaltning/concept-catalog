@@ -132,7 +132,7 @@ fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =
     copy(
         endringslogelement = Endringslogelement(
             endringstidspunkt = ZonedDateTime.now().toInstant(),
-            brukerId = user.id
+            endretAv = user.name
         )
     )
 

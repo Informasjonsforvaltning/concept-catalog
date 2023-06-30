@@ -202,7 +202,7 @@ private fun Term.mapDBO(): org.bson.Document =
 
 private fun Endringslogelement.mapDBO(): org.bson.Document =
     org.bson.Document()
-        .append("brukerId", brukerId)
+        .append("endretAv", endretAv)
         .append("endringstidspunkt", endringstidspunkt)
 
 private fun Definisjon.mapDBO(): org.bson.Document =

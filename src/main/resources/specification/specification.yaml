@@ -498,12 +498,10 @@ components:
     Endringslogelement:
       type: object
       required:
-        - brukerId
         - endringstidspunkt
       properties:
-        brukerId:
+        endretAv:
           type: string
-          nullable: false
         endringstidspunkt:
           type: string
           format: date-time

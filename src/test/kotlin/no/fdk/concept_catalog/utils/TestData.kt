@@ -36,7 +36,7 @@ val BEGREP_0_OLD = Begrep(
     ),
     seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
     endringslogelement = Endringslogelement(
-        brukerId = "bruker1",
+        endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
@@ -96,7 +96,7 @@ val BEGREP_0 = Begrep(
         )
     ),
     endringslogelement = Endringslogelement(
-        brukerId = "bruker1",
+        endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
@@ -116,7 +116,7 @@ val BEGREP_1 = Begrep(
         id = "123456789"
     ),
     endringslogelement = Endringslogelement(
-        brukerId = "bruker1",
+        endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2020, 12, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
@@ -136,7 +136,7 @@ val BEGREP_2 = Begrep(
         id = "123456789"
     ),
     endringslogelement = Endringslogelement(
-        brukerId = "bruker1",
+        endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
