@@ -40,12 +40,12 @@ class ChangeRequestController(
         }
 
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun getAllCatalogRequests(
+    fun createChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @RequestBody changeRequest: ChangeRequestForCreate
     ) : ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
+        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
             val newId = changeRequestService.createChangeRequest(changeRequest, catalogId)
             ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
         } else {
