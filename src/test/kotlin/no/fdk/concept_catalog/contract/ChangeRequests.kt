@@ -8,10 +8,8 @@ import no.fdk.concept_catalog.model.ChangeRequestForCreate
 import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.OpEnum
-import no.fdk.concept_catalog.utils.ApiTestContext
+import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
-import no.fdk.concept_catalog.utils.CHANGE_REQUEST_0
-import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -90,6 +88,13 @@ class ChangeRequests : ApiTestContext() {
         }
 
         @Test
+        fun notFoundForInvalidId() {
+            val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
+
+            assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
+        }
+
+        @Test
         fun ableToGetChangeRequestForAllOrgRoles() {
             val rspRead = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
             val rspWrite = authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET )
@@ -128,6 +133,12 @@ class ChangeRequests : ApiTestContext() {
             val rsp = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.DELETE )
 
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
+        }
+
+        @Test
+        fun notFoundForInvalidId() {
+            val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE )
+            assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
         }
 
         @Test
@@ -181,6 +192,25 @@ class ChangeRequests : ApiTestContext() {
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
+        }
+
+        @Test
+        fun badRequestWhenAttemptingToRequestChangesOnNonOriginalId() {
+            val body = ChangeRequestForCreate(
+                conceptId = BEGREP_0.id,
+                anbefaltTerm = BEGREP_0.anbefaltTerm,
+                tillattTerm = BEGREP_0.tillattTerm,
+                frarådetTerm = BEGREP_0.frarådetTerm,
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")))
+            )
+            val rsp = authorizedRequest(
+                "/${BEGREP_0.ansvarligVirksomhet?.id}/endringsforslag",
+                port,
+                mapper.writeValueAsString(body),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST
+            )
+            assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
         }
 
         @Test
@@ -241,6 +271,14 @@ class ChangeRequests : ApiTestContext() {
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH )
 
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
+        }
+
+        @Test
+        fun notFoundForInvalidId() {
+            val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
+            val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH )
+
+            assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
         }
 
         @Test
