@@ -174,7 +174,7 @@ fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_OR
     BEGREP_HAS_MULTIPLE_REVISIONS, BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST, BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND)
     .map { it.mapDBO() }
 
-fun changeRequestPopulation() = listOf(CHANGE_REQUEST_0)
+fun changeRequestPopulation() = listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =
@@ -263,3 +263,4 @@ private fun ChangeRequest.mapDBO(): org.bson.Document =
         .append("tillattTerm", tillattTerm)
         .append("frarådetTerm", frarådetTerm)
         .append("definisjon", definisjon)
+        .append("status", status)

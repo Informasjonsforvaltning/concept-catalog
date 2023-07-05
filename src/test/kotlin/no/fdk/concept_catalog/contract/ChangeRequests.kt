@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.ChangeRequestForCreate
+import no.fdk.concept_catalog.model.ChangeRequestStatus
 import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.OpEnum
@@ -63,9 +64,28 @@ class ChangeRequests : ApiTestContext() {
             val resultRead: List<ChangeRequest> = mapper.readValue(rspRead["body"] as String)
             val resultWrite: List<ChangeRequest> = mapper.readValue(rspWrite["body"] as String)
 
-            val expected = listOf(CHANGE_REQUEST_0)
+            val expected = listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2)
             assertEquals(expected, resultRead)
             assertEquals(expected, resultWrite)
+        }
+
+        @Test
+        fun ableToGetChangeRequestsFilteredByStatus() {
+            val rspOpen = authorizedRequest("$path?status=OPEN", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
+            val rspRejected = authorizedRequest("$path?status=rejected", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
+            val rspAccepted = authorizedRequest("$path?status=aCCepTed", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
+
+            assertEquals(HttpStatus.OK.value(), rspOpen["status"])
+            assertEquals(HttpStatus.OK.value(), rspRejected["status"])
+            assertEquals(HttpStatus.OK.value(), rspAccepted["status"])
+
+            val resultOpen: List<ChangeRequest> = mapper.readValue(rspOpen["body"] as String)
+            val resultRejected: List<ChangeRequest> = mapper.readValue(rspRejected["body"] as String)
+            val resultAccepted: List<ChangeRequest> = mapper.readValue(rspAccepted["body"] as String)
+
+            assertEquals(listOf(CHANGE_REQUEST_2), resultOpen)
+            assertEquals(listOf(CHANGE_REQUEST_1), resultRejected)
+            assertEquals(listOf(CHANGE_REQUEST_0), resultAccepted)
         }
     }
 
@@ -239,7 +259,8 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = body.anbefaltTerm,
                 tillattTerm = body.tillattTerm,
                 frarådetTerm = body.frarådetTerm,
-                definisjon = body.definisjon
+                definisjon = body.definisjon,
+                status = ChangeRequestStatus.OPEN
             )
             assertEquals(expected, result)
         }
@@ -307,5 +328,97 @@ class ChangeRequests : ApiTestContext() {
             assertEquals(HttpStatus.BAD_REQUEST.value(), rspConceptId["status"])
         }
 
+    }
+
+    @Nested
+    internal inner class RejectChangeRequest {
+        private val path = "/111111111/endringsforslag/${CHANGE_REQUEST_2.id}/reject"
+
+        @Test
+        fun unauthorizedWhenMissingToken() {
+            val rsp = authorizedRequest(path, port, null, null, HttpMethod.POST )
+
+            assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
+        }
+
+        @Test
+        fun forbiddenWhenAuthorizedForOtherCatalog() {
+            val rsp = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
+
+            assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
+        }
+
+        @Test
+        fun forbiddenWhenAuthorizedForReadAccess() {
+            val rsp = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+
+            assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
+        }
+
+        @Test
+        fun notFoundForInvalidId() {
+            val rsp = authorizedRequest("/111111111/endringsforslag/invalid/reject", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
+        }
+
+        @Test
+        fun badRequestWhenRejectingNonOpen() {
+            val alreadyAccepted = authorizedRequest("/111111111/endringsforslag/${CHANGE_REQUEST_0.id}/reject", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val alreadyRejected = authorizedRequest("/111111111/endringsforslag/${CHANGE_REQUEST_1.id}/reject", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyAccepted["status"])
+            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyRejected["status"])
+        }
+
+        @Test
+        fun ableToRejectChangeRequest() {
+            val rsp = authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.OK.value(), rsp["status"])
+        }
+    }
+
+    @Nested
+    internal inner class AcceptChangeRequest {
+        private val path = "/111111111/endringsforslag/${CHANGE_REQUEST_2.id}/accept"
+
+        @Test
+        fun unauthorizedWhenMissingToken() {
+            val rsp = authorizedRequest(path, port, null, null, HttpMethod.POST )
+
+            assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
+        }
+
+        @Test
+        fun forbiddenWhenAuthorizedForOtherCatalog() {
+            val rsp = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
+
+            assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
+        }
+
+        @Test
+        fun forbiddenWhenAuthorizedForReadAccess() {
+            val rsp = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+
+            assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
+        }
+
+        @Test
+        fun notFoundForInvalidId() {
+            val rsp = authorizedRequest("/111111111/endringsforslag/invalid/accept", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
+        }
+
+        @Test
+        fun badRequestWhenAcceptingNonOpen() {
+            val alreadyAccepted = authorizedRequest("/111111111/endringsforslag/${CHANGE_REQUEST_0.id}/accept", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val alreadyRejected = authorizedRequest("/111111111/endringsforslag/${CHANGE_REQUEST_1.id}/accept", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyAccepted["status"])
+            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyRejected["status"])
+        }
+
+        @Test
+        fun ableToAcceptChangeRequest() {
+            val rsp = authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.OK.value(), rsp["status"])
+        }
     }
 }

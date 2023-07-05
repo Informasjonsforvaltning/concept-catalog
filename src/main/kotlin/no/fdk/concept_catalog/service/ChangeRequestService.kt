@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import java.util.UUID
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.ChangeRequestForCreate
+import no.fdk.concept_catalog.model.ChangeRequestStatus
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
@@ -18,11 +19,10 @@ class ChangeRequestService(
     private val conceptRepository: ConceptRepository,
     private val mapper: ObjectMapper
 ) {
-    fun getAllCatalogRequests(catalogId: String): List<ChangeRequest> =
-        changeRequestRepository.getByCatalogId(catalogId)
-
-    fun getByConceptId(catalogId: String, conceptId: String): List<ChangeRequest> =
-        changeRequestRepository.getByCatalogIdAndConceptId(catalogId, conceptId)
+    fun getCatalogRequests(catalogId: String, status: String?): List<ChangeRequest> =
+        changeRequestStatusFromString(status)
+            ?.let { changeRequestRepository.getByCatalogIdAndStatus(catalogId, it) }
+            ?: changeRequestRepository.getByCatalogId(catalogId)
 
     fun deleteChangeRequest(id: String, catalogId: String): Unit =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
@@ -30,14 +30,13 @@ class ChangeRequestService(
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
     fun createChangeRequest(toCreate: ChangeRequestForCreate, catalogId: String): String {
-        if (toCreate.conceptId != null) {
-            validateConceptAsPartOfCatalog(toCreate.conceptId, catalogId)
-        }
+        validateNewChangeRequest(toCreate.conceptId, catalogId)
         val newId = UUID.randomUUID().toString()
         ChangeRequest(
             id = newId,
             catalogId = catalogId,
             conceptId = toCreate.conceptId,
+            status = ChangeRequestStatus.OPEN,
             anbefaltTerm = toCreate.anbefaltTerm,
             tillattTerm = toCreate.tillattTerm,
             frarådetTerm = toCreate.frarådetTerm,
@@ -54,20 +53,52 @@ class ChangeRequestService(
             ?.let { changeRequestRepository.save(it) }
     }
 
+    fun acceptChangeRequest(id: String, catalogId: String) {
+        changeRequestRepository.getByIdAndCatalogId(id, catalogId)
+            ?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
+            ?.copy(status = ChangeRequestStatus.ACCEPTED)
+            ?.run { changeRequestRepository.save(this) }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+
+        // TODO: create or update concept from change request
+    }
+
+    fun rejectChangeRequest(id: String, catalogId: String) {
+        changeRequestRepository.getByIdAndCatalogId(id, catalogId)
+            ?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
+            ?.copy(status = ChangeRequestStatus.REJECTED)
+            ?.run { changeRequestRepository.save(this) }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    }
+
     fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest? =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
 
-    private fun validateConceptAsPartOfCatalog(conceptId: String, catalogId: String){
-        val concept = conceptRepository.findByIdOrNull(conceptId)
-        if (concept?.ansvarligVirksomhet?.id != catalogId || concept.originaltBegrep != conceptId) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST)
+    private fun validateNewChangeRequest(conceptId: String?, catalogId: String) {
+        if (conceptId != null) {
+            val openChangeRequestForConcept = changeRequestRepository.getByConceptIdAndStatus(conceptId, ChangeRequestStatus.OPEN)
+            val concept = conceptRepository.findByIdOrNull(conceptId)
+
+            when {
+                openChangeRequestForConcept.isNotEmpty() -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Found unhandled change request for concept")
+                concept?.ansvarligVirksomhet?.id != catalogId -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Concept is part of another collection")
+                concept.originaltBegrep != conceptId -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided conceptId is not the original")
+            }
         }
     }
 
     private fun validateJsonPatchOperations(operations: List<JsonPatchOperation>) {
-        val invalidPaths = listOf("/id", "/catalogId", "/conceptId")
+        val invalidPaths = listOf("/id", "/catalogId", "/conceptId", "/status")
         if (operations.any { it.path in invalidPaths }) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch of paths $invalidPaths is not permitted")
         }
     }
+
+    private fun changeRequestStatusFromString(str: String?): ChangeRequestStatus? =
+        when(str?.uppercase()) {
+            ChangeRequestStatus.OPEN.name -> ChangeRequestStatus.OPEN
+            ChangeRequestStatus.REJECTED.name -> ChangeRequestStatus.REJECTED
+            ChangeRequestStatus.ACCEPTED.name -> ChangeRequestStatus.ACCEPTED
+            else -> null
+        }
 }

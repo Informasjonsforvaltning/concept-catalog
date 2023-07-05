@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -29,12 +30,13 @@ class ChangeRequestController(
     private val changeRequestService: ChangeRequestService
 ) {
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getAllCatalogRequests(
+    fun getCatalogRequests(
         @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable catalogId: String
+        @PathVariable catalogId: String,
+        @RequestParam(value = "status") status: String?
     ) : ResponseEntity<List<ChangeRequest>> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            ResponseEntity(changeRequestService.getAllCatalogRequests(catalogId), HttpStatus.OK)
+            ResponseEntity(changeRequestService.getCatalogRequests(catalogId, status), HttpStatus.OK)
         } else {
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
@@ -48,6 +50,32 @@ class ChangeRequestController(
         if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
             val newId = changeRequestService.createChangeRequest(changeRequest, catalogId)
             ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
+        } else {
+            ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
+    @PostMapping(value= ["/{changeRequestId}/accept"])
+    fun acceptChangeRequest(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+        @PathVariable changeRequestId: String
+    ) : ResponseEntity<Unit> =
+        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
+            changeRequestService.acceptChangeRequest(changeRequestId, catalogId)
+            ResponseEntity(HttpStatus.OK)
+        } else {
+            ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
+    @PostMapping(value= ["/{changeRequestId}/reject"])
+    fun rejectChangeRequest(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+        @PathVariable changeRequestId: String
+    ) : ResponseEntity<Unit> =
+        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
+            changeRequestService.rejectChangeRequest(changeRequestId, catalogId)
+            ResponseEntity(HttpStatus.OK)
         } else {
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
