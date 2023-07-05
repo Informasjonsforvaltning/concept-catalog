@@ -385,5 +385,28 @@ val CHANGE_REQUEST_0 = ChangeRequest(
     anbefaltTerm = null,
     tillattTerm = null,
     frarådetTerm = null,
-    definisjon = null
+    definisjon = null,
+    status = ChangeRequestStatus.ACCEPTED
+)
+
+val CHANGE_REQUEST_1 = ChangeRequest(
+    id = "cr1",
+    conceptId = null,
+    catalogId = "111111111",
+    anbefaltTerm = null,
+    tillattTerm = null,
+    frarådetTerm = null,
+    definisjon = null,
+    status = ChangeRequestStatus.REJECTED
+)
+
+val CHANGE_REQUEST_2 = ChangeRequest(
+    id = "cr2",
+    conceptId = null,
+    catalogId = "111111111",
+    anbefaltTerm = null,
+    tillattTerm = null,
+    frarådetTerm = null,
+    definisjon = null,
+    status = ChangeRequestStatus.OPEN
 )
