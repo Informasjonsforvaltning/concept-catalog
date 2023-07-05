@@ -193,7 +193,7 @@ class SkosApNoModelService(
     }
 
     private fun addSourceDescriptionToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
-        concept.kildebeskrivelse
+        concept.definisjon?.kildebeskrivelse
             ?.takeIf { !it.kilde.isNullOrEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
             ?.let {
                 val sourceDescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()

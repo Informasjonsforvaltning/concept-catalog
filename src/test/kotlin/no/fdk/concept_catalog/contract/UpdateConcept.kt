@@ -200,7 +200,7 @@ class UpdateConcept : ApiTestContext() {
 
     @Test
     fun `Able to add new Kildebeskrivelse`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/kildebeskrivelse", value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList())))
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/definisjon/kildebeskrivelse", value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList())))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),

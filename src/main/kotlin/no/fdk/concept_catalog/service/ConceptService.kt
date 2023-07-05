@@ -8,6 +8,8 @@ import no.fdk.concept_catalog.validation.isValid
 import no.fdk.concept_catalog.validation.validateSchema
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus

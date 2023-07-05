@@ -28,8 +28,9 @@ val BEGREP_0_OLD = Begrep(
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "old anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
     frarådetTerm = mapOf(Pair("nb", listOf("old fraraadetTerm"))),
-    definisjon = Definisjon(tekst = mapOf(Pair("nb", "old definisjon"))),
-    kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+    definisjon = Definisjon(
+        tekst = mapOf(Pair("nb", "old definisjon")),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
     merknad = mapOf(Pair("nn", listOf("old merknad"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
@@ -55,8 +56,9 @@ val BEGREP_0 = Begrep(
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("tillattTerm", "tillattTerm2"))),
     frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm", "fraraadetTerm2", "Lorem ipsum"))),
-    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
-    kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+    definisjon = Definisjon(
+        tekst = mapOf(Pair("nb", "definisjon")),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
     merknad = mapOf(Pair("nn", listOf("merknad"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
@@ -109,7 +111,7 @@ val BEGREP_1 = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     revisjonAvSistPublisert = true,
     gjeldendeRevisjon = null,
-    definisjon = Definisjon(tekst = mapOf(Pair("nb", "is searchable"))),
+    definisjon = Definisjon(tekst = mapOf(Pair("nb", "is searchable")), null),
     status = Status.GODKJENT,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"), Pair("en", "Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
@@ -182,7 +184,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     versjonsnr = SemVer(1, 0, 0),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "To be updated"))),
-    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
+    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon")), null),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
     bruksområde = mapOf(Pair("en", listOf("To be copied"))),
     eksempel = mapOf(Pair("en", listOf("Will be replaced by copy"))),
@@ -203,12 +205,13 @@ val BEGREP_3 = Begrep(
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
-    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
-    kildebeskrivelse = Kildebeskrivelse(
-        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-        kilde = listOf(
-            URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
-            URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet"))),
+    definisjon = Definisjon(
+        tekst = mapOf(Pair("nb", "definisjon")),
+        kildebeskrivelse = Kildebeskrivelse(
+            forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+            kilde = listOf(
+                URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
+                URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet")))),
     eksempel = mapOf(Pair("en", listOf("example"))),
     fagområde = mapOf(Pair("nb", "fagområde")),
     omfang = URITekst(uri = "https://test.no", tekst = "Test"),
@@ -228,9 +231,10 @@ val BEGREP_4 = Begrep(
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
-    kildebeskrivelse = Kildebeskrivelse(
-        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
+    definisjon = Definisjon(
+        kildebeskrivelse = Kildebeskrivelse(
+            forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
     bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
@@ -249,13 +253,14 @@ val BEGREP_5 = Begrep(
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
-    kildebeskrivelse = Kildebeskrivelse(
-        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
     bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
-    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
+    definisjon = Definisjon(
+        tekst = mapOf(Pair("nb", "definisjon")),
+        kildebeskrivelse = Kildebeskrivelse(
+            forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
     ),
@@ -269,9 +274,10 @@ val BEGREP_REVISION = Begrep(
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep revisjon"))),
-    kildebeskrivelse = Kildebeskrivelse(
-        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))),
+    definisjon = Definisjon(
+        kildebeskrivelse = Kildebeskrivelse(
+            forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
     bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
@@ -290,11 +296,11 @@ val BEGREP_6 = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "987654321"
     ),
-    kildebeskrivelse = Kildebeskrivelse(
-        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-        kilde = listOf(URITekst(uri = "", tekst = "hei"))
-    ),
-    definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon"))),
+    definisjon = Definisjon(
+        tekst = mapOf(Pair("nb", "definisjon")),
+        kildebeskrivelse = Kildebeskrivelse(
+            forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+            kilde = listOf(URITekst(uri = "", tekst = "hei")))),
     omfang = URITekst(uri = "", tekst = "omfangtekst6"),
     interneFelt = null
 )

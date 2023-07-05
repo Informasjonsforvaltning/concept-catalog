@@ -159,7 +159,7 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")))
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), null, HttpMethod.POST )
 
@@ -173,7 +173,7 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")))
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
 
@@ -187,7 +187,7 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")))
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
 
@@ -201,7 +201,7 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_0.anbefaltTerm,
                 tillattTerm = BEGREP_0.tillattTerm,
                 frarådetTerm = BEGREP_0.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")))
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
             )
             val rsp = authorizedRequest(
                 "/${BEGREP_0.ansvarligVirksomhet?.id}/endringsforslag",
@@ -220,7 +220,7 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")))
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.CREATED.value(), rsp["status"])
