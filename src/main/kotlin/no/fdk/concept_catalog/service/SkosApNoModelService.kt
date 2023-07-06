@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.URITekst
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
@@ -9,6 +10,7 @@ import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Concep
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.DefinitionBuilder
 import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.SourceDescription.SourcedescriptionBuilder
 import no.norge.data.skos_ap_no.concept.builder.ModelBuilder
+import no.norge.data.skos_ap_no.concept.builder.generic.AudienceType
 import no.norge.data.skos_ap_no.concept.builder.generic.SourceType
 import org.apache.jena.rdf.model.Model
 import org.slf4j.LoggerFactory
@@ -122,6 +124,8 @@ class SkosApNoModelService(
     private fun addPropertiesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         addPrefLabelToConcept(conceptBuilder, concept)
         addDefinitionToConcept(conceptBuilder, concept)
+        addPublicDefinitionToConcept(conceptBuilder, concept)
+        addSpecialistDefinitionToConcept(conceptBuilder, concept)
         addAltLabelToConcept(conceptBuilder, concept)
         addHiddenLabelToConcept(conceptBuilder, concept)
         addExampleToConcept(conceptBuilder, concept)
@@ -156,6 +160,36 @@ class SkosApNoModelService(
     }
 
 
+    private fun addPublicDefinitionToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+        concept.folkeligForklaring?.tekst
+            ?.filterValues { it.isNotBlank() }
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                val definitionBuilder = conceptBuilder.definitionBuilder()
+                it.forEach { (key, value) -> definitionBuilder.text(value, key) }
+                definitionBuilder.audience(AudienceType.Audience.Public)
+                addSourceDescriptionToDefinition(definitionBuilder, concept.folkeligForklaring)
+
+                definitionBuilder.build()
+            }
+    }
+
+
+    private fun addSpecialistDefinitionToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+        concept.rettsligForklaring?.tekst
+            ?.filterValues { it.isNotBlank() }
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                val definitionBuilder = conceptBuilder.definitionBuilder()
+                it.forEach { (key, value) -> definitionBuilder.text(value, key) }
+                definitionBuilder.audience(AudienceType.Audience.Specialist)
+                addSourceDescriptionToDefinition(definitionBuilder, concept.rettsligForklaring)
+
+                definitionBuilder.build()
+            }
+    }
+
+
     private fun addDefinitionToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
         concept.definisjon?.tekst
             ?.filterValues { it.isNotBlank() }
@@ -167,7 +201,7 @@ class SkosApNoModelService(
 
                 addScopeToDefinition(definitionBuilder, concept)
                 addScopeNoteToDefinition(definitionBuilder, concept)
-                addSourceDescriptionToDefinition(definitionBuilder, concept)
+                addSourceDescriptionToDefinition(definitionBuilder, concept.definisjon)
 
                 definitionBuilder.build()
             }
@@ -192,8 +226,8 @@ class SkosApNoModelService(
             }
     }
 
-    private fun addSourceDescriptionToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
-        concept.definisjon?.kildebeskrivelse
+    private fun addSourceDescriptionToDefinition(definitionBuilder: DefinitionBuilder, definition: Definisjon) {
+        definition.kildebeskrivelse
             ?.takeIf { !it.kilde.isNullOrEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
             ?.let {
                 val sourceDescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()
