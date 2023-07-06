@@ -116,7 +116,6 @@ fun Begrep.toDBO(): BegrepDBO =
         tillattTerm,
         frarådetTerm,
         definisjon,
-        kildebeskrivelse,
         merknad,
         ansvarligVirksomhet,
         eksempel,
@@ -187,7 +186,6 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("tillattTerm", tillattTerm)
         .append("frarådetTerm", frarådetTerm)
         .append("definisjon", definisjon?.mapDBO())
-        .append("kildebeskrivelse", kildebeskrivelse?.mapDBO())
         .append("merknad", merknad)
         .append("bruksområde", bruksområde)
         .append("eksempel", eksempel)
@@ -216,6 +214,7 @@ private fun Endringslogelement.mapDBO(): org.bson.Document =
 private fun Definisjon.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("tekst", tekst)
+        .append("kildebeskrivelse", kildebeskrivelse)
 
 private fun Kildebeskrivelse.mapDBO(): org.bson.Document =
     org.bson.Document()
