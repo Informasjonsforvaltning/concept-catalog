@@ -59,6 +59,12 @@ val BEGREP_0 = Begrep(
     definisjon = Definisjon(
         tekst = mapOf(Pair("nb", "definisjon")),
         kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+    folkeligForklaring = Definisjon(
+        tekst = mapOf(Pair("nb", "Folkelig forklaring")),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+    rettsligForklaring = Definisjon(
+        tekst = mapOf(Pair("nb", "Rettslig forklaring")),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
     merknad = mapOf(Pair("nn", listOf("merknad"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
