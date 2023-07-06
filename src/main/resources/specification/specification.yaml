@@ -337,8 +337,6 @@ components:
           $ref: "#/components/schemas/TekstMedSpraakKode"
         definisjon:
           $ref: "#/components/schemas/Definisjon"
-        kildebeskrivelse:
-          $ref: "#/components/schemas/Kildebeskrivelse"
         merknad:
           $ref: '#/components/schemas/TekstMedSpraakKode'
         ansvarligVirksomhet:
@@ -408,12 +406,9 @@ components:
           description: id of the related concept
     Kildebeskrivelse:
       type: object
-      required:
-        - forholdTilKilde
       properties:
         forholdTilKilde:
           type: string
-          nullable: false
           enum:
             - egendefinert
             - basertPaaKilde
@@ -545,6 +540,8 @@ components:
       properties:
         tekst:
           $ref: '#/components/schemas/TekstMedSpraakKode'
+        kildebeskrivelse:
+          $ref: "#/components/schemas/Kildebeskrivelse"
     Term:
       type: object
       description: The term [skosno:Definisjon] in differerent languages
