@@ -6,7 +6,6 @@ import no.fdk.concept_catalog.model.Begrepssamling
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -45,6 +44,7 @@ class GetCollections : ApiTestContext() {
             Begrepssamling("111111111", 3),
             Begrepssamling("111222333", 1),
             Begrepssamling("123456789", 3),
+            Begrepssamling("222222222", 1),
             Begrepssamling("987654321", 1),
             Begrepssamling("999888777", 1)
         ), result.sortedBy { it.id })
@@ -60,7 +60,8 @@ class GetCollections : ApiTestContext() {
         assertEquals(listOf(
             Begrepssamling("111111111", 3),
             Begrepssamling("111222333", 1),
-            Begrepssamling("123456789", 3)
+            Begrepssamling("123456789", 3),
+            Begrepssamling("222222222", 1)
         ), result.sortedBy { it.id })
     }
 

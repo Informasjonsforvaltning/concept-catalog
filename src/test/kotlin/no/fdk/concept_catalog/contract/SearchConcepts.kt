@@ -414,4 +414,24 @@ class SearchConcepts : ApiTestContext() {
         val result: Paginated = mapper.readValue(rsp["body"] as String)
         assertEquals(listOf(BEGREP_1), result.hits)
     }
+
+    @Test
+    fun `Handle concepts with multiple unpublished revisions`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=222222222",
+            port,
+            mapper.writeValueAsString(
+                SearchOperation(
+                    query = ""
+                )
+            ),
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_HAS_MULTIPLE_REVISIONS), result.hits)
+    }
 }

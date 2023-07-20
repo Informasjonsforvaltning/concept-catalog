@@ -3,7 +3,6 @@ package no.fdk.concept_catalog.utils
 import no.fdk.concept_catalog.model.*
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap
 import java.time.*
-import java.util.*
 
 const val LOCAL_SERVER_PORT = 5000
 
@@ -336,6 +335,47 @@ val BEGREP_UNPUBLISHED_REVISION = Begrep(
         id = "111111111"
     ),
     interneFelt = null
+)
+
+val BEGREP_HAS_MULTIPLE_REVISIONS = Begrep(
+    id = "id-has-multiple-revisions",
+    originaltBegrep = "id-has-multiple-revisions",
+    status = Status.PUBLISERT,
+    erPublisert = true,
+    erSistPublisert = true,
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    gjeldendeRevisjon = "id-unpublished-revision-multiple-first",
+    versjonsnr = SemVer(0, 0, 1),
+    ansvarligVirksomhet = Virksomhet(
+        id = "222222222"
+    ),
+    interneFelt = null
+)
+
+val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST = Begrep(
+    id = "id-unpublished-revision-multiple-first",
+    originaltBegrep = "id-has-multiple-revisions",
+    status = Status.UTKAST,
+    erPublisert = false,
+    gjeldendeRevisjon = null,
+    versjonsnr = SemVer(0, 0, 2),
+    ansvarligVirksomhet = Virksomhet(
+        id = "222222222"
+    ),
+    interneFelt = null,
+)
+
+val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND = Begrep(
+    id = "id-unpublished-revision-multiple-second",
+    originaltBegrep = "id-has-multiple-revisions",
+    status = Status.UTKAST,
+    erPublisert = false,
+    gjeldendeRevisjon = null,
+    versjonsnr = SemVer(0, 0, 2),
+    ansvarligVirksomhet = Virksomhet(
+        id = "222222222"
+    ),
+    interneFelt = null,
 )
 
 val CHANGE_REQUEST_0 = ChangeRequest(

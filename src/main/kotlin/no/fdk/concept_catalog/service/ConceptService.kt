@@ -295,7 +295,7 @@ class ConceptService(
             else -> conceptRepository.getByOriginaltBegrepAndErPublisert(
                 originaltBegrep = concept.originaltBegrep,
                 erPublisert = false
-            )?.id
+            ).maxByOrNull { it.opprettet?.epochSecond ?: 0 }?.id
         }
 
     private fun Begrep.isCurrentVersion(): Boolean =
