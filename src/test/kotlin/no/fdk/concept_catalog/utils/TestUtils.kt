@@ -170,7 +170,8 @@ fun resetDB() {
 }
 
 fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED,
-    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD, BEGREP_6, BEGREP_HAS_REVISION, BEGREP_UNPUBLISHED_REVISION)
+    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_0_OLD, BEGREP_6, BEGREP_HAS_REVISION, BEGREP_UNPUBLISHED_REVISION,
+    BEGREP_HAS_MULTIPLE_REVISIONS, BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST, BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND)
     .map { it.mapDBO() }
 
 fun changeRequestPopulation() = listOf(CHANGE_REQUEST_0)
@@ -218,7 +219,7 @@ private fun Endringslogelement.mapDBO(): org.bson.Document =
 private fun Definisjon.mapDBO(): org.bson.Document =
     org.bson.Document()
         .append("tekst", tekst)
-        .append("kildebeskrivelse", kildebeskrivelse)
+        .append("kildebeskrivelse", kildebeskrivelse?.mapDBO())
 
 private fun Kildebeskrivelse.mapDBO(): org.bson.Document =
     org.bson.Document()
