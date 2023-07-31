@@ -410,3 +410,36 @@ val CHANGE_REQUEST_2 = ChangeRequest(
     definisjon = null,
     status = ChangeRequestStatus.OPEN
 )
+
+val CHANGE_REQUEST_3 = ChangeRequest(
+    id = "cr3",
+    conceptId = "id0-old",
+    catalogId = "123456789",
+    anbefaltTerm = Term(navn = mapOf(Pair("en", "Change request 3"))),
+    tillattTerm = null,
+    frarådetTerm = null,
+    definisjon = null,
+    status = ChangeRequestStatus.OPEN
+)
+
+val CHANGE_REQUEST_4 = ChangeRequest(
+    id = "cr4",
+    conceptId = BEGREP_2.id,
+    catalogId = "123456789",
+    anbefaltTerm = Term(navn = mapOf(Pair("en", "Change request 4"))),
+    tillattTerm = null,
+    frarådetTerm = null,
+    definisjon = null,
+    status = ChangeRequestStatus.OPEN
+)
+
+val CHANGE_REQUEST_5 = ChangeRequest(
+    id = "cr5",
+    conceptId = null,
+    catalogId = "123456789",
+    anbefaltTerm = Term(navn = mapOf(Pair("en", "Change request 5"))),
+    tillattTerm = null,
+    frarådetTerm = null,
+    definisjon = null,
+    status = ChangeRequestStatus.OPEN
+)

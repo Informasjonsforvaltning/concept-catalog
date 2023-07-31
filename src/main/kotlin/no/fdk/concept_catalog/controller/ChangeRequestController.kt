@@ -59,13 +59,17 @@ class ChangeRequestController(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String
-    ) : ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
-            changeRequestService.acceptChangeRequest(changeRequestId, catalogId)
-            ResponseEntity(HttpStatus.OK)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
+    ) : ResponseEntity<Unit> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgWritePermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> {
+                val conceptId = changeRequestService.acceptChangeRequest(changeRequestId, catalogId, user)
+                ResponseEntity(locationHeaderForAccepted(conceptId), HttpStatus.OK)
+            }
         }
+    }
 
     @PostMapping(value= ["/{changeRequestId}/reject"])
     fun rejectChangeRequest(
@@ -126,5 +130,11 @@ class ChangeRequestController(
 private fun locationHeaderForCreated(newId: String, catalogId: String): HttpHeaders =
     HttpHeaders().apply {
         add(HttpHeaders.LOCATION, "/$catalogId/endringsforslag/$newId")
+        add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
+    }
+
+private fun locationHeaderForAccepted(conceptId: String): HttpHeaders =
+    HttpHeaders().apply {
+        add(HttpHeaders.LOCATION, "/begreper/$conceptId")
         add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
     }
