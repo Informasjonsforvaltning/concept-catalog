@@ -18,6 +18,8 @@ fun startMockServer() {
             .willReturn(aResponse().withStatus(200)))
         mockserver.stubFor(post(urlEqualTo("/111111111/id-to-be-deleted/updates"))
             .willReturn(aResponse().withStatus(500)))
+        mockserver.stubFor(post(urlMatching("/123456789/.*/updates"))
+            .willReturn(aResponse().withStatus(200)))
         mockserver.start()
     }
 }

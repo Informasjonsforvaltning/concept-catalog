@@ -65,7 +65,7 @@ class ChangeRequestController(
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
-                val conceptId = changeRequestService.acceptChangeRequest(changeRequestId, catalogId, user)
+                val conceptId = changeRequestService.acceptChangeRequest(changeRequestId, catalogId, user, jwt)
                 ResponseEntity(locationHeaderForAccepted(conceptId), HttpStatus.OK)
             }
         }

@@ -265,3 +265,4 @@ private fun ChangeRequest.mapDBO(): org.bson.Document =
         .append("frarådetTerm", frarådetTerm)
         .append("definisjon", definisjon)
         .append("status", status)
+        .append("conceptStatus", conceptStatus)

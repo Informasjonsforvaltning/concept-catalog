@@ -386,7 +386,8 @@ val CHANGE_REQUEST_0 = ChangeRequest(
     tillattTerm = null,
     frarådetTerm = null,
     definisjon = null,
-    status = ChangeRequestStatus.ACCEPTED
+    status = ChangeRequestStatus.ACCEPTED,
+    conceptStatus = Status.UTKAST
 )
 
 val CHANGE_REQUEST_1 = ChangeRequest(
@@ -397,7 +398,8 @@ val CHANGE_REQUEST_1 = ChangeRequest(
     tillattTerm = null,
     frarådetTerm = null,
     definisjon = null,
-    status = ChangeRequestStatus.REJECTED
+    status = ChangeRequestStatus.REJECTED,
+    conceptStatus = Status.UTKAST
 )
 
 val CHANGE_REQUEST_2 = ChangeRequest(
@@ -408,7 +410,8 @@ val CHANGE_REQUEST_2 = ChangeRequest(
     tillattTerm = null,
     frarådetTerm = null,
     definisjon = null,
-    status = ChangeRequestStatus.OPEN
+    status = ChangeRequestStatus.OPEN,
+    conceptStatus = Status.UTKAST
 )
 
 val CHANGE_REQUEST_3 = ChangeRequest(
@@ -419,7 +422,8 @@ val CHANGE_REQUEST_3 = ChangeRequest(
     tillattTerm = null,
     frarådetTerm = null,
     definisjon = null,
-    status = ChangeRequestStatus.OPEN
+    status = ChangeRequestStatus.OPEN,
+    conceptStatus = Status.UTKAST
 )
 
 val CHANGE_REQUEST_4 = ChangeRequest(
@@ -430,7 +434,8 @@ val CHANGE_REQUEST_4 = ChangeRequest(
     tillattTerm = null,
     frarådetTerm = null,
     definisjon = null,
-    status = ChangeRequestStatus.OPEN
+    status = ChangeRequestStatus.OPEN,
+    conceptStatus = Status.UTKAST
 )
 
 val CHANGE_REQUEST_5 = ChangeRequest(
@@ -441,5 +446,6 @@ val CHANGE_REQUEST_5 = ChangeRequest(
     tillattTerm = null,
     frarådetTerm = null,
     definisjon = null,
-    status = ChangeRequestStatus.OPEN
+    status = ChangeRequestStatus.OPEN,
+    conceptStatus = Status.UTKAST
 )

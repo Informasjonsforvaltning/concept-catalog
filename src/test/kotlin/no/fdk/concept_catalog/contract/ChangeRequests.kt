@@ -184,7 +184,8 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
+                conceptStatus = Status.UTKAST
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), null, HttpMethod.POST )
 
@@ -198,7 +199,8 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
+                conceptStatus = Status.UTKAST
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
 
@@ -212,7 +214,8 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
+                conceptStatus = Status.UTKAST
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
 
@@ -226,7 +229,8 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_0.anbefaltTerm,
                 tillattTerm = BEGREP_0.tillattTerm,
                 frarådetTerm = BEGREP_0.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
+                conceptStatus = Status.UTKAST
             )
             val rsp = authorizedRequest(
                 "/${BEGREP_0.ansvarligVirksomhet?.id}/endringsforslag",
@@ -245,7 +249,8 @@ class ChangeRequests : ApiTestContext() {
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
                 frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
+                conceptStatus = Status.UTKAST
             )
             val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.CREATED.value(), rsp["status"])
@@ -265,7 +270,8 @@ class ChangeRequests : ApiTestContext() {
                 tillattTerm = body.tillattTerm,
                 frarådetTerm = body.frarådetTerm,
                 definisjon = body.definisjon,
-                status = ChangeRequestStatus.OPEN
+                status = ChangeRequestStatus.OPEN,
+                conceptStatus = Status.UTKAST
             )
             assertEquals(expected, result)
         }
@@ -435,7 +441,6 @@ class ChangeRequests : ApiTestContext() {
             val expected = BEGREP_0.copy(
                 id = result.id,
                 versjonsnr = SemVer(1, 0, 2),
-                status = Status.UTKAST,
                 erPublisert = false,
                 erSistPublisert = false,
                 publiseringsTidspunkt = null,
@@ -447,6 +452,7 @@ class ChangeRequests : ApiTestContext() {
                 tillattTerm = CHANGE_REQUEST_3.tillattTerm,
                 frarådetTerm = CHANGE_REQUEST_3.frarådetTerm,
                 definisjon = CHANGE_REQUEST_3.definisjon,
+                status = CHANGE_REQUEST_3.conceptStatus,
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
             )
             assertEquals(expected, result)
@@ -469,6 +475,7 @@ class ChangeRequests : ApiTestContext() {
                 tillattTerm = CHANGE_REQUEST_4.tillattTerm,
                 frarådetTerm = CHANGE_REQUEST_4.frarådetTerm,
                 definisjon = CHANGE_REQUEST_4.definisjon,
+                status = CHANGE_REQUEST_4.conceptStatus,
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
             )
             assertEquals(expected, result)
@@ -489,7 +496,6 @@ class ChangeRequests : ApiTestContext() {
             val expected = Begrep(
                 id = result.id,
                 originaltBegrep = result.id,
-                status = Status.UTKAST,
                 erPublisert = false,
                 gjeldendeRevisjon = null,
                 revisjonAvSistPublisert = true,
@@ -504,6 +510,7 @@ class ChangeRequests : ApiTestContext() {
                 tillattTerm = CHANGE_REQUEST_5.tillattTerm,
                 frarådetTerm = CHANGE_REQUEST_5.frarådetTerm,
                 definisjon = CHANGE_REQUEST_5.definisjon,
+                status = CHANGE_REQUEST_5.conceptStatus,
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
             )
             assertEquals(expected, result)

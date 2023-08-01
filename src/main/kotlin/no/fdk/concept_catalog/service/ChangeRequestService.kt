@@ -14,6 +14,7 @@ import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -23,6 +24,7 @@ import java.time.Instant
 open class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
+    private val conceptService: ConceptService,
     private val mapper: ObjectMapper
 ) {
     fun getCatalogRequests(catalogId: String, status: String?): List<ChangeRequest> =
@@ -46,7 +48,8 @@ open class ChangeRequestService(
             anbefaltTerm = toCreate.anbefaltTerm,
             tillattTerm = toCreate.tillattTerm,
             frarådetTerm = toCreate.frarådetTerm,
-            definisjon = toCreate.definisjon
+            definisjon = toCreate.definisjon,
+            conceptStatus = toCreate.conceptStatus
         ).run { changeRequestRepository.save(this) }
 
         return newId
@@ -60,7 +63,7 @@ open class ChangeRequestService(
     }
 
     @Transactional
-    open fun acceptChangeRequest(id: String, catalogId: String, user: User): String {
+    open fun acceptChangeRequest(id: String, catalogId: String, user: User, jwt: Jwt): String {
         val changeRequest = changeRequestRepository.getByIdAndCatalogId(id, catalogId)
 
         changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
@@ -73,13 +76,13 @@ open class ChangeRequestService(
             ?.maxByOrNull { it.versjonsnr }
 
         val conceptToUpdate = when {
-            dbConcept == null -> createNewConcept(catalogId, user)
-            dbConcept.erPublisert -> dbConcept.createNewRevision(user)
+            dbConcept == null -> conceptRepository.save(createNewConcept(catalogId, user))
+            dbConcept.erPublisert -> conceptRepository.save(dbConcept.createNewRevision(user))
             else -> dbConcept
         }
 
-        conceptToUpdate.addChangeRequestValues(changeRequest, user)
-            .run { conceptRepository.save(this) }
+        val patchOperations = createPatchOperations(conceptToUpdate, conceptToUpdate.applyChangeRequest(changeRequest), mapper)
+        conceptService.updateConcept(conceptToUpdate, patchOperations, user, jwt)
 
         return conceptToUpdate.id
     }
@@ -97,8 +100,7 @@ open class ChangeRequestService(
 
     private fun validateNewChangeRequest(conceptId: String?, catalogId: String) {
         if (conceptId != null) {
-            val openChangeRequestForConcept =
-                changeRequestRepository.getByConceptIdAndStatus(conceptId, ChangeRequestStatus.OPEN)
+            val openChangeRequestForConcept = changeRequestRepository.getByConceptIdAndStatus(conceptId, ChangeRequestStatus.OPEN)
             val concept = conceptRepository.findByIdOrNull(conceptId)
 
             when {
@@ -124,13 +126,14 @@ open class ChangeRequestService(
             else -> null
         }
 
-    private fun BegrepDBO.addChangeRequestValues(changeRequest: ChangeRequest, user: User): BegrepDBO =
+    private fun BegrepDBO.applyChangeRequest(changeRequest: ChangeRequest): BegrepDBO =
         copy(
             anbefaltTerm = changeRequest.anbefaltTerm,
             tillattTerm = changeRequest.tillattTerm,
             frarådetTerm = changeRequest.frarådetTerm,
-            definisjon = changeRequest.definisjon
-        ).updateLastChangedAndByWhom(user)
+            definisjon = changeRequest.definisjon,
+            status = changeRequest.conceptStatus
+        )
 
     private fun BegrepDBO.createNewRevision(user: User): BegrepDBO =
         copy(
@@ -142,7 +145,7 @@ open class ChangeRequestService(
             publiseringsTidspunkt = null,
             opprettet = Instant.now(),
             opprettetAv = user.name
-        )
+        ).updateLastChangedAndByWhom(user)
 
     private fun createNewConcept(catalogId: String, user: User): BegrepDBO {
         val newId = UUID.randomUUID().toString()
@@ -177,7 +180,7 @@ open class ChangeRequestService(
             tildeltBruker = null,
             begrepsRelasjon = ArrayList(),
             interneFelt = null
-        )
+        ).updateLastChangedAndByWhom(user)
     }
 
 }

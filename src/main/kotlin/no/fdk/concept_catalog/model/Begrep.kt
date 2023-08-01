@@ -2,11 +2,13 @@ package no.fdk.concept_catalog.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.time.LocalDate
 
 @Document(collection = "begrep")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class BegrepDBO (
     val id: String,
     val originaltBegrep: String,
