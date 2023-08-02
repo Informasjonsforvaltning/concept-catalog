@@ -40,7 +40,7 @@ val BEGREP_0_OLD = Begrep(
         endringstidspunkt = ZonedDateTime.of(
             2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
-    interneFelt = emptyList()
+    interneFelt = emptyMap()
 )
 
 val BEGREP_0 = Begrep(
@@ -107,7 +107,7 @@ val BEGREP_0 = Begrep(
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
-    interneFelt = listOf(InterntFelt("felt-id", FeltType.BOOLEAN, FeltLokasjon.RIGHT_COLUMN, mapOf(Pair("nb", "feltnavn")), mapOf(Pair("nb", "feltbeskrivelse")), "feltverdi", null))
+    interneFelt = mapOf(Pair("felt-id", InterntFelt("felt-id", FeltType.BOOLEAN, FeltLokasjon.RIGHT_COLUMN, mapOf(Pair("nb", "feltnavn")), mapOf(Pair("nb", "feltbeskrivelse")), "feltverdi", null)))
 )
 
 val BEGREP_1 = Begrep(
