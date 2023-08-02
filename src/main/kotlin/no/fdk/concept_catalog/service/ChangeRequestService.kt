@@ -12,16 +12,18 @@ import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 
+private val logger = LoggerFactory.getLogger(ChangeRequestService::class.java)
+
 @Service
-open class ChangeRequestService(
+class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
     private val conceptService: ConceptService,
@@ -62,8 +64,7 @@ open class ChangeRequestService(
             ?.let { changeRequestRepository.save(it) }
     }
 
-    @Transactional
-    open fun acceptChangeRequest(id: String, catalogId: String, user: User, jwt: Jwt): String {
+    fun acceptChangeRequest(id: String, catalogId: String, user: User, jwt: Jwt): String {
         val changeRequest = changeRequestRepository.getByIdAndCatalogId(id, catalogId)
 
         changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
@@ -82,7 +83,14 @@ open class ChangeRequestService(
         }
 
         val patchOperations = createPatchOperations(conceptToUpdate, conceptToUpdate.applyChangeRequest(changeRequest), mapper)
-        conceptService.updateConcept(conceptToUpdate, patchOperations, user, jwt)
+        try {
+            conceptService.updateConcept(conceptToUpdate, patchOperations, user, jwt)
+        } catch (ex: Exception) {
+            logger.error("update of concept failed when accepting ${changeRequest.id}, reverting acceptation", ex)
+            changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
+            if (conceptToUpdate.id != dbConcept?.id) conceptRepository.delete(conceptToUpdate)
+            throw ex
+        }
 
         return conceptToUpdate.id
     }

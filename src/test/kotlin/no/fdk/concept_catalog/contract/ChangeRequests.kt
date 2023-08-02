@@ -515,5 +515,18 @@ class ChangeRequests : ApiTestContext() {
             )
             assertEquals(expected, result)
         }
+
+        @Test
+        fun acceptIsRevertedWhenUpdateOfHistoryServiceFails() {
+            val rsp = authorizedRequest("/111111111/endringsforslag/${CHANGE_REQUEST_2.id}/accept", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), rsp["status"])
+
+            val rspGet = authorizedRequest("/111111111/endringsforslag/${CHANGE_REQUEST_2.id}", port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET )
+
+            assertEquals(HttpStatus.OK.value(), rspGet["status"])
+            val resultGet: ChangeRequest = mapper.readValue(rspGet["body"] as String)
+
+            assertEquals(CHANGE_REQUEST_2, resultGet)
+        }
     }
 }
