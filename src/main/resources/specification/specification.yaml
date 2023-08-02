@@ -382,9 +382,9 @@ components:
           items:
             $ref: "#/components/schemas/BegrepsRelasjon"
         interneFelt:
-          type: array
-          items:
-            $ref: "#/components/schemas/InterntFelt"
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/InterntFelt'
     BegrepsRelasjon:
       type: object
       properties:
