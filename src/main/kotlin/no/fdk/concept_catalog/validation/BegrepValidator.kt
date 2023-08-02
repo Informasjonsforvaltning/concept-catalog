@@ -66,7 +66,7 @@ private fun flattenSchema(schema: Schema): Schema {
 
 private fun Virksomhet.isValid(): Boolean = when {
     id.isNullOrBlank() -> false
-    id.length != 9 -> false
+    !id.isOrganizationNumber() -> false
     else -> true
 }
 
@@ -78,4 +78,9 @@ private fun isValidTranslationsMap(translations: Map<String, Any>): Boolean = wh
 private fun isValidValidityPeriod(validFrom: LocalDate?, validTo: LocalDate?): Boolean = when {
     validFrom != null && validTo != null && validFrom.isAfter(validTo) -> false
     else -> true
+}
+
+fun String.isOrganizationNumber(): Boolean {
+    val regex = Regex("""^[0-9]{9}$""")
+    return regex.containsMatchIn(this)
 }
