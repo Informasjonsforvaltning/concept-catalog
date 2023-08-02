@@ -12,6 +12,7 @@ import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
+import no.fdk.concept_catalog.validation.isOrganizationNumber
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
@@ -107,7 +108,9 @@ class ChangeRequestService(
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
 
     private fun validateNewChangeRequest(conceptId: String?, catalogId: String) {
-        if (conceptId != null) {
+        if (!catalogId.isOrganizationNumber()) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided catalogId is not valid organization number")
+        } else if (conceptId != null) {
             val openChangeRequestForConcept = changeRequestRepository.getByConceptIdAndStatus(conceptId, ChangeRequestStatus.OPEN)
             val concept = conceptRepository.findByIdOrNull(conceptId)
 

@@ -228,6 +228,25 @@ class ChangeRequests : ApiTestContext() {
         }
 
         @Test
+        fun badRequestForNonValidCatalogId() {
+            val body = ChangeRequestForCreate(
+                conceptId = BEGREP_0.id,
+                anbefaltTerm = BEGREP_0.anbefaltTerm,
+                tillattTerm = BEGREP_0.tillattTerm,
+                frarådetTerm = BEGREP_0.frarådetTerm,
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
+            )
+            val rsp = authorizedRequest(
+                "/invalid/endringsforslag",
+                port,
+                mapper.writeValueAsString(body),
+                JwtToken(Access.WRONG_ORG).toString(),
+                HttpMethod.POST
+            )
+            assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+        }
+
+        @Test
         fun ableToCreateChangeRequest() {
             val body = ChangeRequestForCreate(
                 conceptId = BEGREP_TO_BE_UPDATED.originaltBegrep,
