@@ -47,7 +47,7 @@ class ChangeRequestController(
         @PathVariable catalogId: String,
         @RequestBody changeRequest: ChangeRequestForCreate
     ) : ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
+        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
             val newId = changeRequestService.createChangeRequest(changeRequest, catalogId)
             ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
         } else {
@@ -118,7 +118,7 @@ class ChangeRequestController(
         @PathVariable changeRequestId: String,
         @RequestBody patchOperations: List<JsonPatchOperation>
     ) : ResponseEntity<ChangeRequest> =
-        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
+        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
             changeRequestService.updateChangeRequest(changeRequestId, catalogId, patchOperations)
                 ?.let { ResponseEntity(it, HttpStatus.OK) }
                 ?: ResponseEntity(HttpStatus.NOT_FOUND)
