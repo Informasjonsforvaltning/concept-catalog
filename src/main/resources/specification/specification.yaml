@@ -592,28 +592,7 @@ components:
           type: string
           nullable: false
     InterntFelt:
-      required:
-        - fieldId
-        - type
-        - location
       properties:
-        fieldId:
-          type: string
-          nullable: false
-        type:
-          type: string
-          nullable: false
-          enum: [ boolean, text_short, text_long, code_list, user_list ]
-        location:
-          type: string
-          nullable: false
-          enum: [ main_column, right_column ]
-        label:
-          $ref: "#/components/schemas/TekstMedSpraakKode"
-        description:
-          $ref: "#/components/schemas/TekstMedSpraakKode"
-        codeListId:
-          type: string
         value:
           type: string
   securitySchemes:
