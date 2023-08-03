@@ -13,6 +13,7 @@ import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.OpEnum
 import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
@@ -230,11 +231,12 @@ class ChangeRequests : ApiTestContext() {
         @Test
         fun badRequestForNonValidCatalogId() {
             val body = ChangeRequestForCreate(
-                conceptId = BEGREP_0.id,
+                conceptId = null,
                 anbefaltTerm = BEGREP_0.anbefaltTerm,
                 tillattTerm = BEGREP_0.tillattTerm,
                 frarådetTerm = BEGREP_0.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null)
+                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
+                conceptStatus = Status.UTKAST
             )
             val rsp = authorizedRequest(
                 "/invalid/endringsforslag",
@@ -248,7 +250,7 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun ableToCreateChangeRequest() {
-            val body = ChangeRequestForCreate(
+            val body0 = ChangeRequestForCreate(
                 conceptId = BEGREP_TO_BE_UPDATED.originaltBegrep,
                 anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
                 tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
@@ -256,28 +258,51 @@ class ChangeRequests : ApiTestContext() {
                 definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
                 conceptStatus = Status.UTKAST
             )
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
-            assertEquals(HttpStatus.CREATED.value(), rsp["status"])
+            val body1 = ChangeRequestForCreate(null, anbefaltTerm = Term(navn = mapOf(Pair("en", "New concept"))), null, null, null, conceptStatus = Status.UTKAST)
 
-            val responseHeaders: HttpHeaders = rsp["header"] as HttpHeaders
-            val location = responseHeaders.location
-            assertNotNull(location)
+            val rsp0 = authorizedRequest(path, port, mapper.writeValueAsString(body0), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+            val rsp1 = authorizedRequest(path, port, mapper.writeValueAsString(body1), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.CREATED.value(), rsp0["status"])
+            assertEquals(HttpStatus.CREATED.value(), rsp1["status"])
 
-            val getResponse = authorizedRequest(location.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
-            assertEquals(HttpStatus.OK.value(), getResponse["status"])
-            val result: ChangeRequest = mapper.readValue(getResponse["body"] as String)
-            val expected = ChangeRequest(
-                id = result.id,
+            val responseHeaders0: HttpHeaders = rsp0["header"] as HttpHeaders
+            val location0 = responseHeaders0.location
+            assertNotNull(location0)
+            val responseHeaders1: HttpHeaders = rsp1["header"] as HttpHeaders
+            val location1 = responseHeaders1.location
+            assertNotNull(location1)
+
+            val getResponse0 = authorizedRequest(location0.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            assertEquals(HttpStatus.OK.value(), getResponse0["status"])
+            val result0: ChangeRequest = mapper.readValue(getResponse0["body"] as String)
+            val expected0 = ChangeRequest(
+                id = result0.id,
                 catalogId = "111111111",
-                conceptId = body.conceptId,
-                anbefaltTerm = body.anbefaltTerm,
-                tillattTerm = body.tillattTerm,
-                frarådetTerm = body.frarådetTerm,
-                definisjon = body.definisjon,
+                conceptId = body0.conceptId,
+                anbefaltTerm = body0.anbefaltTerm,
+                tillattTerm = body0.tillattTerm,
+                frarådetTerm = body0.frarådetTerm,
+                definisjon = body0.definisjon,
                 status = ChangeRequestStatus.OPEN,
                 conceptStatus = Status.UTKAST
             )
-            assertEquals(expected, result)
+            assertEquals(expected0, result0)
+
+            val getResponse1 = authorizedRequest(location1.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            assertEquals(HttpStatus.OK.value(), getResponse1["status"])
+            val result1: ChangeRequest = mapper.readValue(getResponse1["body"] as String)
+            val expected1 = ChangeRequest(
+                id = result1.id,
+                catalogId = "111111111",
+                conceptId = null,
+                anbefaltTerm = body1.anbefaltTerm,
+                tillattTerm = null,
+                frarådetTerm = null,
+                definisjon = null,
+                status = ChangeRequestStatus.OPEN,
+                conceptStatus = Status.UTKAST
+            )
+            assertEquals(expected1, result1)
         }
     }
 
