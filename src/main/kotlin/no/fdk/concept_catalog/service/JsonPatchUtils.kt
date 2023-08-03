@@ -35,3 +35,11 @@ inline fun <reified T> applyPatch(originalObject: T, operations: List<JsonPatchO
     }
     return originalObject
 }
+
+inline fun <reified T> createPatchOperations(originalObject: T, updatedObject: T, mapper: ObjectMapper): List<JsonPatchOperation> =
+    with(mapper) {
+        val original = Json.createReader(StringReader(writeValueAsString(originalObject))).readObject()
+        val updated = Json.createReader(StringReader(writeValueAsString(updatedObject))).readObject()
+
+        return readValue(Json.createDiff(original, updated).toString())
+    }

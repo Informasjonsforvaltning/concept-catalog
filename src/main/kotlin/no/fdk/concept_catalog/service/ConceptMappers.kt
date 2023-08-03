@@ -139,7 +139,7 @@ fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =
         )
     )
 
-private fun incrementSemVer(semVer: SemVer?): SemVer =
+fun incrementSemVer(semVer: SemVer?): SemVer =
     SemVer(
         major = semVer?.major ?: NEW_CONCEPT_VERSION.major,
         minor = semVer?.minor ?: NEW_CONCEPT_VERSION.minor,

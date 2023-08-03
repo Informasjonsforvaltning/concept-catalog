@@ -1,22 +1,32 @@
 package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.fdk.concept_catalog.model.BegrepDBO
 import java.util.UUID
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.ChangeRequestForCreate
 import no.fdk.concept_catalog.model.ChangeRequestStatus
 import no.fdk.concept_catalog.model.JsonPatchOperation
+import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.User
+import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.time.Instant
+
+private val logger = LoggerFactory.getLogger(ChangeRequestService::class.java)
 
 @Service
 class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
+    private val conceptService: ConceptService,
     private val mapper: ObjectMapper
 ) {
     fun getCatalogRequests(catalogId: String, status: String?): List<ChangeRequest> =
@@ -40,27 +50,49 @@ class ChangeRequestService(
             anbefaltTerm = toCreate.anbefaltTerm,
             tillattTerm = toCreate.tillattTerm,
             frarådetTerm = toCreate.frarådetTerm,
-            definisjon = toCreate.definisjon
+            definisjon = toCreate.definisjon,
+            conceptStatus = toCreate.conceptStatus
         ).run { changeRequestRepository.save(this) }
 
         return newId
     }
 
-    fun updateChangeRequest(id: String, catalogId: String, operations: List<JsonPatchOperation>):ChangeRequest? {
+    fun updateChangeRequest(id: String, catalogId: String, operations: List<JsonPatchOperation>): ChangeRequest? {
         validateJsonPatchOperations(operations)
         return changeRequestRepository.getByIdAndCatalogId(id, catalogId)
             ?.let { patchOriginal(it, operations, mapper) }
             ?.let { changeRequestRepository.save(it) }
     }
 
-    fun acceptChangeRequest(id: String, catalogId: String) {
-        changeRequestRepository.getByIdAndCatalogId(id, catalogId)
-            ?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
+    fun acceptChangeRequest(id: String, catalogId: String, user: User, jwt: Jwt): String {
+        val changeRequest = changeRequestRepository.getByIdAndCatalogId(id, catalogId)
+
+        changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
             ?.copy(status = ChangeRequestStatus.ACCEPTED)
             ?.run { changeRequestRepository.save(this) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
-        // TODO: create or update concept from change request
+        val dbConcept = changeRequest.conceptId
+            ?.let { conceptRepository.getByOriginaltBegrep(it) }
+            ?.maxByOrNull { it.versjonsnr }
+
+        val conceptToUpdate = when {
+            dbConcept == null -> conceptRepository.save(createNewConcept(catalogId, user))
+            dbConcept.erPublisert -> conceptRepository.save(dbConcept.createNewRevision(user))
+            else -> dbConcept
+        }
+
+        val patchOperations = createPatchOperations(conceptToUpdate, conceptToUpdate.applyChangeRequest(changeRequest), mapper)
+        try {
+            conceptService.updateConcept(conceptToUpdate, patchOperations, user, jwt)
+        } catch (ex: Exception) {
+            logger.error("update of concept failed when accepting ${changeRequest.id}, reverting acceptation", ex)
+            changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
+            if (conceptToUpdate.id != dbConcept?.id) conceptRepository.delete(conceptToUpdate)
+            throw ex
+        }
+
+        return conceptToUpdate.id
     }
 
     fun rejectChangeRequest(id: String, catalogId: String) {
@@ -95,10 +127,68 @@ class ChangeRequestService(
     }
 
     private fun changeRequestStatusFromString(str: String?): ChangeRequestStatus? =
-        when(str?.uppercase()) {
+        when (str?.uppercase()) {
             ChangeRequestStatus.OPEN.name -> ChangeRequestStatus.OPEN
             ChangeRequestStatus.REJECTED.name -> ChangeRequestStatus.REJECTED
             ChangeRequestStatus.ACCEPTED.name -> ChangeRequestStatus.ACCEPTED
             else -> null
         }
+
+    private fun BegrepDBO.applyChangeRequest(changeRequest: ChangeRequest): BegrepDBO =
+        copy(
+            anbefaltTerm = changeRequest.anbefaltTerm,
+            tillattTerm = changeRequest.tillattTerm,
+            frarådetTerm = changeRequest.frarådetTerm,
+            definisjon = changeRequest.definisjon,
+            status = changeRequest.conceptStatus
+        )
+
+    private fun BegrepDBO.createNewRevision(user: User): BegrepDBO =
+        copy(
+            id = UUID.randomUUID().toString(),
+            versjonsnr = incrementSemVer(versjonsnr),
+            revisjonAv = id,
+            status = Status.UTKAST,
+            erPublisert = false,
+            publiseringsTidspunkt = null,
+            opprettet = Instant.now(),
+            opprettetAv = user.name
+        ).updateLastChangedAndByWhom(user)
+
+    private fun createNewConcept(catalogId: String, user: User): BegrepDBO {
+        val newId = UUID.randomUUID().toString()
+        return BegrepDBO(
+            id = newId,
+            originaltBegrep = newId,
+            versjonsnr = NEW_CONCEPT_VERSION,
+            revisjonAv = null,
+            status = Status.UTKAST,
+            erPublisert = false,
+            publiseringsTidspunkt = null,
+            opprettet = Instant.now(),
+            opprettetAv = user.name,
+            anbefaltTerm = null,
+            tillattTerm = HashMap(),
+            frarådetTerm = HashMap(),
+            definisjon = null,
+            folkeligForklaring = null,
+            rettsligForklaring = null,
+            merknad = HashMap(),
+            ansvarligVirksomhet = Virksomhet(id=catalogId),
+            eksempel = HashMap(),
+            fagområde = HashMap(),
+            bruksområde = HashMap(),
+            omfang = null,
+            kontaktpunkt = null,
+            gyldigFom = null,
+            gyldigTom = null,
+            endringslogelement = null,
+            seOgså = ArrayList(),
+            erstattesAv = ArrayList(),
+            tildeltBruker = null,
+            begrepsRelasjon = ArrayList(),
+            interneFelt = null
+        ).updateLastChangedAndByWhom(user)
+    }
+
 }

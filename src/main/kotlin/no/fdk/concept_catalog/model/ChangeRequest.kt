@@ -6,15 +6,16 @@ import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "changeRequest")
 data class ChangeRequest(
-        @Id
-        val id: String,
-        val conceptId: String?,
-        val catalogId: String,
-        val status: ChangeRequestStatus,
-        val anbefaltTerm: Term?,
-        val tillattTerm: Map<String, List<String>>?,
-        val frarådetTerm: Map<String, List<String>>?,
-        val definisjon: Definisjon?
+    @Id
+    val id: String,
+    val conceptId: String?,
+    val catalogId: String,
+    val status: ChangeRequestStatus,
+    val anbefaltTerm: Term?,
+    val tillattTerm: Map<String, List<String>>?,
+    val frarådetTerm: Map<String, List<String>>?,
+    val definisjon: Definisjon?,
+    val conceptStatus: Status?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -23,7 +24,8 @@ data class ChangeRequestForCreate(
     val anbefaltTerm: Term?,
     val tillattTerm: Map<String, List<String>>?,
     val frarådetTerm: Map<String, List<String>>?,
-    val definisjon: Definisjon?
+    val definisjon: Definisjon?,
+    val conceptStatus: Status?
 )
 
 enum class ChangeRequestStatus {
