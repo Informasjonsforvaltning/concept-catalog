@@ -212,7 +212,7 @@ class UpdateConcept : ApiTestContext() {
 
     @Test
     fun `Able to add new Bruker`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/tildeltBruker", value = Bruker(id="Test Testesen")))
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "user-id"))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
@@ -222,12 +222,12 @@ class UpdateConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals("Test Testesen", result.tildeltBruker?.id)
+        assertEquals("user-id", result.assignedUser)
     }
 
     @Test
     fun `Replace tildeltBruker`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/tildeltBruker/id", "fdk bruker"))
+        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/assignedUser", "new user"))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
@@ -237,7 +237,7 @@ class UpdateConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals("fdk bruker", result.tildeltBruker?.id)
+        assertEquals("new user", result.assignedUser)
     }
 
     @Test

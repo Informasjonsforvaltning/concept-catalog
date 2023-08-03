@@ -23,6 +23,7 @@ class QueryFields(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchFilters(
+    val assignedUser: SearchFilter? = null,
     val status: SearchFilter? = null,
     val published: BooleanFilter? = null,
     val onlyCurrentVersions: Boolean = true

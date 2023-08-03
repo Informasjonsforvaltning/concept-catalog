@@ -70,7 +70,7 @@ val BEGREP_0 = Begrep(
     ),
     seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
     erstattesAv = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
-    tildeltBruker = Bruker(id = "Test Testesen"),
+    assignedUser = "user-id",
     begrepsRelasjon = listOf(
         BegrepsRelasjon(
             relasjon = "assosiativ",
@@ -197,7 +197,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
     ),
-    tildeltBruker = Bruker(id = "Test Testesen"),
+    assignedUser = "user-id",
     interneFelt = null
 )
 

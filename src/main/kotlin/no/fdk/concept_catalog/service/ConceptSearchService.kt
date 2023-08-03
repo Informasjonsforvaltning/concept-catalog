@@ -34,6 +34,10 @@ class ConceptSearchService(
             else mongoQuery.addCriteria(Criteria.where("erPublisert").ne(true))
         }
 
+        if (filters.assignedUser != null) {
+            mongoQuery.addCriteria(Criteria.where("assignedUser").`in`(filters.assignedUser.value))
+        }
+
         return mongoQuery
     }
 

@@ -187,7 +187,7 @@ class ChangeRequestService(
             endringslogelement = null,
             seOgså = ArrayList(),
             erstattesAv = ArrayList(),
-            tildeltBruker = null,
+            assignedUser = null,
             begrepsRelasjon = ArrayList(),
             interneFelt = null
         ).updateLastChangedAndByWhom(user)
