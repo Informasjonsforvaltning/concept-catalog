@@ -131,7 +131,7 @@ fun Begrep.toDBO(): BegrepDBO =
         opprettetAv,
         seOgså,
         erstattesAv,
-        tildeltBruker,
+        assignedUser,
         begrepsRelasjon,
         interneFelt
     )
@@ -197,7 +197,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("seOgså", seOgså)
         .append("erstattesAv", erstattesAv)
         .append("fagområde", fagområde)
-        .append("tildeltBruker", tildeltBruker)
+        .append("assignedUser", assignedUser)
         .append("begrepsRelasjon", begrepsRelasjon?.map { it.mapDBO() })
         .append("kontaktpunkt", kontaktpunkt?.mapDBO())
         .append("gyldigFom", gyldigFom)
