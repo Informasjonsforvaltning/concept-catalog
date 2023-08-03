@@ -208,21 +208,6 @@ class ChangeRequests : ApiTestContext() {
         }
 
         @Test
-        fun forbiddenWhenAuthorizedForReadAccess() {
-            val body = ChangeRequestForCreate(
-                conceptId = BEGREP_TO_BE_UPDATED.originaltBegrep,
-                anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
-                tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
-                frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
-                conceptStatus = Status.UTKAST
-            )
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
-
-            assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
-        }
-
-        @Test
         fun badRequestWhenAttemptingToRequestChangesOnNonOriginalId() {
             val body = ChangeRequestForCreate(
                 conceptId = BEGREP_0.id,
@@ -252,7 +237,7 @@ class ChangeRequests : ApiTestContext() {
                 definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
                 conceptStatus = Status.UTKAST
             )
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.CREATED.value(), rsp["status"])
 
             val responseHeaders: HttpHeaders = rsp["header"] as HttpHeaders
@@ -298,14 +283,6 @@ class ChangeRequests : ApiTestContext() {
         }
 
         @Test
-        fun forbiddenWhenAuthorizedForReadAccess() {
-            val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH )
-
-            assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
-        }
-
-        @Test
         fun notFoundForInvalidId() {
             val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
             val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH )
@@ -317,7 +294,7 @@ class ChangeRequests : ApiTestContext() {
         fun ableToUpdateChangeRequest() {
             val newTillatt = mapOf(Pair("nb", listOf("tillatt nb")), Pair("nn", listOf("tillatt nn")))
             val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", newTillatt))
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH )
             assertEquals(HttpStatus.OK.value(), rsp["status"])
 
             val result: ChangeRequest = mapper.readValue(rsp["body"] as String)
