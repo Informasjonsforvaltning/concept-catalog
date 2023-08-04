@@ -5,18 +5,26 @@ import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.URITekst
-import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.CollectionBuilder
-import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.ConceptBuilder
-import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.DefinitionBuilder
-import no.norge.data.skos_ap_no.concept.builder.Conceptcollection.Concept.Sourcedescription.Definition.SourceDescription.SourcedescriptionBuilder
-import no.norge.data.skos_ap_no.concept.builder.ModelBuilder
-import no.norge.data.skos_ap_no.concept.builder.generic.AudienceType
-import no.norge.data.skos_ap_no.concept.builder.generic.SourceType
+import no.fdk.concept_catalog.rdf.SCHEMA
+import no.fdk.concept_catalog.rdf.SKOSNO
+import no.fdk.concept_catalog.rdf.XKOS
+import org.apache.jena.datatypes.xsd.impl.XSDDateType
 import org.apache.jena.rdf.model.Model
+import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.rdf.model.Property
+import org.apache.jena.rdf.model.Resource
+import org.apache.jena.vocabulary.DCAT
+import org.apache.jena.vocabulary.DCTerms
+import org.apache.jena.vocabulary.RDF
+import org.apache.jena.vocabulary.RDFS
+import org.apache.jena.vocabulary.SKOS
+import org.apache.jena.vocabulary.SKOSXL
+import org.apache.jena.vocabulary.VCARD4
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import java.time.LocalDate
 import java.time.ZoneId
 
 private val logger = LoggerFactory.getLogger(SkosApNoModelService::class.java)
@@ -36,406 +44,441 @@ class SkosApNoModelService(
     private val UNDERORDNET = "underordnet"
     private val OVERORDNET = "overordnet"
 
+    private fun enhetsregisteretUri(orgId: String) = "https://data.brreg.no/enhetsregisteret/api/enheter/$orgId"
+
+    private fun Model.safeCreateResource(uri: String?) =
+        if (uri != null) createResource(escapeURI(uri))
+        else createResource()
+
     fun buildModelForPublishersCollection(publisherId: String): Model {
         logger.debug("Building concept collection model for publisher: {}", publisherId)
 
-        val modelBuilder = instantiateModelBuilder()
-
-        addConceptsToCollection(modelBuilder, publisherId)
-
-        return modelBuilder.build()
+        val model = ModelFactory.createDefaultModel()
+        model.addConceptNamespaces()
+        model.addConceptsToCollection(publisherId)
+        return model
     }
 
     fun buildModelForAllCollections(): Model {
         logger.debug("Building concept collection models for all publishers")
 
-        val modelBuilder = instantiateModelBuilder()
+        val model = ModelFactory.createDefaultModel()
+        model.addConceptNamespaces()
 
         conceptService
                 .getAllPublisherIds()
-                .forEach { addConceptsToCollection(modelBuilder, it) }
+                .forEach { model.addConceptsToCollection(it) }
 
-        return modelBuilder.build()
+        return model
     }
 
     fun buildModelForConcept(collectionId: String, id: String): Model {
         logger.debug("Building model for concept: {}", id)
         val concept = conceptService.getLastPublished(id)
-        val modelBuilder = instantiateModelBuilder()
+        val model = ModelFactory.createDefaultModel()
 
         if (concept?.ansvarligVirksomhet?.id == collectionId) {
-            addConceptToModel(modelBuilder, concept)
+            model.addConceptToModel(concept)
         } else throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
-        return modelBuilder.build()
+        return model
     }
 
-    private fun instantiateModelBuilder(): ModelBuilder {
-        return ModelBuilder.builder()
+    private fun Model.createCollectionResource(publisherId: String): Resource {
+        val uri = getCollectionUri(publisherId)
+        return createResource(uri)
+            .addProperty(RDF.type, SKOS.Collection)
+            .addProperty(DCTerms.identifier, createLiteral(uri))
+            .addProperty(RDFS.label, "Concept collection belonging to $publisherId")
+            .addProperty(DCTerms.publisher, safeCreateResource(enhetsregisteretUri(publisherId)))
     }
 
-    private fun instantiateCollectionBuilder(modelBuilder: ModelBuilder, publisherId: String): CollectionBuilder {
-        return modelBuilder
-                .collectionBuilder(getCollectionUri(publisherId))
-                .publisher(publisherId)
-                .name("Concept collection belonging to $publisherId")
-    }
-
-    private fun addConceptsToCollection(modelBuilder: ModelBuilder, publisherId: String) {
-        val collectionBuilder = instantiateCollectionBuilder(modelBuilder, publisherId)
+    private fun Model.addConceptsToCollection(publisherId: String) {
+        val collectionResource = createCollectionResource(publisherId)
 
         conceptService
                 .getLastPublishedForOrganization(publisherId)
-                .forEach { addConceptToCollection(collectionBuilder, it) }
+                .forEach { collectionResource.addConceptToCollection(it) }
     }
 
-    private fun addConceptToCollection(collectionBuilder: CollectionBuilder, concept: Begrep) {
+    private fun Resource.safeAddPublisher(publisherId: String?): Resource {
+        if (publisherId != null) {
+            addProperty(DCTerms.publisher, model.safeCreateResource(enhetsregisteretUri(publisherId)))
+        }
+        return this
+    }
+
+    private fun Resource.safeAddModified(date: LocalDate?): Resource {
+        if (date != null) {
+            addProperty(DCTerms.modified, model.createTypedLiteral(localDateToXSDDateTime(date), XSDDateType.XSDdate))
+        }
+        return this
+    }
+
+    private fun Resource.addConceptToCollection(concept: Begrep) {
         if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
-            val conceptURI = getConceptUri(collectionBuilder, concept.originaltBegrep)
-            val conceptBuilder = collectionBuilder
-                .conceptBuilder(conceptURI)
-                .identifier(conceptURI)
-                .publisher(concept.ansvarligVirksomhet?.id)
-                .modified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
+            val conceptURI = getConceptUri(uri, concept.originaltBegrep)
+            val conceptResource = model.createResource(conceptURI)
+                .addProperty(RDF.type, SKOS.Concept)
+                .addProperty(DCTerms.identifier, model.createLiteral(conceptURI))
+                .safeAddPublisher(concept.ansvarligVirksomhet?.id)
+                .safeAddModified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
 
-            addPropertiesToConcept(conceptBuilder, concept)
-
-            conceptBuilder.build()
+            conceptResource.addPropertiesToConcept(concept)
+            addProperty(SKOS.member, conceptResource)
         }
     }
 
-    private fun addConceptToModel(modelBuilder: ModelBuilder, concept: Begrep) {
+    private fun Model.addConceptToModel(concept: Begrep) {
         if (concept.originaltBegrep == null || concept.ansvarligVirksomhet?.id == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
-            val conceptURI = "${getCollectionUri(concept.ansvarligVirksomhet.id)}/concepts/${concept.originaltBegrep}"
-            val conceptBuilder = modelBuilder
-                .conceptBuilder(conceptURI)
-                .identifier(conceptURI)
-                .publisher(concept.ansvarligVirksomhet.id)
-                .modified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
+            val conceptURI = getConceptUri(getCollectionUri(concept.ansvarligVirksomhet.id), concept.originaltBegrep)
+            val conceptResource = createResource(conceptURI)
+                .addProperty(RDF.type, SKOS.Concept)
+                .addProperty(DCTerms.identifier, createLiteral(conceptURI))
+                .safeAddPublisher(concept.ansvarligVirksomhet.id)
+                .safeAddModified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
 
-            addPropertiesToConcept(conceptBuilder, concept)
-
-            conceptBuilder.buildSingleConcept()
+            conceptResource.addPropertiesToConcept(concept)
         }
     }
 
-    private fun addPropertiesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        addPrefLabelToConcept(conceptBuilder, concept)
-        addDefinitionToConcept(conceptBuilder, concept)
-        addPublicDefinitionToConcept(conceptBuilder, concept)
-        addSpecialistDefinitionToConcept(conceptBuilder, concept)
-        addAltLabelToConcept(conceptBuilder, concept)
-        addHiddenLabelToConcept(conceptBuilder, concept)
-        addExampleToConcept(conceptBuilder, concept)
-        addSubjectToConcept(conceptBuilder, concept)
-        addDomainOfUseToConcept(conceptBuilder, concept)
-        addContactPointToConcept(conceptBuilder, concept)
-        addSeeAlsoReferencesToConcept(conceptBuilder, concept)
-        addValidityPeriodToConcept(conceptBuilder, concept)
-        addBegrepsRelasjonToConcept(conceptBuilder, concept)
-        addReplacedByReferencesToConcept(conceptBuilder, concept)
+    private fun Resource.addPropertiesToConcept(concept: Begrep) {
+        addPrefLabelToConcept(concept)
+        addDefinitionToConcept(concept)
+        addPublicDefinitionToConcept(concept)
+        addSpecialistDefinitionToConcept(concept)
+        addAltLabelToConcept(concept)
+        addHiddenLabelToConcept(concept)
+        addExampleToConcept(concept)
+        addSubjectToConcept(concept)
+        addDomainOfUseToConcept(concept)
+        addContactPointToConcept(concept)
+        addSeeAlsoReferencesToConcept(concept)
+        addValidityPeriodToConcept(concept)
+        addBegrepsRelasjonToConcept(concept)
+        addReplacedByReferencesToConcept(concept)
     }
 
     private fun getCollectionUri(publisherId: String): String {
         return "${applicationProperties.collectionBaseUri}/collections/$publisherId"
     }
 
-    private fun getConceptUri(collectionBuilder: CollectionBuilder, conceptId: String): String {
-        return "${getCollectionUri(collectionBuilder.publisher)}/concepts/$conceptId"
+    private fun getConceptUri(collectionUri: String, conceptId: String): String {
+        return "$collectionUri/concepts/$conceptId"
     }
 
-    private fun addPrefLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addPrefLabelToConcept(concept: Begrep) {
         concept.anbefaltTerm?.navn
             ?.filterValues { it.toString().isNotBlank() }
             ?.takeIf { it.isNotEmpty() }
             ?.let {
-                val prefLabelBuilder = conceptBuilder.prefLabelBuilder()
-
-                it.forEach { (key, value) -> prefLabelBuilder.label(value.toString(), key) }
-
-                prefLabelBuilder.build()
+                val prefLabelResource = model.createResource(SKOSXL.Label)
+                it.forEach { (key, value) -> prefLabelResource.addProperty(SKOSXL.literalForm, value.toString(), key) }
+                addProperty(SKOSXL.prefLabel, prefLabelResource)
             }
     }
 
+    private fun Resource.addPublicDefinitionToConcept(concept: Begrep) {
+        val definitionResource = model.createDefinitionResource(concept.folkeligForklaring)
+        if (definitionResource != null) {
+            definitionResource.addProperty(DCTerms.audience, SKOSNO.allmennheten)
 
-    private fun addPublicDefinitionToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        concept.folkeligForklaring?.tekst
+            addProperty(SKOSNO.definisjon, definitionResource)
+        }
+    }
+
+
+    private fun Resource.addSpecialistDefinitionToConcept(concept: Begrep) {
+        val definitionResource = model.createDefinitionResource(concept.rettsligForklaring)
+        if (definitionResource != null) {
+            definitionResource.addProperty(DCTerms.audience, SKOSNO.fagspesialist)
+
+            addProperty(SKOSNO.definisjon, definitionResource)
+        }
+    }
+
+
+    private fun Resource.addDefinitionToConcept(concept: Begrep) {
+        val definitionResource = model.createDefinitionResource(concept.definisjon)
+        if (definitionResource != null) {
+            definitionResource.addScopeToDefinition(concept)
+            definitionResource.addScopeNoteToDefinition(concept)
+
+            addProperty(SKOSNO.definisjon, definitionResource)
+        }
+    }
+
+    private fun Model.createDefinitionResource(definition: Definisjon?): Resource? =
+        definition?.tekst
             ?.filterValues { it.isNotBlank() }
             ?.takeIf { it.isNotEmpty() }
             ?.let {
-                val definitionBuilder = conceptBuilder.definitionBuilder()
-                it.forEach { (key, value) -> definitionBuilder.text(value, key) }
-                definitionBuilder.audience(AudienceType.Audience.Public)
-                addSourceDescriptionToDefinition(definitionBuilder, concept.folkeligForklaring)
+                val definitionResource = createResource()
+                    .addProperty(RDF.type, SKOSNO.Definisjon)
 
-                definitionBuilder.build()
+                it.forEach { (key, value) -> definitionResource.addProperty(RDFS.label, value, key) }
+
+                definitionResource.addSourceDescriptionToDefinition(definition)
+                definitionResource
             }
-    }
 
-
-    private fun addSpecialistDefinitionToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        concept.rettsligForklaring?.tekst
-            ?.filterValues { it.isNotBlank() }
-            ?.takeIf { it.isNotEmpty() }
-            ?.let {
-                val definitionBuilder = conceptBuilder.definitionBuilder()
-                it.forEach { (key, value) -> definitionBuilder.text(value, key) }
-                definitionBuilder.audience(AudienceType.Audience.Specialist)
-                addSourceDescriptionToDefinition(definitionBuilder, concept.rettsligForklaring)
-
-                definitionBuilder.build()
-            }
-    }
-
-
-    private fun addDefinitionToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
-        concept.definisjon?.tekst
-            ?.filterValues { it.isNotBlank() }
-            ?.takeIf { it.isNotEmpty() }
-            ?.let {
-                val definitionBuilder = conceptBuilder.definitionBuilder()
-
-                it.forEach { (key, value) -> definitionBuilder.text(value, key) }
-
-                addScopeToDefinition(definitionBuilder, concept)
-                addScopeNoteToDefinition(definitionBuilder, concept)
-                addSourceDescriptionToDefinition(definitionBuilder, concept.definisjon)
-
-                definitionBuilder.build()
-            }
-    }
-
-    private fun addScopeToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
+    private fun Resource.addScopeToDefinition(concept: Begrep) {
         concept.omfang
             ?.takeIf { !it.tekst.isNullOrBlank() || it.uri.isValidURI() }
-            ?.let { source ->
-                val scopeBuilder = definitionBuilder.scopeBuilder()
-                if (!source.tekst.isNullOrBlank()) scopeBuilder.label(source.tekst, NB)
-                if (source.uri.isValidURI()) scopeBuilder.seeAlso(source.uri)
-                scopeBuilder.build()
-            }
+            ?.let { source -> addURIText(SKOSNO.omfang, source) }
     }
 
-    private fun addScopeNoteToDefinition(definitionBuilder: DefinitionBuilder, concept: Begrep) {
+    private fun Resource.addScopeNoteToDefinition(concept: Begrep) {
         concept.merknad
             ?.filterValues { it.toString().isNotBlank() }
             ?.forEach { (key, entry) ->
-                entry.forEach { value -> definitionBuilder.scopeNote(value, key) }
+                entry.forEach { value -> addProperty(SKOS.scopeNote, value, key) }
             }
     }
 
-    private fun addSourceDescriptionToDefinition(definitionBuilder: DefinitionBuilder, definition: Definisjon) {
+    private fun Resource.addSourceDescriptionToDefinition(definition: Definisjon) {
         definition.kildebeskrivelse
             ?.takeIf { !it.kilde.isNullOrEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
             ?.let {
-                val sourceDescriptionBuilder = definitionBuilder.sourcedescriptionBuilder()
-
-                it.forholdTilKilde.let { type ->
-                    if (type == ForholdTilKildeEnum.EGENDEFINERT) {
-                        sourceDescriptionBuilder.sourcetype(SourceType.Source.Userdefined)
-                    }
-                    if (type == ForholdTilKildeEnum.BASERTPAAKILDE) {
-                        sourceDescriptionBuilder.sourcetype(SourceType.Source.BasedOn)
-                    }
-                    if (type == ForholdTilKildeEnum.SITATFRAKILDE) {
-                        sourceDescriptionBuilder.sourcetype(SourceType.Source.QuoteFrom)
-                    }
+                when (it.forholdTilKilde) {
+                    ForholdTilKildeEnum.EGENDEFINERT -> addProperty(SKOSNO.forholdTilKilde, SKOSNO.egendefinert)
+                    ForholdTilKildeEnum.BASERTPAAKILDE -> addProperty(SKOSNO.forholdTilKilde, SKOSNO.basertPåKilde)
+                    ForholdTilKildeEnum.SITATFRAKILDE -> addProperty(SKOSNO.forholdTilKilde, SKOSNO.sitatFraKilde)
+                    else -> {}
                 }
 
                 if (!it.kilde.isNullOrEmpty()) {
                     it.kilde
                         .filter { sourceEntry -> !sourceEntry.tekst.isNullOrBlank() || sourceEntry.uri.isValidURI() }
-                        .forEach { sourceEntry -> buildSource(sourceEntry, sourceDescriptionBuilder) }
+                        .forEach { sourceEntry -> addURIText(DCTerms.source, sourceEntry) }
                 }
-
-                sourceDescriptionBuilder.build()
             }
     }
 
-    private fun buildSource(source: URITekst, sourceDescriptionBuilder: SourcedescriptionBuilder) {
-        val sourceBuilder = sourceDescriptionBuilder.sourceBuilder()
-        if (!source.tekst.isNullOrBlank()) sourceBuilder.label(source.tekst, NB)
-        if (source.uri.isValidURI()) sourceBuilder.seeAlso(source.uri)
-        sourceBuilder.build()
+    private fun Resource.addURIText(predicate: Property, uriText: URITekst) {
+        if (uriText.uri.isValidURI() || !uriText.tekst.isNullOrBlank()) {
+            val sourceResource = model.createResource()
+            if (!uriText.tekst.isNullOrBlank()) {
+                sourceResource.addProperty(RDFS.label, uriText.tekst, NB)
+            }
+            if (uriText.uri.isValidURI()) {
+                sourceResource.addProperty(RDFS.seeAlso, model.safeCreateResource(uriText.uri))
+            }
+            addProperty(predicate, sourceResource)
+        }
     }
 
-    private fun addAltLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addSKOSXLLabel(predicate: Property, labelText: String, language: String) {
+        val labelResource = model.createResource()
+            .addProperty(RDF.type, SKOSXL.Label)
+            .addProperty(SKOSXL.literalForm, labelText, language)
+
+        addProperty(predicate, labelResource)
+    }
+
+    private fun Resource.addAltLabelToConcept(concept: Begrep) {
         concept.tillattTerm
             ?.filterValues { it.isNotEmpty() }
             ?.takeIf { it.isNotEmpty() }
-            ?.let {
-                it.forEach { (key, entry) ->
-                    entry.forEach { value -> conceptBuilder
-                        .altLabelBuilder()
-                        .label(value, key)
-                        .build()
-                    }
+            ?.forEach { (key, entry) ->
+                entry.forEach { value ->
+                    addSKOSXLLabel(SKOSXL.altLabel, value, key)
                 }
             }
     }
 
-    private fun addHiddenLabelToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addHiddenLabelToConcept(concept: Begrep) {
         concept.frarådetTerm
             ?.filterValues { it.isNotEmpty() }
             ?.takeIf { it.isNotEmpty() }
-            ?.let {
-                it.forEach { (key, entry) ->
-                    entry.forEach { value -> conceptBuilder
-                        .hiddenLabelBuilder()
-                        .label(value, key)
-                        .build()
-                    }
+            ?.forEach { (key, entry) ->
+                entry.forEach { value ->
+                    addSKOSXLLabel(SKOSXL.hiddenLabel, value, key)
                 }
             }
     }
 
-    private fun addExampleToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addExampleToConcept(concept: Begrep) {
         concept.eksempel
             ?.filterValues { it.toString().isNotBlank() }
             ?.forEach { (key, entry) ->
-                entry.forEach { value -> conceptBuilder.example(value, key) }
+                entry.forEach { value -> addProperty(SKOS.example, value, key) }
             }
     }
 
-    private fun addSubjectToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addSubjectToConcept(concept: Begrep) {
         concept.fagområde
             ?.filterValues { it.isNotBlank() }
-            ?.forEach { (key, value) -> conceptBuilder.subject(value, key) }
+            ?.forEach { (key, value) -> addProperty(DCTerms.subject, value, key) }
     }
 
-    private fun addDomainOfUseToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addDomainOfUseToConcept(concept: Begrep) {
         concept.bruksområde
             ?.filterValues { it.isNotEmpty() }
-            ?.forEach { (key, entry) -> entry.forEach { value -> conceptBuilder.domainOfUse(value, key) } }
+            ?.forEach { (key, entry) ->
+                entry.forEach { value ->
+                    addProperty(SKOSNO.bruksområde, value, key)
+                }
+            }
     }
 
-    private fun addContactPointToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addContactPointToConcept(concept: Begrep) {
         concept.kontaktpunkt
             ?.let {
-                val contactPointBuilder = conceptBuilder.contactPointBuilder()
+                val contactPointResource = model.createResource(VCARD4.Organization)
 
                 val email = it.harEpost
                 val phone = it.harTelefon
 
                 if (email?.isNotBlank() == true) {
-                    contactPointBuilder.email(email)
+                    contactPointResource.addProperty(VCARD4.hasEmail, model.emailResource(email))
                 }
 
                 if (phone?.isNotBlank() == true) {
-                    contactPointBuilder.telephone(phone)
+                    contactPointResource.addProperty(VCARD4.hasTelephone, model.telephoneResource(phone))
                 }
 
-                contactPointBuilder.build()
+                addProperty(DCAT.contactPoint, contactPointResource)
             }
     }
 
-    private fun addBegrepsRelasjonToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addBegrepsRelasjonToConcept(concept: Begrep) {
         concept.begrepsRelasjon
             ?.forEach {
-                val relasjon = it.relasjon
-                val relatertBegrep = it.relatertBegrep
+                val relation = it.relasjon
+                val relatedConcept = it.relatertBegrep
+                val relationResource = model.createResource()
 
-                if (relasjon == ASSOCIATIVE) {
-                    val associativeRelationBuilder = conceptBuilder.associativeRelationBuilder()
+                if (relation == ASSOCIATIVE) {
+                    relationResource.addProperty(RDF.type, SKOSNO.AssosiativRelasjon)
 
                     it.beskrivelse
-                        ?.filterValues { beskrivelse -> beskrivelse.isNotBlank() }
-                        ?.takeIf { beskrivelse -> beskrivelse.isNotEmpty() }
-                        ?.forEach { (key, value) -> associativeRelationBuilder.description(value, key) }
+                        ?.filterValues { description -> description.isNotBlank() }
+                        ?.takeIf { description -> description.isNotEmpty() }
+                        ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
 
-                    if (relatertBegrep?.isNotBlank() == true) {
-                        associativeRelationBuilder.associatedConcept(relatertBegrep)
+                    if (relatedConcept?.isNotBlank() == true) {
+                        relationResource.addProperty(SKOS.related, model.safeCreateResource(relatedConcept))
                     }
-                    associativeRelationBuilder.build()
+                    addProperty(SKOSNO.assosiativRelasjon, relationResource)
                 }
-                if (relasjon == PARTITIVE) {
-                    val partitiveRelationBuilder = conceptBuilder.partitiveRelationBuilder()
+                if (relation == PARTITIVE) {
+                    relationResource.addProperty(RDF.type, SKOSNO.PartitivRelasjon)
 
-                    val relasjonsType = it.relasjonsType
+                    val relationType = it.relasjonsType
 
                     it.inndelingskriterium
-                        ?.filterValues { inndelingskriterium -> inndelingskriterium.isNotBlank() }
-                        ?.takeIf { inndelingskriterium -> inndelingskriterium.isNotEmpty() }
-                        ?.forEach { (key, value) ->
-                            partitiveRelationBuilder.divisioncriterion(
-                                value,
-                                key
-                            )
-                        }
+                        ?.filterValues { criteria -> criteria.isNotBlank() }
+                        ?.takeIf { criteria -> criteria.isNotEmpty() }
+                        ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
 
-                    if (relasjonsType == OMFATTER) {
-                        partitiveRelationBuilder.narrowerConcept(relatertBegrep)
+                    if (relationType == OMFATTER) {
+                        relationResource.addProperty(DCTerms.hasPart, model.safeCreateResource(relatedConcept))
                     }
-                    if (relasjonsType == ERDELAV) {
-                        partitiveRelationBuilder.broaderConcept(relatertBegrep)
+                    if (relationType == ERDELAV) {
+                        relationResource.addProperty(DCTerms.isPartOf, model.safeCreateResource(relatedConcept))
                     }
-                    partitiveRelationBuilder.build()
+                    addProperty(SKOSNO.partitivRelasjon, relationResource)
                 }
-                if (relasjon == GENERIC) {
-                    val genericRelationBuilder = conceptBuilder.genericRelationBuilder()
+                if (relation == GENERIC) {
+                    relationResource.addProperty(RDF.type, SKOSNO.GeneriskRelasjon)
 
-                    val relasjonsType = it.relasjonsType
+                    val relationType = it.relasjonsType
 
                     it.inndelingskriterium
-                        ?.filterValues { inndelingskriterium -> inndelingskriterium.isNotBlank() }
-                        ?.takeIf { inndelingskriterium -> inndelingskriterium.isNotEmpty() }
-                        ?.forEach { (key, value) ->
-                            genericRelationBuilder.divisioncriterion(
-                                value,
-                                key
-                            )
-                        }
+                        ?.filterValues { criteria -> criteria.isNotBlank() }
+                        ?.takeIf { criteria -> criteria.isNotEmpty() }
+                        ?.forEach { (key, value) -> relationResource.addProperty(SKOSNO.inndelingskriterium, value, key) }
 
-                    if (relasjonsType == OVERORDNET) {
-                        genericRelationBuilder.broaderConcept(relatertBegrep)
+                    if (relationType == OVERORDNET) {
+                        relationResource.addProperty(XKOS.specializes, model.safeCreateResource(relatedConcept))
                     }
-                    if (relasjonsType == UNDERORDNET) {
-                        genericRelationBuilder.narrowerConcept(relatertBegrep)
+                    if (relationType == UNDERORDNET) {
+                        relationResource.addProperty(XKOS.generalizes, model.safeCreateResource(relatedConcept))
                     }
-                    genericRelationBuilder.build()
+                    addProperty(SKOSNO.generiskRelasjon, relationResource)
                 }
             }
     }
 
-    private fun addSeeAlsoReferencesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addSeeAlsoReferencesToConcept(concept: Begrep) {
         concept.seOgså
             ?.filter { it.isNotBlank() }
-            ?.forEach { conceptBuilder.seeAlso(it) }
+            ?.forEach { addProperty(RDFS.seeAlso, model.createLiteral(it)) }
     }
 
-    private fun addReplacedByReferencesToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addReplacedByReferencesToConcept(concept: Begrep) {
         concept.erstattesAv
             ?.filter { it.isNotBlank() }
-            ?.forEach { conceptBuilder.replacedBy(it) }
+            ?.forEach {
+                addProperty(DCTerms.isReplacedBy, model.createLiteral(it))
+                model.getResource(it).addProperty(DCTerms.replaces, model.createLiteral(uri))
+            }
     }
 
-    private fun addValidityPeriodToConcept(conceptBuilder: ConceptBuilder, concept: Begrep) {
+    private fun Resource.addValidityPeriodToConcept(concept: Begrep) {
         val validFromIncluding = concept.gyldigFom
         val validToIncluding = concept.gyldigTom
 
-        if (validFromIncluding != null && validToIncluding != null) {
-            if (validFromIncluding.isBefore(validToIncluding)) {
-                conceptBuilder
-                    .periodOfTimeBuilder()
-                    .validFromIncluding(validFromIncluding)
-                    .validToIncluding(validToIncluding)
-                    .build()
+        when {
+            validFromIncluding != null && validToIncluding != null && validFromIncluding.isBefore(validToIncluding) -> {
+                val periodOfTimeResource = model.createResource(DCTerms.PeriodOfTime)
+                model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate)
+                    .let { start -> periodOfTimeResource.addProperty(SCHEMA.startDate, start) }
+                model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate)
+                    .let { end -> periodOfTimeResource.addProperty(SCHEMA.endDate, end) }
+                addProperty(DCTerms.temporal, periodOfTimeResource)
             }
-        } else {
-            if (validFromIncluding != null) {
-                conceptBuilder
-                    .periodOfTimeBuilder()
-                    .validFromIncluding(validFromIncluding)
-                    .build()
+            validFromIncluding != null -> {
+                val periodOfTimeResource = model.createResource(DCTerms.PeriodOfTime)
+                model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate)
+                    .let { start -> periodOfTimeResource.addProperty(SCHEMA.startDate, start) }
+                addProperty(DCTerms.temporal, periodOfTimeResource)
             }
-            if (validToIncluding != null) {
-                conceptBuilder
-                    .periodOfTimeBuilder()
-                    .validToIncluding(validToIncluding)
-                    .build()
+            validToIncluding != null -> {
+                val periodOfTimeResource = model.createResource(DCTerms.PeriodOfTime)
+                model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate)
+                    .let { end -> periodOfTimeResource.addProperty(SCHEMA.endDate, end) }
+                addProperty(DCTerms.temporal, periodOfTimeResource)
             }
         }
     }
+
+    private fun Model.addConceptNamespaces() {
+        setNsPrefix("adms", "http://www.w3.org/ns/adms#")
+        setNsPrefix("dcat", "http://www.w3.org/ns/dcat#")
+        setNsPrefix("dct", "http://purl.org/dc/terms/")
+        setNsPrefix("foaf", "http://xmlns.com/foaf/0.1/")
+        setNsPrefix("owl", "http://www.w3.org/2002/07/owl#")
+        setNsPrefix("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+        setNsPrefix("schema", "http://schema.org/")
+        setNsPrefix("skos", "http://www.w3.org/2004/02/skos/core#")
+        setNsPrefix("spdx", "http://spdx.org/rdf/terms#")
+        setNsPrefix("xsd", "http://www.w3.org/2001/XMLSchema#")
+        setNsPrefix("vcard", "http://www.w3.org/2006/vcard/ns#")
+        setNsPrefix("dqv", "http://www.w3.org/ns/dqv#")
+        setNsPrefix("iso", "http://iso.org/25012/2008/dataquality/")
+        setNsPrefix("oa", "http://www.w3.org/ns/prov#")
+        setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+        setNsPrefix("skosxl", "http://www.w3.org/2008/05/skos-xl#")
+
+        setNsPrefix("skosno", SKOSNO.uri)
+        setNsPrefix("xkos", XKOS.uri)
+    }
+
+    private fun Model.emailResource(email: String): Resource =
+        safeCreateResource("mailto:$email")
+
+    fun Model.telephoneResource(telephone: String): Resource =
+        telephone.trim { it <= ' ' }
+            .filterIndexed { index, c ->
+                when {
+                    index == 0 && c == '+' -> true // global-number-digits
+                    c in '0'..'9' -> true // digit
+                    else -> false // skip visual-separator and other content
+                }
+            }
+            .let { safeCreateResource("tel:$it") }
 }
