@@ -4,8 +4,8 @@ import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.Kildebeskrivelse
 import no.fdk.concept_catalog.model.URITekst
+import no.fdk.concept_catalog.rdf.SKOSNO
 import no.fdk.concept_catalog.utils.*
-import no.norge.data.skos_ap_no.concept.builder.SKOSNO
 import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.RDFS
 import org.junit.jupiter.api.Tag
