@@ -351,8 +351,6 @@ components:
           $ref: '#/components/schemas/TekstMedSpraakKode'
         fagområde:
           $ref: '#/components/schemas/TekstMedSpraakKode'
-        bruksområde:
-          $ref: '#/components/schemas/TekstMedSpraakKode'
         omfang:
           $ref: "#/components/schemas/URITekst"
         kontaktpunkt:

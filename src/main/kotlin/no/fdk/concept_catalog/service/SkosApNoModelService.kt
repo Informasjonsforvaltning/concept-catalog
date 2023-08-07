@@ -153,7 +153,6 @@ class SkosApNoModelService(
         addHiddenLabelToConcept(concept)
         addExampleToConcept(concept)
         addSubjectToConcept(concept)
-        addDomainOfUseToConcept(concept)
         addContactPointToConcept(concept)
         addSeeAlsoReferencesToConcept(concept)
         addValidityPeriodToConcept(concept)
@@ -306,16 +305,10 @@ class SkosApNoModelService(
 
     private fun Resource.addSubjectToConcept(concept: Begrep) {
         concept.fagområde
-            ?.filterValues { it.isNotBlank() }
-            ?.forEach { (key, value) -> addProperty(DCTerms.subject, value, key) }
-    }
-
-    private fun Resource.addDomainOfUseToConcept(concept: Begrep) {
-        concept.bruksområde
             ?.filterValues { it.isNotEmpty() }
             ?.forEach { (key, entry) ->
                 entry.forEach { value ->
-                    addProperty(SKOSNO.bruksområde, value, key)
+                    addProperty(DCTerms.subject, value, key)
                 }
             }
     }

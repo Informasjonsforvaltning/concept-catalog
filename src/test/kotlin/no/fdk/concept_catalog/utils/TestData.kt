@@ -191,7 +191,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     anbefaltTerm = Term(navn = mapOf(Pair("en", "To be updated"))),
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon")), null),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
-    bruksområde = mapOf(Pair("en", listOf("To be copied"))),
+    fagområde = mapOf(Pair("en", listOf("To be copied"))),
     eksempel = mapOf(Pair("en", "Will be replaced by copy")),
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
@@ -218,7 +218,7 @@ val BEGREP_3 = Begrep(
                 URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
                 URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet")))),
     eksempel = mapOf(Pair("en", "example")),
-    fagområde = mapOf(Pair("nb", "fagområde")),
+    fagområde = mapOf(Pair("nb", listOf("fagområde"))),
     omfang = URITekst(uri = "https://test.no", tekst = "Test"),
     gyldigFom = LocalDate.of(2020, 10, 10),
     ansvarligVirksomhet = Virksomhet(
@@ -240,7 +240,7 @@ val BEGREP_4 = Begrep(
         kildebeskrivelse = Kildebeskrivelse(
             forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
             kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
-    bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
+    fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     ansvarligVirksomhet = Virksomhet(
@@ -258,7 +258,7 @@ val BEGREP_5 = Begrep(
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
-    bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
+    fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     definisjon = Definisjon(
@@ -283,7 +283,7 @@ val BEGREP_REVISION = Begrep(
         kildebeskrivelse = Kildebeskrivelse(
             forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
             kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
-    bruksområde = mapOf(Pair("nn", listOf("bruksområde"))),
+    fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     interneFelt = null

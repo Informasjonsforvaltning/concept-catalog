@@ -135,4 +135,4 @@
                               vcard:hasEmail      <mailto:test@test.no> ;
                               vcard:hasTelephone  <tel:99887766>
                             ] ;
-        skosno:bruksområde  "bruksområde"@nn .
+        dct:subject         "bruksområde"@nn .

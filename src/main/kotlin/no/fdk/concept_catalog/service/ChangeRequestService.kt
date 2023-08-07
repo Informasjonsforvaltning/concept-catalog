@@ -180,7 +180,6 @@ class ChangeRequestService(
             ansvarligVirksomhet = Virksomhet(id=catalogId),
             eksempel = HashMap(),
             fagområde = HashMap(),
-            bruksområde = HashMap(),
             omfang = null,
             kontaktpunkt = null,
             gyldigFom = null,
