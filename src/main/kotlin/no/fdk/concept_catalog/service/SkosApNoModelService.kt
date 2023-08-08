@@ -232,10 +232,8 @@ class SkosApNoModelService(
 
     private fun Resource.addScopeNoteToDefinition(concept: Begrep) {
         concept.merknad
-            ?.filterValues { it.toString().isNotBlank() }
-            ?.forEach { (key, entry) ->
-                entry.forEach { value -> addProperty(SKOS.scopeNote, value, key) }
-            }
+            ?.filterValues { it.isNotBlank() }
+            ?.forEach { (key, value) -> addProperty(SKOS.scopeNote, value, key) }
     }
 
     private fun Resource.addSourceDescriptionToDefinition(definition: Definisjon) {
@@ -302,10 +300,8 @@ class SkosApNoModelService(
 
     private fun Resource.addExampleToConcept(concept: Begrep) {
         concept.eksempel
-            ?.filterValues { it.toString().isNotBlank() }
-            ?.forEach { (key, entry) ->
-                entry.forEach { value -> addProperty(SKOS.example, value, key) }
-            }
+            ?.filterValues { it.isNotBlank() }
+            ?.forEach { (key, value) -> addProperty(SKOS.example, value, key) }
     }
 
     private fun Resource.addSubjectToConcept(concept: Begrep) {

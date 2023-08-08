@@ -30,7 +30,7 @@ val BEGREP_0_OLD = Begrep(
     definisjon = Definisjon(
         tekst = mapOf(Pair("nb", "old definisjon")),
         kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
-    merknad = mapOf(Pair("nn", listOf("old merknad"))),
+    merknad = mapOf(Pair("nn", "old merknad")),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
@@ -64,7 +64,7 @@ val BEGREP_0 = Begrep(
     rettsligForklaring = Definisjon(
         tekst = mapOf(Pair("nb", "Rettslig forklaring")),
         kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
-    merknad = mapOf(Pair("nn", listOf("merknad"))),
+    merknad = mapOf(Pair("nn", "merknad")),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
@@ -192,7 +192,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon")), null),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
     bruksområde = mapOf(Pair("en", listOf("To be copied"))),
-    eksempel = mapOf(Pair("en", listOf("Will be replaced by copy"))),
+    eksempel = mapOf(Pair("en", "Will be replaced by copy")),
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
@@ -217,7 +217,7 @@ val BEGREP_3 = Begrep(
             kilde = listOf(
                 URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
                 URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet")))),
-    eksempel = mapOf(Pair("en", listOf("example"))),
+    eksempel = mapOf(Pair("en", "example")),
     fagområde = mapOf(Pair("nb", "fagområde")),
     omfang = URITekst(uri = "https://test.no", tekst = "Test"),
     gyldigFom = LocalDate.of(2020, 10, 10),

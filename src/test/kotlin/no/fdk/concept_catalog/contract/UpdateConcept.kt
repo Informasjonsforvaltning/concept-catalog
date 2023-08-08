@@ -59,7 +59,7 @@ class UpdateConcept : ApiTestContext() {
     fun `Add new values`() {
         val operations = listOf(
             JsonPatchOperation(op = OpEnum.ADD, "/anbefaltTerm/navn/nb", "Oppdatert"),
-            JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", listOf("Ny merknad"))
+            JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad")
         )
 
         val rsp = authorizedRequest(
@@ -72,7 +72,7 @@ class UpdateConcept : ApiTestContext() {
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
         assertEquals("Oppdatert", result.anbefaltTerm?.navn?.get("nb"))
-        assertEquals(listOf("Ny merknad"), result.merknad?.get("nb"))
+        assertEquals("Ny merknad", result.merknad?.get("nb"))
     }
 
     @Test
@@ -124,7 +124,7 @@ class UpdateConcept : ApiTestContext() {
 
     @Test
     fun `Copy value`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/en"))
+        val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/anbefaltTerm/navn/en"))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
@@ -134,8 +134,8 @@ class UpdateConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_TO_BE_UPDATED.bruksområde?.get("en"), result.bruksområde?.get("en"))
-        assertEquals(BEGREP_TO_BE_UPDATED.bruksområde?.get("en"), result.eksempel?.get("en"))
+        assertEquals(BEGREP_TO_BE_UPDATED.anbefaltTerm?.navn?.get("en"), result.anbefaltTerm?.navn?.get("en"))
+        assertEquals(BEGREP_TO_BE_UPDATED.anbefaltTerm?.navn?.get("en"), result.eksempel?.get("en"))
     }
 
     @Test
@@ -152,7 +152,7 @@ class UpdateConcept : ApiTestContext() {
 
     @Test
     fun `Bad request when patch value is invalid`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/eksempel/en", value = "invalid"))
+        val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/eksempel/en", value = listOf("invalid")))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
             port, mapper.writeValueAsString(operations),
@@ -242,7 +242,7 @@ class UpdateConcept : ApiTestContext() {
 
     @Test
     fun `Patch fails when history-service fails`() {
-        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", listOf("Ny merknad")))
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
         val rsp = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_DELETED.id}",
             port, mapper.writeValueAsString(operations),
