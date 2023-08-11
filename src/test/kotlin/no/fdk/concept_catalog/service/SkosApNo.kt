@@ -14,9 +14,12 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
+import org.slf4j.LoggerFactory
 import org.springframework.web.server.ResponseStatusException
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+
+private val logger = LoggerFactory.getLogger(SkosApNo::class.java)
 
 @Tag("unit")
 class SkosApNo {
@@ -30,11 +33,13 @@ class SkosApNo {
 
         whenever(applicationProperties.collectionBaseUri)
             .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
+        whenever(applicationProperties.adminServiceUri)
+            .thenReturn("https://catalog-admin-service.fellesdatakatalog.digdir.no")
         whenever(conceptService.getLastPublishedForOrganization("111222333"))
             .thenReturn(listOf(BEGREP_3, BEGREP_4))
 
         val model = skosApNo.buildModelForPublishersCollection("111222333")
-        assertTrue { expected.isIsomorphicWith(model) }
+        assertTrue { checkIfIsomorphicAndPrintDiff(model, expected, "single collection", logger) }
     }
 
     @Test
@@ -43,6 +48,8 @@ class SkosApNo {
 
         whenever(applicationProperties.collectionBaseUri)
             .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
+        whenever(applicationProperties.adminServiceUri)
+            .thenReturn("https://catalog-admin-service.fellesdatakatalog.digdir.no")
         whenever(conceptService.getAllPublisherIds())
             .thenReturn(listOf("123456789", "111222333"))
         whenever(conceptService.getLastPublishedForOrganization("123456789"))
@@ -51,7 +58,7 @@ class SkosApNo {
             .thenReturn(listOf(BEGREP_3, BEGREP_4))
 
         val model = skosApNo.buildModelForAllCollections()
-        assertTrue { expected.isIsomorphicWith(model) }
+        assertTrue { checkIfIsomorphicAndPrintDiff(model, expected, "all collections", logger) }
     }
 
     @Test

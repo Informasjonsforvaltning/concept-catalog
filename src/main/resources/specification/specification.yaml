@@ -351,6 +351,10 @@ components:
           $ref: '#/components/schemas/TekstMedSpraakKode'
         fagområde:
           $ref: '#/components/schemas/TekstMedSpraakKode'
+        fagområdeKoder:
+          type: array
+          items:
+            type: string
         omfang:
           $ref: "#/components/schemas/URITekst"
         kontaktpunkt:

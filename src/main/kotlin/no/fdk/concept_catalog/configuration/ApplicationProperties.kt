@@ -6,5 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class ApplicationProperties(
     val collectionBaseUri: String,
     val historyServiceUri: String,
+    val adminServiceUri: String,
     val namespace: String
 )
