@@ -5,11 +5,14 @@ import com.mongodb.MongoClientSettings
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.rdf.rdfResponse
 import no.fdk.concept_catalog.utils.ApiTestContext.Companion.mongoContainer
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.riot.Lang
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.pojo.PojoCodecProvider
+import org.slf4j.Logger
 import org.springframework.http.*
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.HttpClientErrorException
@@ -18,6 +21,7 @@ import org.springframework.web.client.RestTemplate
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.Reader
+import java.io.StringReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
@@ -122,6 +126,7 @@ fun Begrep.toDBO(): BegrepDBO =
         ansvarligVirksomhet,
         eksempel,
         fagområde,
+        fagområdeKoder,
         omfang,
         kontaktpunkt,
         gyldigFom,
@@ -197,6 +202,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("seOgså", seOgså)
         .append("erstattesAv", erstattesAv)
         .append("fagområde", fagområde)
+        .append("fagområdeKoder", fagområdeKoder)
         .append("assignedUser", assignedUser)
         .append("begrepsRelasjon", begrepsRelasjon?.map { it.mapDBO() })
         .append("kontaktpunkt", kontaktpunkt?.mapDBO())
@@ -264,3 +270,26 @@ private fun ChangeRequest.mapDBO(): org.bson.Document =
         .append("definisjon", definisjon)
         .append("status", status)
         .append("conceptStatus", conceptStatus)
+
+fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, logger: Logger): Boolean {
+    // Its necessary to parse the created models from strings to have the same base, and ensure blank node validity
+    val parsedActual = ModelFactory.createDefaultModel().read(StringReader(actual.rdfResponse(Lang.TURTLE)), null, "TURTLE")
+    val parsedExpected = ModelFactory.createDefaultModel().read(StringReader(expected.rdfResponse(Lang.TURTLE)), null, "TURTLE")
+
+    val isIsomorphic = parsedActual.isIsomorphicWith(parsedExpected)
+
+    if (!isIsomorphic) {
+        val actualDiff = parsedActual.difference(parsedExpected).rdfResponse(Lang.TURTLE)
+        val expectedDiff = parsedExpected.difference(parsedActual).rdfResponse(Lang.TURTLE)
+
+        if (actualDiff.isNotEmpty()) {
+            logger.error("non expected nodes in $name:")
+            logger.error(actualDiff)
+        }
+        if (expectedDiff.isNotEmpty()) {
+            logger.error("missing nodes in $name:")
+            logger.error(expectedDiff)
+        }
+    }
+    return isIsomorphic
+}

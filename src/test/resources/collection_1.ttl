@@ -21,7 +21,9 @@
         rdf:type          skos:Concept ;
         dct:identifier    "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3" ;
         dct:publisher     <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
-        dct:subject       "fagområde"@nb ;
+        dct:subject       "fagområde"@nb,
+                            <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr1>,
+                            <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2> ;
         dct:temporal      [ rdf:type          dct:PeriodOfTime ;
                             schema:startDate  "2020-10-10"^^xsd:date
                           ] ;
@@ -64,4 +66,6 @@
                               vcard:hasEmail      <mailto:test@test.no> ;
                               vcard:hasTelephone  <tel:99887766>
                             ] ;
-        dct:subject         "bruksområde"@nn .
+        dct:subject         "bruksområde"@nn,
+                              <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr1>,
+                              <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2> .

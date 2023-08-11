@@ -44,7 +44,9 @@ class SkosApNoModelService(
     private val UNDERORDNET = "underordnet"
     private val OVERORDNET = "overordnet"
 
-    private fun enhetsregisteretUri(orgId: String) = "https://data.brreg.no/enhetsregisteret/api/enheter/$orgId"
+    private fun enhetsregisteretUri(orgId: String): String = "https://data.brreg.no/enhetsregisteret/api/enheter/$orgId"
+
+    private fun subjectsURI(orgId: String): String = "${applicationProperties.adminServiceUri}/$orgId/concepts/subjects#"
 
     private fun Model.safeCreateResource(uri: String?) =
         if (uri != null) createResource(escapeURI(uri))
@@ -309,6 +311,13 @@ class SkosApNoModelService(
             ?.forEach { (key, entry) ->
                 entry.forEach { value ->
                     addProperty(DCTerms.subject, value, key)
+                }
+            }
+        concept.fagområdeKoder
+            ?.filter { it.isNotEmpty() }
+            ?.forEach { kode ->
+                concept.ansvarligVirksomhet?.id?.let { virksomhetId ->
+                    addProperty(DCTerms.subject, model.safeCreateResource("${subjectsURI(virksomhetId)}$kode"))
                 }
             }
     }

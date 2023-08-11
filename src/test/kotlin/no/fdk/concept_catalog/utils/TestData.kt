@@ -192,6 +192,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon")), null),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
     fagområde = mapOf(Pair("en", listOf("To be copied"))),
+    fagområdeKoder = listOf("fagomr1","fagomr2"),
     eksempel = mapOf(Pair("en", "Will be replaced by copy")),
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
@@ -219,6 +220,7 @@ val BEGREP_3 = Begrep(
                 URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet")))),
     eksempel = mapOf(Pair("en", "example")),
     fagområde = mapOf(Pair("nb", listOf("fagområde"))),
+    fagområdeKoder = listOf("fagomr1","fagomr2"),
     omfang = URITekst(uri = "https://test.no", tekst = "Test"),
     gyldigFom = LocalDate.of(2020, 10, 10),
     ansvarligVirksomhet = Virksomhet(
@@ -241,6 +243,7 @@ val BEGREP_4 = Begrep(
             forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
             kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
     fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
+    fagområdeKoder = listOf("fagomr1","fagomr2"),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     ansvarligVirksomhet = Virksomhet(
@@ -259,6 +262,7 @@ val BEGREP_5 = Begrep(
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
     fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
+    fagområdeKoder = listOf("fagomr1","fagomr2"),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     definisjon = Definisjon(
