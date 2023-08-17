@@ -264,12 +264,15 @@ private fun ChangeRequest.mapDBO(): org.bson.Document =
         .append("_id", id)
         .append("conceptId", conceptId)
         .append("catalogId", catalogId)
-        .append("anbefaltTerm", anbefaltTerm)
-        .append("tillattTerm", tillattTerm)
-        .append("frarådetTerm", frarådetTerm)
-        .append("definisjon", definisjon)
         .append("status", status)
-        .append("conceptStatus", conceptStatus)
+        .append("operations", operations.map{it.mapDBO()})
+
+private fun JsonPatchOperation.mapDBO(): org.bson.Document =
+    org.bson.Document()
+        .append("op", op)
+        .append("path", path)
+        .append("value", value)
+        .append("from", from)
 
 fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, logger: Logger): Boolean {
     // Its necessary to parse the created models from strings to have the same base, and ensure blank node validity

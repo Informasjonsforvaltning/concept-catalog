@@ -1,7 +1,6 @@
 package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.ChangeRequest
-import no.fdk.concept_catalog.model.ChangeRequestForCreate
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ChangeRequestService
@@ -45,21 +44,22 @@ class ChangeRequestController(
     fun createChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @RequestBody changeRequest: ChangeRequestForCreate
+        @RequestParam(value = "concept") conceptId: String?
     ) : ResponseEntity<Unit> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            val newId = changeRequestService.createChangeRequest(changeRequest, catalogId)
+            val newId = changeRequestService.createChangeRequest(catalogId, conceptId)
             ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
         } else {
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-    @PostMapping(value= ["/{changeRequestId}/accept"])
+    @PostMapping(value= ["/{changeRequestId}/accept"]) // tar imot akseptering, bruker operations som den allerede har. Skal bli veldig mye mindre. ikke bruk jsonpatchutils
     fun acceptChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String
-    ) : ResponseEntity<Unit> {
+    ) : ResponseEntity<Unit>
+    {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)

@@ -11,21 +11,7 @@ data class ChangeRequest(
     val conceptId: String?,
     val catalogId: String,
     val status: ChangeRequestStatus,
-    val anbefaltTerm: Term?,
-    val tillattTerm: Map<String, List<String>>?,
-    val frarådetTerm: Map<String, List<String>>?,
-    val definisjon: Definisjon?,
-    val conceptStatus: Status?
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class ChangeRequestForCreate(
-    val conceptId: String?,
-    val anbefaltTerm: Term?,
-    val tillattTerm: Map<String, List<String>>?,
-    val frarådetTerm: Map<String, List<String>>?,
-    val definisjon: Definisjon?,
-    val conceptStatus: Status?
+    val operations: List<JsonPatchOperation>
 )
 
 enum class ChangeRequestStatus {

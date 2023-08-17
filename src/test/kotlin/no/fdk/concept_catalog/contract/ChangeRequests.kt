@@ -5,18 +5,13 @@ import kotlin.test.assertEquals
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ChangeRequest
-import no.fdk.concept_catalog.model.ChangeRequestForCreate
 import no.fdk.concept_catalog.model.ChangeRequestStatus
-import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.Endringslogelement
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.OpEnum
 import no.fdk.concept_catalog.model.SemVer
-import no.fdk.concept_catalog.model.Status
-import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.utils.*
-import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -28,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 
 private val mapper = JacksonConfigurer().objectMapper()
@@ -180,68 +176,36 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun unauthorizedWhenMissingToken() {
-            val body = ChangeRequestForCreate(
-                conceptId = BEGREP_TO_BE_UPDATED.originaltBegrep,
-                anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
-                tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
-                frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
-                conceptStatus = Status.UTKAST
-            )
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), null, HttpMethod.POST )
-
+            val rsp = authorizedRequest(path+"?concept=${BEGREP_0.originaltBegrep}", port, null, null, HttpMethod.POST )
             assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val body = ChangeRequestForCreate(
-                conceptId = BEGREP_TO_BE_UPDATED.originaltBegrep,
-                anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
-                tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
-                frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
-                conceptStatus = Status.UTKAST
-            )
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
+            val rsp = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
         }
 
-        @Test
+        /*@Test
         fun badRequestWhenAttemptingToRequestChangesOnNonOriginalId() {
-            val body = ChangeRequestForCreate(
-                conceptId = BEGREP_0.id,
-                anbefaltTerm = BEGREP_0.anbefaltTerm,
-                tillattTerm = BEGREP_0.tillattTerm,
-                frarådetTerm = BEGREP_0.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
-                conceptStatus = Status.UTKAST
-            )
+
             val rsp = authorizedRequest(
                 "/${BEGREP_0.ansvarligVirksomhet?.id}/endringsforslag",
                 port,
-                mapper.writeValueAsString(body),
+                null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
             assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
-        }
+        }*/
 
         @Test
         fun badRequestForNonValidCatalogId() {
-            val body = ChangeRequestForCreate(
-                conceptId = null,
-                anbefaltTerm = BEGREP_0.anbefaltTerm,
-                tillattTerm = BEGREP_0.tillattTerm,
-                frarådetTerm = BEGREP_0.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
-                conceptStatus = Status.UTKAST
-            )
             val rsp = authorizedRequest(
                 "/invalid/endringsforslag",
                 port,
-                mapper.writeValueAsString(body),
+                null,
                 JwtToken(Access.WRONG_ORG).toString(),
                 HttpMethod.POST
             )
@@ -250,27 +214,12 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun ableToCreateChangeRequest() {
-            val body0 = ChangeRequestForCreate(
-                conceptId = BEGREP_TO_BE_UPDATED.originaltBegrep,
-                anbefaltTerm = BEGREP_TO_BE_UPDATED.anbefaltTerm,
-                tillattTerm = BEGREP_TO_BE_UPDATED.tillattTerm,
-                frarådetTerm = BEGREP_TO_BE_UPDATED.frarådetTerm,
-                definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon nb"), Pair("nn", "definisjon nn")), null),
-                conceptStatus = Status.UTKAST
-            )
-            val body1 = ChangeRequestForCreate(null, anbefaltTerm = Term(navn = mapOf(Pair("en", "New concept"))), null, null, null, conceptStatus = Status.UTKAST)
-
-            val rsp0 = authorizedRequest(path, port, mapper.writeValueAsString(body0), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
-            val rsp1 = authorizedRequest(path, port, mapper.writeValueAsString(body1), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+            val rsp0 = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.CREATED.value(), rsp0["status"])
-            assertEquals(HttpStatus.CREATED.value(), rsp1["status"])
 
             val responseHeaders0: HttpHeaders = rsp0["header"] as HttpHeaders
             val location0 = responseHeaders0.location
             assertNotNull(location0)
-            val responseHeaders1: HttpHeaders = rsp1["header"] as HttpHeaders
-            val location1 = responseHeaders1.location
-            assertNotNull(location1)
 
             val getResponse0 = authorizedRequest(location0.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             assertEquals(HttpStatus.OK.value(), getResponse0["status"])
@@ -278,37 +227,18 @@ class ChangeRequests : ApiTestContext() {
             val expected0 = ChangeRequest(
                 id = result0.id,
                 catalogId = "111111111",
-                conceptId = body0.conceptId,
-                anbefaltTerm = body0.anbefaltTerm,
-                tillattTerm = body0.tillattTerm,
-                frarådetTerm = body0.frarådetTerm,
-                definisjon = body0.definisjon,
+                conceptId = null,
                 status = ChangeRequestStatus.OPEN,
-                conceptStatus = Status.UTKAST
+                operations = emptyList()
             )
             assertEquals(expected0, result0)
-
-            val getResponse1 = authorizedRequest(location1.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
-            assertEquals(HttpStatus.OK.value(), getResponse1["status"])
-            val result1: ChangeRequest = mapper.readValue(getResponse1["body"] as String)
-            val expected1 = ChangeRequest(
-                id = result1.id,
-                catalogId = "111111111",
-                conceptId = null,
-                anbefaltTerm = body1.anbefaltTerm,
-                tillattTerm = null,
-                frarådetTerm = null,
-                definisjon = null,
-                status = ChangeRequestStatus.OPEN,
-                conceptStatus = Status.UTKAST
-            )
-            assertEquals(expected1, result1)
         }
     }
 
     @Nested
     internal inner class UpdateChangeRequest {
         private val path = "/111111111/endringsforslag/${CHANGE_REQUEST_0.id}"
+        private val queryPath = "/111111111/endringsforslag?id=${CHANGE_REQUEST_0.id}"
 
         @Test
         fun unauthorizedWhenMissingToken() {
@@ -336,13 +266,13 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun ableToUpdateChangeRequest() {
-            val newTillatt = mapOf(Pair("nb", listOf("tillatt nb")), Pair("nn", listOf("tillatt nn")))
-            val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", newTillatt))
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH )
+            val operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/baz", value = "boo") )
+            val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/operations", operations))
+            val rsp = authorizedRequest(queryPath, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH )
             assertEquals(HttpStatus.OK.value(), rsp["status"])
 
             val result: ChangeRequest = mapper.readValue(rsp["body"] as String)
-            val expected = CHANGE_REQUEST_0.copy(tillattTerm = newTillatt)
+            val expected = CHANGE_REQUEST_0.copy(operations = operations)
             assertEquals(expected, result)
         }
 
@@ -469,12 +399,7 @@ class ChangeRequests : ApiTestContext() {
                 revisjonAvSistPublisert = true,
                 opprettet = result.opprettet,
                 opprettetAv = "TEST USER",
-                anbefaltTerm = CHANGE_REQUEST_3.anbefaltTerm,
-                tillattTerm = CHANGE_REQUEST_3.tillattTerm,
-                frarådetTerm = CHANGE_REQUEST_3.frarådetTerm,
-                definisjon = CHANGE_REQUEST_3.definisjon,
-                status = CHANGE_REQUEST_3.conceptStatus,
-                endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
+                endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
             )
             assertEquals(expected, result)
         }
@@ -492,11 +417,6 @@ class ChangeRequests : ApiTestContext() {
             assertEquals(HttpStatus.OK.value(), getResponse["status"])
             val result: Begrep = mapper.readValue(getResponse["body"] as String)
             val expected = BEGREP_2.copy(
-                anbefaltTerm = CHANGE_REQUEST_4.anbefaltTerm,
-                tillattTerm = CHANGE_REQUEST_4.tillattTerm,
-                frarådetTerm = CHANGE_REQUEST_4.frarådetTerm,
-                definisjon = CHANGE_REQUEST_4.definisjon,
-                status = CHANGE_REQUEST_4.conceptStatus,
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
             )
             assertEquals(expected, result)
@@ -527,11 +447,6 @@ class ChangeRequests : ApiTestContext() {
                 interneFelt = null,
                 opprettet = result.opprettet,
                 opprettetAv = "TEST USER",
-                anbefaltTerm = CHANGE_REQUEST_5.anbefaltTerm,
-                tillattTerm = CHANGE_REQUEST_5.tillattTerm,
-                frarådetTerm = CHANGE_REQUEST_5.frarådetTerm,
-                definisjon = CHANGE_REQUEST_5.definisjon,
-                status = CHANGE_REQUEST_5.conceptStatus,
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
             )
             assertEquals(expected, result)

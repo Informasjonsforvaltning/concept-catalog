@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.model.BegrepDBO
 import java.util.UUID
 import no.fdk.concept_catalog.model.ChangeRequest
-import no.fdk.concept_catalog.model.ChangeRequestForCreate
 import no.fdk.concept_catalog.model.ChangeRequestStatus
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.Status
@@ -40,19 +39,15 @@ class ChangeRequestService(
             ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
-    fun createChangeRequest(toCreate: ChangeRequestForCreate, catalogId: String): String {
-        validateNewChangeRequest(toCreate.conceptId, catalogId)
+    fun createChangeRequest(catalogId: String, conceptId: String?): String {
+        validateNewChangeRequest(conceptId, catalogId)
         val newId = UUID.randomUUID().toString()
         ChangeRequest(
             id = newId,
             catalogId = catalogId,
-            conceptId = toCreate.conceptId,
+            conceptId = conceptId,
             status = ChangeRequestStatus.OPEN,
-            anbefaltTerm = toCreate.anbefaltTerm,
-            tillattTerm = toCreate.tillattTerm,
-            frarådetTerm = toCreate.frarådetTerm,
-            definisjon = toCreate.definisjon,
-            conceptStatus = toCreate.conceptStatus
+            operations = emptyList()
         ).run { changeRequestRepository.save(this) }
 
         return newId
@@ -83,9 +78,8 @@ class ChangeRequestService(
             else -> dbConcept
         }
 
-        val patchOperations = createPatchOperations(conceptToUpdate, conceptToUpdate.applyChangeRequest(changeRequest), mapper)
         try {
-            conceptService.updateConcept(conceptToUpdate, patchOperations, user, jwt)
+            conceptService.updateConcept(conceptToUpdate, changeRequest.operations, user, jwt)
         } catch (ex: Exception) {
             logger.error("update of concept failed when accepting ${changeRequest.id}, reverting acceptation", ex)
             changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
@@ -136,15 +130,6 @@ class ChangeRequestService(
             ChangeRequestStatus.ACCEPTED.name -> ChangeRequestStatus.ACCEPTED
             else -> null
         }
-
-    private fun BegrepDBO.applyChangeRequest(changeRequest: ChangeRequest): BegrepDBO =
-        copy(
-            anbefaltTerm = changeRequest.anbefaltTerm,
-            tillattTerm = changeRequest.tillattTerm,
-            frarådetTerm = changeRequest.frarådetTerm,
-            definisjon = changeRequest.definisjon,
-            status = changeRequest.conceptStatus
-        )
 
     private fun BegrepDBO.createNewRevision(user: User): BegrepDBO =
         copy(
