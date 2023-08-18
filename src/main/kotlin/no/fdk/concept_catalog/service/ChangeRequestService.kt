@@ -39,7 +39,7 @@ class ChangeRequestService(
             ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
-    fun createChangeRequest(catalogId: String, conceptId: String?): String {
+    fun createChangeRequest(catalogId: String, conceptId: String?, user: User?): String {
         validateNewChangeRequest(conceptId, catalogId)
         val newId = UUID.randomUUID().toString()
         ChangeRequest(
@@ -47,7 +47,9 @@ class ChangeRequestService(
             catalogId = catalogId,
             conceptId = conceptId,
             status = ChangeRequestStatus.OPEN,
-            operations = emptyList()
+            operations = emptyList(),
+            proposedBy = user,
+            timeForProposal = Instant.now()
         ).run { changeRequestRepository.save(this) }
 
         return newId

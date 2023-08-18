@@ -25,6 +25,8 @@ import java.io.StringReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 fun apiGet(port: Int, endpoint: String, acceptHeader: MediaType): Map<String, Any> {
 
@@ -266,6 +268,8 @@ private fun ChangeRequest.mapDBO(): org.bson.Document =
         .append("catalogId", catalogId)
         .append("status", status)
         .append("operations", operations.map{it.mapDBO()})
+        .append("timeForProposal", timeForProposal)
+        .append("proposedBy", proposedBy)
 
 private fun JsonPatchOperation.mapDBO(): org.bson.Document =
     org.bson.Document()

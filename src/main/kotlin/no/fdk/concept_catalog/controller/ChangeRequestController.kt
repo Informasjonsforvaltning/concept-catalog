@@ -47,7 +47,8 @@ class ChangeRequestController(
         @RequestParam(value = "concept") conceptId: String?
     ) : ResponseEntity<Unit> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            val newId = changeRequestService.createChangeRequest(catalogId, conceptId)
+            val user = endpointPermissions.getUser(jwt)
+            val newId = changeRequestService.createChangeRequest(catalogId, conceptId, user)
             ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
         } else {
             ResponseEntity(HttpStatus.FORBIDDEN)

@@ -390,7 +390,9 @@ val CHANGE_REQUEST_0 = ChangeRequest(
     conceptId = null,
     catalogId = "111111111",
     status = ChangeRequestStatus.ACCEPTED,
-    operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/baz", value = "boo") )
+    operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/baz", value = "boo") ),
+    timeForProposal = Instant.now(),
+    proposedBy = null
 )
 
 val CHANGE_REQUEST_1 = ChangeRequest(
@@ -398,7 +400,9 @@ val CHANGE_REQUEST_1 = ChangeRequest(
     conceptId = null,
     catalogId = "111111111",
     status = ChangeRequestStatus.REJECTED,
-    operations = emptyList()
+    operations = emptyList(),
+    timeForProposal = null,
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
 
 val CHANGE_REQUEST_2 = ChangeRequest(
@@ -406,7 +410,9 @@ val CHANGE_REQUEST_2 = ChangeRequest(
     conceptId = null,
     catalogId = "111111111",
     status = ChangeRequestStatus.OPEN,
-    operations = emptyList()
+    operations = emptyList(),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = null
 )
 
 val CHANGE_REQUEST_3 = ChangeRequest(
@@ -414,7 +420,9 @@ val CHANGE_REQUEST_3 = ChangeRequest(
     conceptId = "id0-old",
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
-    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null))
+    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 
 )
 
@@ -425,7 +433,9 @@ val CHANGE_REQUEST_4 = ChangeRequest(
     status = ChangeRequestStatus.OPEN,
     operations = listOf(
         JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null),
-    )
+    ),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = null
 )
 
 val CHANGE_REQUEST_5 = ChangeRequest(
@@ -433,5 +443,7 @@ val CHANGE_REQUEST_5 = ChangeRequest(
     conceptId = null,
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
-    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null))
+    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = null
 )

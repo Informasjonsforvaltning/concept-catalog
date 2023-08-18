@@ -16,7 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 
 private val mapper = JacksonConfigurer().objectMapper()
@@ -30,6 +29,7 @@ private val mapper = JacksonConfigurer().objectMapper()
 @ContextConfiguration(initializers = [ApiTestContext.Initializer::class])
 @Tag("contract")
 class ChangeRequests : ApiTestContext() {
+
 
     @Nested
     internal inner class GetChangeRequests {
@@ -59,7 +59,10 @@ class ChangeRequests : ApiTestContext() {
             val resultRead: List<ChangeRequest> = mapper.readValue(rspRead["body"] as String)
             val resultWrite: List<ChangeRequest> = mapper.readValue(rspWrite["body"] as String)
 
-            val expected = listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2)
+            val expected = listOf(
+                CHANGE_REQUEST_0.copy(timeForProposal = resultRead[0].timeForProposal),
+                CHANGE_REQUEST_1.copy(timeForProposal = resultRead[1].timeForProposal),
+                CHANGE_REQUEST_2.copy(timeForProposal = resultRead[2].timeForProposal))
             assertEquals(expected, resultRead)
             assertEquals(expected, resultWrite)
         }
@@ -78,9 +81,9 @@ class ChangeRequests : ApiTestContext() {
             val resultRejected: List<ChangeRequest> = mapper.readValue(rspRejected["body"] as String)
             val resultAccepted: List<ChangeRequest> = mapper.readValue(rspAccepted["body"] as String)
 
-            assertEquals(listOf(CHANGE_REQUEST_2), resultOpen)
-            assertEquals(listOf(CHANGE_REQUEST_1), resultRejected)
-            assertEquals(listOf(CHANGE_REQUEST_0), resultAccepted)
+            assertEquals(listOf(CHANGE_REQUEST_2.copy(timeForProposal = resultOpen[0].timeForProposal)), resultOpen)
+            assertEquals(listOf(CHANGE_REQUEST_1.copy(timeForProposal = resultRejected[0].timeForProposal)), resultRejected)
+            assertEquals(listOf(CHANGE_REQUEST_0.copy(timeForProposal = resultAccepted[0].timeForProposal)), resultAccepted)
         }
     }
 
@@ -119,7 +122,7 @@ class ChangeRequests : ApiTestContext() {
             val resultRead: ChangeRequest = mapper.readValue(rspRead["body"] as String)
             val resultWrite: ChangeRequest = mapper.readValue(rspWrite["body"] as String)
 
-            val expected = CHANGE_REQUEST_0
+            val expected = CHANGE_REQUEST_0.copy(timeForProposal = resultRead.timeForProposal)
             assertEquals(expected, resultRead)
             assertEquals(expected, resultWrite)
         }
@@ -180,18 +183,18 @@ class ChangeRequests : ApiTestContext() {
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
         }
 
-        /*@Test
+        @Test
         fun badRequestWhenAttemptingToRequestChangesOnNonOriginalId() {
 
             val rsp = authorizedRequest(
-                "/${BEGREP_0.ansvarligVirksomhet?.id}/endringsforslag",
+                "/${BEGREP_0.ansvarligVirksomhet?.id}/endringsforslag?concept=id0-old",
                 port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
             assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
-        }*/
+        }
 
         @Test
         fun badRequestForNonValidCatalogId() {
@@ -217,12 +220,15 @@ class ChangeRequests : ApiTestContext() {
             val getResponse0 = authorizedRequest(location0.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             assertEquals(HttpStatus.OK.value(), getResponse0["status"])
             val result0: ChangeRequest = mapper.readValue(getResponse0["body"] as String)
+
             val expected0 = ChangeRequest(
                 id = result0.id,
                 catalogId = "111111111",
                 conceptId = null,
                 status = ChangeRequestStatus.OPEN,
-                operations = emptyList()
+                operations = emptyList(),
+                proposedBy = User(id="1924782563", name="TEST USER", email=null),
+                timeForProposal = result0.timeForProposal
             )
             assertEquals(expected0, result0)
         }
@@ -263,7 +269,7 @@ class ChangeRequests : ApiTestContext() {
             assertEquals(HttpStatus.OK.value(), rsp["status"])
 
             val result: ChangeRequest = mapper.readValue(rsp["body"] as String)
-            val expected = CHANGE_REQUEST_0.copy(operations = operations)
+            val expected = CHANGE_REQUEST_0.copy(operations = operations, timeForProposal = result.timeForProposal)
             assertEquals(expected, result)
         }
 
@@ -392,7 +398,7 @@ class ChangeRequests : ApiTestContext() {
                 opprettetAv = "TEST USER",
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
                 status = Status.UTKAST,
-                assignedUser = "newUserId"
+                assignedUser = "newUserId",
             )
             assertEquals(expected, result)
         }
