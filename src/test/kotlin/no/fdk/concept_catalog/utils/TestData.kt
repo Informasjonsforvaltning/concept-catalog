@@ -133,7 +133,10 @@ val BEGREP_1 = Begrep(
 val BEGREP_2 = Begrep(
     id = "id2",
     originaltBegrep = "id2",
-    versjonsnr = SemVer(0, 0, 1),
+    definisjon = Definisjon(
+        tekst = mapOf(Pair("nb", "tekstnb")),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+    versjonsnr = SemVer(1, 0, 1),
     revisjonAvSistPublisert = true,
     gjeldendeRevisjon = null,
     status = Status.HOERING,
@@ -147,7 +150,7 @@ val BEGREP_2 = Begrep(
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
-    interneFelt = null
+    interneFelt = null,
 )
 
 val BEGREP_WRONG_ORG = Begrep(
@@ -411,7 +414,8 @@ val CHANGE_REQUEST_3 = ChangeRequest(
     conceptId = "id0-old",
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
-    operations = emptyList()
+    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null))
+
 )
 
 val CHANGE_REQUEST_4 = ChangeRequest(
@@ -419,7 +423,9 @@ val CHANGE_REQUEST_4 = ChangeRequest(
     conceptId = BEGREP_2.id,
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
-    operations = emptyList()
+    operations = listOf(
+        JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null),
+    )
 )
 
 val CHANGE_REQUEST_5 = ChangeRequest(
@@ -427,5 +433,5 @@ val CHANGE_REQUEST_5 = ChangeRequest(
     conceptId = null,
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
-    operations = emptyList()
+    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null))
 )

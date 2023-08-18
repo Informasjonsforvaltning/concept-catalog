@@ -53,7 +53,7 @@ class ChangeRequestController(
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-    @PostMapping(value= ["/{changeRequestId}/accept"]) // tar imot akseptering, bruker operations som den allerede har. Skal bli veldig mye mindre. ikke bruk jsonpatchutils
+    @PostMapping(value= ["/{changeRequestId}/accept"])
     fun acceptChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
@@ -111,15 +111,15 @@ class ChangeRequestController(
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-    @PatchMapping(value= ["/{changeRequestId}"])
-    fun patchChangeRequest(
+    @PostMapping(value= ["/{changeRequestId}"])
+    fun saveChangeRequestOperations(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String,
         @RequestBody patchOperations: List<JsonPatchOperation>
     ) : ResponseEntity<ChangeRequest> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            changeRequestService.updateChangeRequest(changeRequestId, catalogId, patchOperations)
+            changeRequestService.saveChangeRequestOperations(changeRequestId, catalogId, patchOperations)
                 ?.let { ResponseEntity(it, HttpStatus.OK) }
                 ?: ResponseEntity(HttpStatus.NOT_FOUND)
         } else {

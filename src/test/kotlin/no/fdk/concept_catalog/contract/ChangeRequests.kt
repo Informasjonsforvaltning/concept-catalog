@@ -3,14 +3,7 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlin.test.assertEquals
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
-import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.model.ChangeRequest
-import no.fdk.concept_catalog.model.ChangeRequestStatus
-import no.fdk.concept_catalog.model.Endringslogelement
-import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.OpEnum
-import no.fdk.concept_catalog.model.SemVer
-import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
@@ -238,7 +231,6 @@ class ChangeRequests : ApiTestContext() {
     @Nested
     internal inner class UpdateChangeRequest {
         private val path = "/111111111/endringsforslag/${CHANGE_REQUEST_0.id}"
-        private val queryPath = "/111111111/endringsforslag?id=${CHANGE_REQUEST_0.id}"
 
         @Test
         fun unauthorizedWhenMissingToken() {
@@ -251,7 +243,7 @@ class ChangeRequests : ApiTestContext() {
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.PATCH )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
         }
@@ -259,16 +251,15 @@ class ChangeRequests : ApiTestContext() {
         @Test
         fun notFoundForInvalidId() {
             val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
-            val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH )
+            val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
         }
 
         @Test
         fun ableToUpdateChangeRequest() {
-            val operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/baz", value = "boo") )
-            val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/operations", operations))
-            val rsp = authorizedRequest(queryPath, port, mapper.writeValueAsString(body), JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH )
+            val operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/assignedUser", value = "updatedUserId") )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(operations), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.OK.value(), rsp["status"])
 
             val result: ChangeRequest = mapper.readValue(rsp["body"] as String)
@@ -281,9 +272,9 @@ class ChangeRequests : ApiTestContext() {
             val bodyId = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/id", "123456"))
             val bodyCatalogId = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/catalogId", "123456"))
             val bodyConceptId = listOf(JsonPatchOperation(op = OpEnum.ADD, "/conceptId", "123456"))
-            val rspId = authorizedRequest(path, port, mapper.writeValueAsString(bodyId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH )
-            val rspCatalogId = authorizedRequest(path, port, mapper.writeValueAsString(bodyCatalogId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH )
-            val rspConceptId = authorizedRequest(path, port, mapper.writeValueAsString(bodyConceptId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH )
+            val rspId = authorizedRequest(path, port, mapper.writeValueAsString(bodyId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val rspCatalogId = authorizedRequest(path, port, mapper.writeValueAsString(bodyCatalogId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val rspConceptId = authorizedRequest(path, port, mapper.writeValueAsString(bodyConceptId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.BAD_REQUEST.value(), rspId["status"])
             assertEquals(HttpStatus.BAD_REQUEST.value(), rspCatalogId["status"])
@@ -400,6 +391,8 @@ class ChangeRequests : ApiTestContext() {
                 opprettet = result.opprettet,
                 opprettetAv = "TEST USER",
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
+                status = Status.UTKAST,
+                assignedUser = "newUserId"
             )
             assertEquals(expected, result)
         }
@@ -417,8 +410,9 @@ class ChangeRequests : ApiTestContext() {
             assertEquals(HttpStatus.OK.value(), getResponse["status"])
             val result: Begrep = mapper.readValue(getResponse["body"] as String)
             val expected = BEGREP_2.copy(
-                endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
-            )
+                endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
+                assignedUser = "newUserId"
+             )
             assertEquals(expected, result)
         }
 
@@ -447,7 +441,9 @@ class ChangeRequests : ApiTestContext() {
                 interneFelt = null,
                 opprettet = result.opprettet,
                 opprettetAv = "TEST USER",
-                endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt)
+                endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
+                status = Status.UTKAST,
+                assignedUser="newUserId"
             )
             assertEquals(expected, result)
         }

@@ -53,10 +53,10 @@ class ChangeRequestService(
         return newId
     }
 
-    fun updateChangeRequest(id: String, catalogId: String, operations: List<JsonPatchOperation>): ChangeRequest? {
+    fun saveChangeRequestOperations(id: String, catalogId: String, operations: List<JsonPatchOperation>): ChangeRequest? {
         validateJsonPatchOperations(operations)
         return changeRequestRepository.getByIdAndCatalogId(id, catalogId)
-            ?.let { patchOriginal(it, operations, mapper) }
+            ?.copy(operations = operations)
             ?.let { changeRequestRepository.save(it) }
     }
 
