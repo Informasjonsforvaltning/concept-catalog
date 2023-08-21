@@ -241,7 +241,7 @@ class ChangeRequests : ApiTestContext() {
         @Test
         fun unauthorizedWhenMissingToken() {
             val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), null, HttpMethod.PATCH )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), null, HttpMethod.POST )
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), rsp["status"])
         }
