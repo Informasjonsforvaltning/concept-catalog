@@ -13,8 +13,8 @@ data class ChangeRequest(
     val catalogId: String,
     val status: ChangeRequestStatus,
     val operations: List<JsonPatchOperation>,
-    val proposedBy: User?,
-    val timeForProposal: Instant?,
+    val proposedBy: User,
+    val timeForProposal: Instant,
 )
 
 enum class ChangeRequestStatus {

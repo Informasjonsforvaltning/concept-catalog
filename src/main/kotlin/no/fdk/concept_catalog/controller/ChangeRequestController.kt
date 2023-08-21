@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.client.HttpClientErrorException.BadRequest
 
 @RestController
 @CrossOrigin
@@ -45,14 +46,16 @@ class ChangeRequestController(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @RequestParam(value = "concept") conceptId: String?
-    ) : ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            val user = endpointPermissions.getUser(jwt)
-            val newId = changeRequestService.createChangeRequest(catalogId, conceptId, user)
-            ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
-        }
+    ) : ResponseEntity<Unit> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null ->  ResponseEntity(HttpStatus.BAD_REQUEST)
+            endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> {
+                val newId = changeRequestService.createChangeRequest(catalogId, conceptId, user)
+                ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
+            }
+            else -> ResponseEntity(HttpStatus.FORBIDDEN)
+        }}
 
     @PostMapping(value= ["/{changeRequestId}/accept"])
     fun acceptChangeRequest(
