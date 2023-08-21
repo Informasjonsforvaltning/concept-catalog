@@ -41,7 +41,7 @@ class ChangeRequestController(
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-    @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping
     fun createChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
