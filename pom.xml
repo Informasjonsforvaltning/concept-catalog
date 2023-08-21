@@ -29,7 +29,7 @@
         <!--end standard properties-->
 
         <kotlin.version>1.9.0</kotlin.version>
-        <testcontainers.version>1.18.3</testcontainers.version>
+        <testcontainers.version>1.19.0</testcontainers.version>
         <jena.version>4.9.0</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
     </properties>
