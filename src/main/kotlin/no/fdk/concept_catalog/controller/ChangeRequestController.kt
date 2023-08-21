@@ -1,7 +1,6 @@
 package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.ChangeRequest
-import no.fdk.concept_catalog.model.ChangeRequestForCreate
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ChangeRequestService
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.client.HttpClientErrorException.BadRequest
 
 @RestController
 @CrossOrigin
@@ -45,14 +45,18 @@ class ChangeRequestController(
     fun createChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @RequestBody changeRequest: ChangeRequestForCreate
-    ) : ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            val newId = changeRequestService.createChangeRequest(changeRequest, catalogId)
-            ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
+        @RequestParam(value = "concept") conceptId: String?
+    ) : ResponseEntity<Unit> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null ->  ResponseEntity(HttpStatus.BAD_REQUEST)
+            endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> {
+                val newId = changeRequestService.createChangeRequest(catalogId, conceptId, user)
+                ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
+            }
+            else -> ResponseEntity(HttpStatus.FORBIDDEN)
         }
+    }
 
     @PostMapping(value= ["/{changeRequestId}/accept"])
     fun acceptChangeRequest(
@@ -111,15 +115,15 @@ class ChangeRequestController(
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-    @PatchMapping(value= ["/{changeRequestId}"])
-    fun patchChangeRequest(
+    @PostMapping(value= ["/{changeRequestId}"])
+    fun saveChangeRequestOperations(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String,
         @RequestBody patchOperations: List<JsonPatchOperation>
     ) : ResponseEntity<ChangeRequest> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            changeRequestService.updateChangeRequest(changeRequestId, catalogId, patchOperations)
+            changeRequestService.saveChangeRequestOperations(changeRequestId, catalogId, patchOperations)
                 ?.let { ResponseEntity(it, HttpStatus.OK) }
                 ?: ResponseEntity(HttpStatus.NOT_FOUND)
         } else {

@@ -50,7 +50,7 @@ abstract class ApiTestContext {
             resetDB()
 
             try {
-                val con = URL("http://localhost:5000/ping").openConnection() as HttpURLConnection
+                val con = URL("http://localhost:6000/ping").openConnection() as HttpURLConnection
                 con.connect()
                 if (con.responseCode != 200) {
                     logger.debug("Ping to mock server failed")

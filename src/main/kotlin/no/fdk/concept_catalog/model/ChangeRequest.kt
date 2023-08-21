@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.model
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import java.time.Instant
 
 @Document(collection = "changeRequest")
 data class ChangeRequest(
@@ -11,21 +12,9 @@ data class ChangeRequest(
     val conceptId: String?,
     val catalogId: String,
     val status: ChangeRequestStatus,
-    val anbefaltTerm: Term?,
-    val tillattTerm: Map<String, List<String>>?,
-    val frarådetTerm: Map<String, List<String>>?,
-    val definisjon: Definisjon?,
-    val conceptStatus: Status?
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class ChangeRequestForCreate(
-    val conceptId: String?,
-    val anbefaltTerm: Term?,
-    val tillattTerm: Map<String, List<String>>?,
-    val frarådetTerm: Map<String, List<String>>?,
-    val definisjon: Definisjon?,
-    val conceptStatus: Status?
+    val operations: List<JsonPatchOperation>,
+    val proposedBy: User,
+    val timeForProposal: Instant,
 )
 
 enum class ChangeRequestStatus {

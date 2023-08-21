@@ -4,7 +4,7 @@ import no.fdk.concept_catalog.model.*
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap
 import java.time.*
 
-const val LOCAL_SERVER_PORT = 5000
+const val LOCAL_SERVER_PORT = 6000
 
 const val MONGO_USER = "testuser"
 const val MONGO_PASSWORD = "testpassword"
@@ -133,7 +133,10 @@ val BEGREP_1 = Begrep(
 val BEGREP_2 = Begrep(
     id = "id2",
     originaltBegrep = "id2",
-    versjonsnr = SemVer(0, 0, 1),
+    definisjon = Definisjon(
+        tekst = mapOf(Pair("nb", "tekstnb")),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+    versjonsnr = SemVer(1, 0, 1),
     revisjonAvSistPublisert = true,
     gjeldendeRevisjon = null,
     status = Status.HOERING,
@@ -147,7 +150,7 @@ val BEGREP_2 = Begrep(
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
-    interneFelt = null
+    interneFelt = null,
 )
 
 val BEGREP_WRONG_ORG = Begrep(
@@ -199,7 +202,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
         id = "111111111"
     ),
     assignedUser = "user-id",
-    interneFelt = null
+    interneFelt = null,
 )
 
 val BEGREP_3 = Begrep(
@@ -386,70 +389,60 @@ val CHANGE_REQUEST_0 = ChangeRequest(
     id = "cr0",
     conceptId = null,
     catalogId = "111111111",
-    anbefaltTerm = null,
-    tillattTerm = null,
-    frarådetTerm = null,
-    definisjon = null,
     status = ChangeRequestStatus.ACCEPTED,
-    conceptStatus = Status.UTKAST
+    operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/baz", value = "boo") ),
+    timeForProposal = Instant.now(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
 
 val CHANGE_REQUEST_1 = ChangeRequest(
     id = "cr1",
     conceptId = null,
     catalogId = "111111111",
-    anbefaltTerm = null,
-    tillattTerm = null,
-    frarådetTerm = null,
-    definisjon = null,
     status = ChangeRequestStatus.REJECTED,
-    conceptStatus = Status.UTKAST
+    operations = emptyList(),
+    timeForProposal =  ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
 
 val CHANGE_REQUEST_2 = ChangeRequest(
     id = "cr2",
     conceptId = null,
     catalogId = "111111111",
-    anbefaltTerm = null,
-    tillattTerm = null,
-    frarådetTerm = null,
-    definisjon = null,
     status = ChangeRequestStatus.OPEN,
-    conceptStatus = Status.UTKAST
+    operations = emptyList(),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
 
 val CHANGE_REQUEST_3 = ChangeRequest(
     id = "cr3",
     conceptId = "id0-old",
     catalogId = "123456789",
-    anbefaltTerm = Term(navn = mapOf(Pair("en", "Change request 3"))),
-    tillattTerm = null,
-    frarådetTerm = null,
-    definisjon = null,
     status = ChangeRequestStatus.OPEN,
-    conceptStatus = Status.UTKAST
+    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
 
 val CHANGE_REQUEST_4 = ChangeRequest(
     id = "cr4",
     conceptId = BEGREP_2.id,
     catalogId = "123456789",
-    anbefaltTerm = Term(navn = mapOf(Pair("en", "Change request 4"))),
-    tillattTerm = null,
-    frarådetTerm = null,
-    definisjon = null,
     status = ChangeRequestStatus.OPEN,
-    conceptStatus = Status.UTKAST
+    operations = listOf(
+        JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null),
+    ),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
 
 val CHANGE_REQUEST_5 = ChangeRequest(
     id = "cr5",
     conceptId = null,
     catalogId = "123456789",
-    anbefaltTerm = Term(navn = mapOf(Pair("en", "Change request 5"))),
-    tillattTerm = null,
-    frarådetTerm = null,
-    definisjon = null,
     status = ChangeRequestStatus.OPEN,
-    conceptStatus = Status.UTKAST
+    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
