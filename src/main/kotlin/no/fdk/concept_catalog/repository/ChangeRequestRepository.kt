@@ -11,5 +11,4 @@ interface ChangeRequestRepository: MongoRepository<ChangeRequest, String>{
     fun getByCatalogIdAndStatus(catalogId: String, status: ChangeRequestStatus): List<ChangeRequest>
     fun getByConceptIdAndStatus(conceptId: String, status: ChangeRequestStatus): List<ChangeRequest>
     fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest?
-
 }

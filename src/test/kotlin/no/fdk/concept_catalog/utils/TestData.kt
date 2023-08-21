@@ -423,7 +423,6 @@ val CHANGE_REQUEST_3 = ChangeRequest(
     operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
     timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     proposedBy = User(id="1924782563", name="TEST USER", email=null)
-
 )
 
 val CHANGE_REQUEST_4 = ChangeRequest(

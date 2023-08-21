@@ -55,15 +55,15 @@ class ChangeRequestController(
                 ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
             }
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
-        }}
+        }
+    }
 
     @PostMapping(value= ["/{changeRequestId}/accept"])
     fun acceptChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String
-    ) : ResponseEntity<Unit>
-    {
+    ) : ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
