@@ -84,8 +84,8 @@ class CreateRevision : ApiTestContext() {
             port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
-        val beforeList: List<Begrep> = mapper.readValue(before["body"] as String)
-        val afterList: List<Begrep> = mapper.readValue(after["body"] as String)
+        val beforeList: List<Begrep> = mapper.readValue<List<Begrep>>(before["body"] as String).filter{ it -> it.id != "id5" }
+        val afterList: List<Begrep> = mapper.readValue<List<Begrep>>(after["body"] as String).filter{ it -> it.id != "id5" }
         assertEquals(beforeList.size + 1, afterList.size)
 
         val revision: Begrep? = afterList.firstOrNull { it.id != "id4" }

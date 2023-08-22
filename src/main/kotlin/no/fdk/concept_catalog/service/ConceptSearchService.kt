@@ -38,6 +38,10 @@ class ConceptSearchService(
             mongoQuery.addCriteria(Criteria.where("assignedUser").`in`(filters.assignedUser.value))
         }
 
+        if (filters.subject != null) {
+            mongoQuery.addCriteria(Criteria.where("fagområdeKoder").`all`(filters.subject.value))
+        }
+
         if (filters.originalId != null) {
             mongoQuery.addCriteria(Criteria.where("originaltBegrep").`in`(filters.originalId.value))
         }

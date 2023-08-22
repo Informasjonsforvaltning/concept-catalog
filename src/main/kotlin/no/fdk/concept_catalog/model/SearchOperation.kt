@@ -27,6 +27,7 @@ class SearchFilters(
     val status: SearchFilter? = null,
     val published: BooleanFilter? = null,
     val onlyCurrentVersions: Boolean = true,
+    val subject: SearchFilter? = null,
     val originalId: SearchFilter? = null,
 )
 
