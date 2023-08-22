@@ -33,11 +33,13 @@ class ChangeRequestController(
     fun getCatalogRequests(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @RequestParam(value = "status") status: String?
+        @RequestParam(value = "status") status: String?,
+        @RequestParam(value = "concept") concept: String?
     ) : ResponseEntity<List<ChangeRequest>> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            ResponseEntity(changeRequestService.getCatalogRequests(catalogId, status), HttpStatus.OK)
-        } else {
+            ResponseEntity(changeRequestService.getCatalogRequests(catalogId, status, concept), HttpStatus.OK)
+        }
+        else {
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
@@ -88,29 +90,19 @@ class ChangeRequestController(
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
-    @GetMapping(value= ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(value= ["/{changeRequestId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @PathVariable id: String
-    ) : ResponseEntity<ChangeRequest> {
-        return if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            val changeRequest = changeRequestService.getByIdAndCatalogId(id, catalogId)
-            if (changeRequest != null) {
-                ResponseEntity(changeRequest, HttpStatus.OK)
-            } else {
-                val conceptChangeRequest = changeRequestService.getByConceptIdAndCatalogId(id, catalogId)
-                if (conceptChangeRequest != null) {
-                    ResponseEntity(conceptChangeRequest, HttpStatus.OK)
-                } else {
-                    ResponseEntity(HttpStatus.NOT_FOUND)
-                }
-            }
+        @PathVariable changeRequestId: String
+    ) : ResponseEntity<ChangeRequest> =
+        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
+            changeRequestService.getByIdAndCatalogId(changeRequestId, catalogId)
+                ?.let { ResponseEntity(it, HttpStatus.OK) }
+                ?: ResponseEntity(HttpStatus.NOT_FOUND)
         } else {
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
-    }
-
 
     @DeleteMapping(value= ["/{changeRequestId}"])
     fun deleteChangeRequest(

@@ -446,3 +446,13 @@ val CHANGE_REQUEST_5 = ChangeRequest(
     timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     proposedBy = User(id="1924782563", name="TEST USER", email=null)
 )
+
+val CHANGE_REQUEST_6 = ChangeRequest(
+    id = "cr6",
+    conceptId = BEGREP_2.id,
+    catalogId = "123456789",
+    status = ChangeRequestStatus.REJECTED,
+    operations = listOf(),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id="1924782563", name="TEST USER", email=null)
+)

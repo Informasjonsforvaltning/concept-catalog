@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository
 interface ChangeRequestRepository: MongoRepository<ChangeRequest, String>{
     fun getByCatalogId(catalogId: String): List<ChangeRequest>
     fun getByCatalogIdAndStatus(catalogId: String, status: ChangeRequestStatus): List<ChangeRequest>
+    fun getByCatalogIdAndConceptId(catalogId: String, conceptId: String): List<ChangeRequest>
+    fun getByCatalogIdAndStatusAndConceptId(catalogId: String, status: ChangeRequestStatus, conceptId: String): List<ChangeRequest>
     fun getByConceptIdAndStatus(conceptId: String, status: ChangeRequestStatus): List<ChangeRequest>
     fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest?
 }

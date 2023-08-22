@@ -29,10 +29,15 @@ class ChangeRequestService(
     private val conceptService: ConceptService,
     private val mapper: ObjectMapper
 ) {
-    fun getCatalogRequests(catalogId: String, status: String?): List<ChangeRequest> =
-        changeRequestStatusFromString(status)
-            ?.let { changeRequestRepository.getByCatalogIdAndStatus(catalogId, it) }
-            ?: changeRequestRepository.getByCatalogId(catalogId)
+    fun getCatalogRequests(catalogId: String, status: String?, conceptId: String?): List<ChangeRequest>  {
+        val parsedStatus = changeRequestStatusFromString(status)
+        return when {
+            parsedStatus != null && conceptId != null -> changeRequestRepository.getByCatalogIdAndStatusAndConceptId(catalogId, parsedStatus, conceptId)
+            parsedStatus != null -> changeRequestRepository.getByCatalogIdAndStatus(catalogId, parsedStatus)
+            conceptId != null -> changeRequestRepository.getByCatalogIdAndConceptId(catalogId, conceptId)
+            else -> changeRequestRepository.getByCatalogId(catalogId)
+        }
+    }
 
     fun deleteChangeRequest(id: String, catalogId: String): Unit =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
@@ -102,11 +107,6 @@ class ChangeRequestService(
 
     fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest? =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
-
-    fun getByConceptIdAndCatalogId(conceptId: String, catalogId: String): ChangeRequest? {
-        val allChangeRequests = changeRequestRepository.getByCatalogId(catalogId)
-        return allChangeRequests.find { it.conceptId == conceptId }
-    }
 
     private fun validateNewChangeRequest(conceptId: String?, catalogId: String) {
         if (!catalogId.isOrganizationNumber()) {
