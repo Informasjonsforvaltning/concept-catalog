@@ -165,6 +165,28 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
+    fun `Query with subjects filter returns correct results`() {
+        val withSubjectFagomr1Response = authorizedRequest(
+            "/begreper/search?orgNummer=111222333",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(subject = SearchFilter(listOf("fagomr1"))))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+        val withSubjectFagomr3Response = authorizedRequest(
+            "/begreper/search?orgNummer=111222333",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(subject = SearchFilter(listOf("fagomr1", "fagomr3"))))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), withSubjectFagomr1Response["status"])
+        assertEquals(HttpStatus.OK.value(), withSubjectFagomr3Response["status"])
+
+        val withSubjectFagomr1: Paginated = mapper.readValue(withSubjectFagomr1Response["body"] as String)
+        assertEquals(listOf(BEGREP_4, BEGREP_5), withSubjectFagomr1.hits)
+
+        val withSubjectFagomr3: Paginated = mapper.readValue(withSubjectFagomr3Response["body"] as String)
+        assertEquals(listOf(BEGREP_4), withSubjectFagomr3.hits)
+    }
+    @Test
     fun `Query filter with several values returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
