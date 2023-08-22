@@ -126,6 +126,15 @@ class ChangeRequests : ApiTestContext() {
             assertEquals(expected, resultRead)
             assertEquals(expected, resultWrite)
         }
+
+        @Test
+        fun getChangeRequestByConceptId()  {
+            val rspWrite = authorizedRequest("/123456789/endringsforslag/${BEGREP_2.id}", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
+            assertEquals(HttpStatus.OK.value(), rspWrite["status"])
+            val result: ChangeRequest = mapper.readValue(rspWrite["body"] as String)
+            val expected = CHANGE_REQUEST_4
+            assertEquals(expected, result)
+        }
     }
 
     @Nested

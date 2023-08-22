@@ -103,6 +103,11 @@ class ChangeRequestService(
     fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest? =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
 
+    fun getByConceptIdAndCatalogId(conceptId: String, catalogId: String): ChangeRequest? {
+        val allChangeRequests = changeRequestRepository.getByCatalogId(catalogId)
+        return allChangeRequests.find { it.conceptId == conceptId }
+    }
+
     private fun validateNewChangeRequest(conceptId: String?, catalogId: String) {
         if (!catalogId.isOrganizationNumber()) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided catalogId is not valid organization number")
