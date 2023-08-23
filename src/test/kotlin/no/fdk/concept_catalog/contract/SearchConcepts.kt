@@ -126,6 +126,22 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
+    fun `Query with originalId filter returns correct results`() {
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(originalId = SearchFilter(
+                listOf("id0-old", "id1")
+            )))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(listOf(BEGREP_1, BEGREP_0), result.hits)
+    }
+
+    @Test
     fun `Query with published filter returns correct results`() {
         val unPublishedResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",

@@ -39,7 +39,7 @@ class ConceptSearchService(
         }
 
         if (filters.originalId != null) {
-            mongoQuery.addCriteria(Criteria.where("originalId").`in`(filters.originalId.value))
+            mongoQuery.addCriteria(Criteria.where("originaltBegrep").`in`(filters.originalId.value))
         }
 
         return mongoQuery
