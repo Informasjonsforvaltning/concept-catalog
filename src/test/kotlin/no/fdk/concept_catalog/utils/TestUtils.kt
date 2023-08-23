@@ -181,7 +181,7 @@ fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_OR
     .map { it.mapDBO() }
 
 fun changeRequestPopulation() = listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2, CHANGE_REQUEST_3,
-    CHANGE_REQUEST_4, CHANGE_REQUEST_5)
+    CHANGE_REQUEST_4, CHANGE_REQUEST_5, CHANGE_REQUEST_6)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =

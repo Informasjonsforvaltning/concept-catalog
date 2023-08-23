@@ -33,11 +33,13 @@ class ChangeRequestController(
     fun getCatalogRequests(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @RequestParam(value = "status") status: String?
+        @RequestParam(value = "status") status: String?,
+        @RequestParam(value = "concept") concept: String?
     ) : ResponseEntity<List<ChangeRequest>> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            ResponseEntity(changeRequestService.getCatalogRequests(catalogId, status), HttpStatus.OK)
-        } else {
+            ResponseEntity(changeRequestService.getCatalogRequests(catalogId, status, concept), HttpStatus.OK)
+        }
+        else {
             ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
