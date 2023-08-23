@@ -26,7 +26,8 @@ class SearchFilters(
     val assignedUser: SearchFilter? = null,
     val status: SearchFilter? = null,
     val published: BooleanFilter? = null,
-    val onlyCurrentVersions: Boolean = true
+    val onlyCurrentVersions: Boolean = true,
+    val originalId: SearchFilter? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

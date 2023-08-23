@@ -38,6 +38,10 @@ class ConceptSearchService(
             mongoQuery.addCriteria(Criteria.where("assignedUser").`in`(filters.assignedUser.value))
         }
 
+        if (filters.originalId != null) {
+            mongoQuery.addCriteria(Criteria.where("originaltBegrep").`in`(filters.originalId.value))
+        }
+
         return mongoQuery
     }
 
