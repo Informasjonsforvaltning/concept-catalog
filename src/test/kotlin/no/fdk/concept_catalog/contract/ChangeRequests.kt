@@ -132,7 +132,7 @@ class ChangeRequests : ApiTestContext() {
             val rspWrite = authorizedRequest("/123456789/endringsforslag?concept=${BEGREP_2.id}", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
             assertEquals(HttpStatus.OK.value(), rspWrite["status"])
             val result: List<ChangeRequest> = mapper.readValue(rspWrite["body"] as String)
-            val expected = listOf( CHANGE_REQUEST_4, CHANGE_REQUEST_6)
+            val expected = listOf(CHANGE_REQUEST_4, CHANGE_REQUEST_6)
             assertEquals(expected, result)
         }
 
