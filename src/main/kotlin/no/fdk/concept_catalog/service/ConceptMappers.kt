@@ -61,78 +61,38 @@ private fun BegrepDBO.isRevisionOfHighestPublishedVersion(highestPublishedId: St
         else -> false
     }
 
-fun Begrep.createRevision(original: BegrepDBO): BegrepDBO =
-    BegrepDBO(
-        id = UUID.randomUUID().toString(),
-        originaltBegrep = original.originaltBegrep,
-        versjonsnr = incrementSemVer(original.versjonsnr),
-        revisjonAv = original.id,
-        status = Status.UTKAST,
-        erPublisert = false,
-        publiseringsTidspunkt = null,
-        anbefaltTerm,
-        tillattTerm,
-        frarådetTerm,
-        definisjon,
-        folkeligForklaring,
-        rettsligForklaring,
-        merknad,
-        ansvarligVirksomhet = original.ansvarligVirksomhet,
-        eksempel,
-        fagområde,
-        fagområdeKoder,
-        omfang,
-        kontaktpunkt,
-        gyldigFom,
-        gyldigTom,
-        endringslogelement,
-        opprettet,
-        opprettetAv,
-        seOgså,
-        erstattesAv,
-        assignedUser,
-        abbreviatedLabel,
-        begrepsRelasjon,
-        interneFelt
-    )
+fun Begrep.createRevision(original: BegrepDBO, user: User): BegrepDBO =
+    original.createNewRevision(user)
+        .addUpdatableFieldsFromDTO(this)
 
-fun Begrep.mapForCreation(user: User): BegrepDBO {
-    val newId = UUID.randomUUID().toString()
+fun Begrep.mapForCreation(user: User): BegrepDBO =
+    createNewConcept(ansvarligVirksomhet!!, user)
+        .addUpdatableFieldsFromDTO(this)
 
-    return BegrepDBO(
-        id = newId,
-        originaltBegrep = newId,
-        versjonsnr = NEW_CONCEPT_VERSION,
-        revisjonAv = null,
-        status = status,
-        erPublisert = false,
-        publiseringsTidspunkt = null,
-        opprettet = Instant.now(),
-        opprettetAv = user.name,
-        anbefaltTerm = anbefaltTerm,
-        tillattTerm = tillattTerm,
-        frarådetTerm = frarådetTerm,
-        definisjon = definisjon,
-        folkeligForklaring = folkeligForklaring,
-        rettsligForklaring = rettsligForklaring,
-        merknad = merknad,
-        ansvarligVirksomhet = ansvarligVirksomhet,
-        eksempel = eksempel,
-        fagområde = fagområde,
-        fagområdeKoder = fagområdeKoder,
-        omfang = omfang,
-        kontaktpunkt = kontaktpunkt,
-        gyldigFom = gyldigFom,
-        gyldigTom = gyldigTom,
-        endringslogelement = endringslogelement,
-        seOgså = seOgså,
-        erstattesAv = erstattesAv,
-        assignedUser = assignedUser,
-        abbreviatedLabel = abbreviatedLabel,
-        begrepsRelasjon = begrepsRelasjon,
-        interneFelt = interneFelt
+private fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
+    copy(
+        status = dto.status,
+        anbefaltTerm = dto.anbefaltTerm,
+        tillattTerm = dto.tillattTerm,
+        frarådetTerm = dto.frarådetTerm,
+        definisjon = dto.definisjon,
+        folkeligForklaring = dto.folkeligForklaring,
+        rettsligForklaring = dto.rettsligForklaring,
+        merknad = dto.merknad,
+        eksempel = dto.eksempel,
+        fagområde = dto.fagområde,
+        fagområdeKoder = dto.fagområdeKoder,
+        omfang = dto.omfang,
+        kontaktpunkt = dto.kontaktpunkt,
+        gyldigFom = dto.gyldigFom,
+        gyldigTom = dto.gyldigTom,
+        seOgså = dto.seOgså,
+        erstattesAv = dto.erstattesAv,
+        assignedUser = dto.assignedUser,
+        abbreviatedLabel = dto.abbreviatedLabel,
+        begrepsRelasjon = dto.begrepsRelasjon,
+        interneFelt = dto.interneFelt
     )
-}
 
 fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =
     copy(
@@ -148,3 +108,52 @@ fun incrementSemVer(semVer: SemVer?): SemVer =
         minor = semVer?.minor ?: NEW_CONCEPT_VERSION.minor,
         patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch
     )
+
+fun BegrepDBO.createNewRevision(user: User): BegrepDBO =
+    copy(
+        id = UUID.randomUUID().toString(),
+        versjonsnr = incrementSemVer(versjonsnr),
+        revisjonAv = id,
+        status = Status.UTKAST,
+        erPublisert = false,
+        publiseringsTidspunkt = null,
+        opprettet = Instant.now(),
+        opprettetAv = user.name
+    )
+
+fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
+    val newId = UUID.randomUUID().toString()
+    return BegrepDBO(
+        id = newId,
+        originaltBegrep = newId,
+        versjonsnr = NEW_CONCEPT_VERSION,
+        revisjonAv = null,
+        status = Status.UTKAST,
+        erPublisert = false,
+        publiseringsTidspunkt = null,
+        opprettet = Instant.now(),
+        opprettetAv = user.name,
+        anbefaltTerm = null,
+        tillattTerm = HashMap(),
+        frarådetTerm = HashMap(),
+        definisjon = null,
+        folkeligForklaring = null,
+        rettsligForklaring = null,
+        merknad = HashMap(),
+        ansvarligVirksomhet = org,
+        eksempel = HashMap(),
+        fagområde = HashMap(),
+        fagområdeKoder = ArrayList(),
+        omfang = null,
+        kontaktpunkt = null,
+        gyldigFom = null,
+        gyldigTom = null,
+        endringslogelement = null,
+        seOgså = ArrayList(),
+        erstattesAv = ArrayList(),
+        assignedUser = null,
+        abbreviatedLabel = null,
+        begrepsRelasjon = ArrayList(),
+        interneFelt = null
+    )
+}

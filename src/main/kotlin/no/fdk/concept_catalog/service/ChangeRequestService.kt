@@ -80,8 +80,14 @@ class ChangeRequestService(
             ?.maxByOrNull { it.versjonsnr }
 
         val conceptToUpdate = when {
-            dbConcept == null -> conceptRepository.save(createNewConcept(catalogId, user))
-            dbConcept.erPublisert -> conceptRepository.save(dbConcept.createNewRevision(user))
+            dbConcept == null -> conceptRepository.save(
+                createNewConcept(Virksomhet(id=catalogId), user)
+                    .updateLastChangedAndByWhom(user)
+            )
+            dbConcept.erPublisert -> conceptRepository.save(
+                dbConcept.createNewRevision(user)
+                    .updateLastChangedAndByWhom(user)
+            )
             else -> dbConcept
         }
 
@@ -137,54 +143,5 @@ class ChangeRequestService(
             ChangeRequestStatus.ACCEPTED.name -> ChangeRequestStatus.ACCEPTED
             else -> null
         }
-
-    private fun BegrepDBO.createNewRevision(user: User): BegrepDBO =
-        copy(
-            id = UUID.randomUUID().toString(),
-            versjonsnr = incrementSemVer(versjonsnr),
-            revisjonAv = id,
-            status = Status.UTKAST,
-            erPublisert = false,
-            publiseringsTidspunkt = null,
-            opprettet = Instant.now(),
-            opprettetAv = user.name
-        ).updateLastChangedAndByWhom(user)
-
-    private fun createNewConcept(catalogId: String, user: User): BegrepDBO {
-        val newId = UUID.randomUUID().toString()
-        return BegrepDBO(
-            id = newId,
-            originaltBegrep = newId,
-            versjonsnr = NEW_CONCEPT_VERSION,
-            revisjonAv = null,
-            status = Status.UTKAST,
-            erPublisert = false,
-            publiseringsTidspunkt = null,
-            opprettet = Instant.now(),
-            opprettetAv = user.name,
-            anbefaltTerm = null,
-            tillattTerm = HashMap(),
-            frarådetTerm = HashMap(),
-            definisjon = null,
-            folkeligForklaring = null,
-            rettsligForklaring = null,
-            merknad = HashMap(),
-            ansvarligVirksomhet = Virksomhet(id=catalogId),
-            eksempel = HashMap(),
-            fagområde = HashMap(),
-            fagområdeKoder = ArrayList(),
-            omfang = null,
-            kontaktpunkt = null,
-            gyldigFom = null,
-            gyldigTom = null,
-            endringslogelement = null,
-            seOgså = ArrayList(),
-            erstattesAv = ArrayList(),
-            assignedUser = null,
-            abbreviatedLabel = null,
-            begrepsRelasjon = ArrayList(),
-            interneFelt = null
-        ).updateLastChangedAndByWhom(user)
-    }
 
 }
