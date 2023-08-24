@@ -61,15 +61,7 @@ private fun BegrepDBO.isRevisionOfHighestPublishedVersion(highestPublishedId: St
         else -> false
     }
 
-fun Begrep.createRevision(original: BegrepDBO, user: User): BegrepDBO =
-    original.createNewRevision(user)
-        .addUpdatableFieldsFromDTO(this)
-
-fun Begrep.mapForCreation(user: User): BegrepDBO =
-    createNewConcept(ansvarligVirksomhet!!, user)
-        .addUpdatableFieldsFromDTO(this)
-
-private fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
+fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
     copy(
         status = dto.status,
         anbefaltTerm = dto.anbefaltTerm,

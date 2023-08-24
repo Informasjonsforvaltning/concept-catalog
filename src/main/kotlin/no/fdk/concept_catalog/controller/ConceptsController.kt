@@ -41,7 +41,7 @@ class ConceptsController(
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 logger.info("creating concept for ${concept.ansvarligVirksomhet?.id}")
-                conceptService.createConcept(concept, user).id
+                conceptService.createConcept(concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             }
@@ -64,7 +64,7 @@ class ConceptsController(
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
-                conceptService.createConcepts(concepts, user)
+                conceptService.createConcepts(concepts, user, jwt)
                 return ResponseEntity<Unit>(HttpStatus.CREATED)
             }
         }
@@ -87,7 +87,7 @@ class ConceptsController(
             conceptService.findIdOfUnpublishedRevision(concept) != null -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet?.id}")
-                conceptService.createRevisionOfConcept(revision, concept, user).id
+                conceptService.createRevisionOfConcept(revision, concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             }

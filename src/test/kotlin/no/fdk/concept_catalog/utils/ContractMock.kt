@@ -20,6 +20,10 @@ fun startMockServer() {
             .willReturn(aResponse().withStatus(500)))
         mockserver.stubFor(post(urlMatching("/123456789/.*/updates"))
             .willReturn(aResponse().withStatus(200)))
+        mockserver.stubFor(post(urlMatching("/111222333/.*/updates"))
+            .willReturn(aResponse().withStatus(200)))
+        mockserver.stubFor(post(urlMatching("/444555666/.*/updates"))
+            .willReturn(aResponse().withStatus(200)))
         mockserver.start()
     }
 }
