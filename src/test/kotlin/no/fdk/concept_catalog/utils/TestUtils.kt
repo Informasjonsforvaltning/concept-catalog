@@ -139,6 +139,7 @@ fun Begrep.toDBO(): BegrepDBO =
         seOgså,
         erstattesAv,
         assignedUser,
+        abbreviatedLabel,
         begrepsRelasjon,
         interneFelt
     )
