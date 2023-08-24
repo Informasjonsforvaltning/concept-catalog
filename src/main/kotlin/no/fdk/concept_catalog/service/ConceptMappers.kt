@@ -40,6 +40,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         seOgså,
         erstattesAv,
         assignedUser,
+        abbreviatedLabel,
         begrepsRelasjon,
         interneFelt
     )
@@ -90,6 +91,7 @@ fun Begrep.createRevision(original: BegrepDBO): BegrepDBO =
         seOgså,
         erstattesAv,
         assignedUser,
+        abbreviatedLabel,
         begrepsRelasjon,
         interneFelt
     )
@@ -126,6 +128,7 @@ fun Begrep.mapForCreation(user: User): BegrepDBO {
         seOgså = seOgså,
         erstattesAv = erstattesAv,
         assignedUser = assignedUser,
+        abbreviatedLabel = abbreviatedLabel,
         begrepsRelasjon = begrepsRelasjon,
         interneFelt = interneFelt
     )

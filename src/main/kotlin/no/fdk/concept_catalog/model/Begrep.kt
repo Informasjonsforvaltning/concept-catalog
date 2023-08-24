@@ -39,6 +39,7 @@ data class BegrepDBO (
     val seOgså: List<String>?,
     val erstattesAv: List<String>?,
     val assignedUser: String?,
+    val abbreviatedLabel: String?,
     val begrepsRelasjon: List<BegrepsRelasjon>?,
     val interneFelt: Map<String, InterntFelt>?
 )
@@ -77,6 +78,7 @@ data class Begrep (
     val seOgså: List<String>? = ArrayList(),
     val erstattesAv: List<String>? = ArrayList(),
     val assignedUser: String? = null,
+    val abbreviatedLabel: String? = null,
     val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList(),
     val interneFelt: Map<String, InterntFelt>?
 )
