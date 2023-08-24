@@ -29,7 +29,7 @@
         <!--end standard properties-->
 
         <kotlin.version>1.9.0</kotlin.version>
-        <testcontainers.version>1.18.3</testcontainers.version>
+        <testcontainers.version>1.19.0</testcontainers.version>
         <jena.version>4.9.0</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
     </properties>
@@ -111,7 +111,7 @@
         <dependency>
             <groupId>org.eclipse.parsson</groupId>
             <artifactId>jakarta.json</artifactId>
-            <version>1.1.2</version>
+            <version>1.1.4</version>
         </dependency>
 
         <dependency>
@@ -147,7 +147,7 @@
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
-            <version>5.0.0</version>
+            <version>5.1.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
