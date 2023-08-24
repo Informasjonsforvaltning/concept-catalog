@@ -72,7 +72,7 @@ class ConceptService(
         )
 
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User): Begrep =
-        concept.let { revisionValues.createRevision(it) }
+        concept.let { revisionValues.createRevision(it, user) }
             .updateLastChangedAndByWhom(user)
             .let { conceptRepository.save(it) }
             .withHighestVersionDTO()

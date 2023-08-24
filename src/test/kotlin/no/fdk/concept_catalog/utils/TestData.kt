@@ -283,7 +283,7 @@ val BEGREP_5 = Begrep(
 
 val BEGREP_REVISION = Begrep(
     versjonsnr = SemVer(1, 0, 0),
-    status = Status.PUBLISERT,
+    status = Status.UTKAST,
     erPublisert = true,
     publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
