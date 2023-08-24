@@ -169,7 +169,7 @@ val BEGREP_TO_BE_CREATED = Begrep(
     anbefaltTerm = Term(navn = emptyMap()),
     gjeldendeRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
-        id = "111111111"
+        id = "123456789"
     ),
     interneFelt = null
 )

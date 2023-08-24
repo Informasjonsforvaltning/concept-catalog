@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
+import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.repository.ConceptRepository
@@ -36,9 +37,9 @@ class Rabbit {
             .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptRepository.countBegrepByAnsvarligVirksomhetId("123456789"))
             .thenReturn(0L)
-        whenever(conceptRepository.save(any())).thenReturn(BEGREP_0.toDBO())
+        whenever(conceptRepository.saveAll(any<Collection<BegrepDBO>>())).thenReturn(listOf(BEGREP_0.toDBO()))
 
-        conceptService.createConcept(BEGREP_0, User("user_id", null, null))
+        conceptService.createConcept(BEGREP_0, User("user_id", null, null), mock())
 
         argumentCaptor<String, String>().apply {
             verify(conceptPublisher, times(1)).sendNewDataSource(first.capture(), second.capture())
@@ -57,10 +58,15 @@ class Rabbit {
             .thenReturn(0L)
         whenever(conceptRepository.countBegrepByAnsvarligVirksomhetId("444555666"))
             .thenReturn(5L)
-        whenever(conceptRepository.save(any())).thenReturn(BEGREP_0.toDBO())
+        whenever(conceptRepository.saveAll(any<Collection<BegrepDBO>>())).thenReturn(listOf(BEGREP_0.toDBO()))
 
-        conceptService.createConcepts(listOf(BEGREP_0, BEGREP_0.copy(ansvarligVirksomhet = Virksomhet(id = "111222333")),
-            BEGREP_0.copy(ansvarligVirksomhet = Virksomhet(id = "444555666"))), User("user_id", null, null)
+        conceptService.createConcepts(
+            listOf(
+                BEGREP_0,
+                BEGREP_0.copy(ansvarligVirksomhet = Virksomhet(id = "111222333")),
+                BEGREP_0.copy(ansvarligVirksomhet = Virksomhet(id = "444555666"))),
+            User("user_id", null, null),
+            mock()
         )
 
         argumentCaptor<String, String>().apply {

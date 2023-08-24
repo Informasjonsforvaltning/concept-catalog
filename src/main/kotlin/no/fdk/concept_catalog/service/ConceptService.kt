@@ -13,6 +13,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException.BadRequest
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.Instant
@@ -41,17 +42,25 @@ class ConceptService(
     fun getConceptDBO(id: String): BegrepDBO? =
         conceptRepository.findByIdOrNull(id)
 
-    fun createConcept(concept: Begrep, user: User): Begrep {
-        val newConcept: BegrepDBO = concept.mapForCreation(user)
-                .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet?.id) }
+    fun createConcept(concept: Begrep, user: User, jwt: Jwt): Begrep {
+        val newDefaultConcept: BegrepDBO = if (concept.ansvarligVirksomhet != null) {
+            createNewConcept(concept.ansvarligVirksomhet, user)
+                .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet.id) }
                 .updateLastChangedAndByWhom(user)
+        } else {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "concept is missing org data")
+        }
+
+        val newConcept: BegrepDBO = newDefaultConcept.addUpdatableFieldsFromDTO(concept)
 
         val validation = newConcept.validateSchema()
         if (!validation.isValid) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
         }
 
-        return conceptRepository.save(newConcept).withHighestVersionDTO()
+        val operations = createPatchOperations(newDefaultConcept, newConcept, mapper)
+
+        return saveConceptsAndUpdateHistory(mapOf(Pair(newConcept, operations)), user, jwt).first()
     }
 
     fun getAllCollections(): List<Begrepssamling> =
@@ -71,26 +80,30 @@ class ConceptService(
                 .size
         )
 
-    fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User): Begrep =
-        concept.let { revisionValues.createRevision(it, user) }
-            .updateLastChangedAndByWhom(user)
-            .let { conceptRepository.save(it) }
-            .withHighestVersionDTO()
+    fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
+        val newRevision = concept.createNewRevision(user).updateLastChangedAndByWhom(user)
+        val newWithUpdatedValues = newRevision.addUpdatableFieldsFromDTO(revisionValues)
+        val operations = createPatchOperations(newRevision, newWithUpdatedValues, mapper)
 
-    fun createConcepts(concepts: List<Begrep>, user: User) {
+        return saveConceptsAndUpdateHistory(mapOf(Pair(newWithUpdatedValues, operations)), user, jwt).first()
+    }
+
+    fun createConcepts(concepts: List<Begrep>, user: User, jwt: Jwt) {
         concepts.mapNotNull { it.ansvarligVirksomhet?.id }
             .distinct()
             .forEach { publishNewCollectionIfFirstSavedConcept(it) }
 
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
-        val newConcepts = concepts
-            .map { it.mapForCreation(user).updateLastChangedAndByWhom(user) }
+        val newConceptsAndOperations = concepts
+            .map { it to createNewConcept(it.ansvarligVirksomhet!!, user).updateLastChangedAndByWhom(user) }
+            .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
+            .mapValues { createPatchOperations(it.key, it.value, mapper) }
             .onEach {
-            val validation = it.validateSchema()
-            if (!validation.isValid) {
-                validationResultsMap[it] = validation.results()
+                val validation = it.key.validateSchema()
+                if (!validation.isValid) {
+                    validationResultsMap[it.key] = validation.results()
+                }
             }
-        }
 
         if (validationResultsMap.isNotEmpty()) {
             throw ResponseStatusException(
@@ -105,7 +118,7 @@ class ConceptService(
             )
         }
 
-        conceptRepository.saveAll(newConcepts)
+        saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
     }
 
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
@@ -141,17 +154,19 @@ class ConceptService(
                 "Unable to publish concepts as part of normal update"
             )
         }
-        return if (applicationProperties.namespace == "staging") {
-            val location = historyService.updateHistory(concept, operations, user, jwt)
+        return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt).first()
+    }
+
+    private fun saveConceptsAndUpdateHistory(conceptsAndOperations: Map<BegrepDBO, List<JsonPatchOperation>>, user: User, jwt: Jwt) =
+        if (applicationProperties.namespace == "staging") {
+            val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
             try {
-                conceptRepository.save(patched).withHighestVersionDTO()
+                conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
             } catch (ex: Exception) {
-                if (location != null) historyService.removeHistoryUpdate(location, jwt)
-                else logger.error("unable to remove failing update of ${concept.id} from history, missing location")
+                locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
                 throw ex
             }
-        } else conceptRepository.save(patched).withHighestVersionDTO()
-    }
+        } else conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
 
     fun isNonDraftAndNotValid(concept: Begrep): Boolean {
         val published = getLastPublished(concept.originaltBegrep)
