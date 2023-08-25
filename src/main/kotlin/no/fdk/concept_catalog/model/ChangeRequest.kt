@@ -15,6 +15,7 @@ data class ChangeRequest(
     val operations: List<JsonPatchOperation>,
     val proposedBy: User,
     val timeForProposal: Instant,
+    val title: String
 )
 
 enum class ChangeRequestStatus {

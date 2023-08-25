@@ -248,7 +248,8 @@ class ChangeRequests : ApiTestContext() {
                 status = ChangeRequestStatus.OPEN,
                 operations = emptyList(),
                 proposedBy = User(id="1924782563", name="TEST USER", email=null),
-                timeForProposal = result0.timeForProposal
+                timeForProposal = result0.timeForProposal,
+                title = "Endringsforslag"
             )
             assertEquals(expected0, result0)
         }
