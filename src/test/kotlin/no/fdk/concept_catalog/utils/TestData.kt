@@ -465,3 +465,18 @@ val CHANGE_REQUEST_6 = ChangeRequest(
     proposedBy = User(id="1924782563", name="TEST USER", email=null),
     title = "Endringsforslag 6"
 )
+
+val CHANGE_REQUEST_UPDATE_BODY_NEW = ChangeRequestUpdateBody(
+    conceptId = null,
+    operations = listOf(
+        JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null),
+    ),
+    title = "Nytt endringsforslag"
+)
+
+val CHANGE_REQUEST_UPDATE_BODY_UPDATE = ChangeRequestUpdateBody(
+    conceptId = "123456789",
+    operations = listOf(
+        JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
+    title = "Ny tittel endringsforslag"
+)

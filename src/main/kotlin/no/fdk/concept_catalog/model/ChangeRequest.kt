@@ -17,6 +17,12 @@ data class ChangeRequest(
     val timeForProposal: Instant,
     val title: String
 )
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ChangeRequestUpdateBody(
+     val conceptId: String?,
+    val operations: List<JsonPatchOperation>,
+    val title: String
+)
 
 enum class ChangeRequestStatus {
     OPEN, REJECTED, ACCEPTED

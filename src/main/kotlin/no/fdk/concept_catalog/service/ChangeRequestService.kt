@@ -38,27 +38,28 @@ class ChangeRequestService(
             ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
-    fun createChangeRequest(catalogId: String, conceptId: String?, user: User): String {
-        validateNewChangeRequest(conceptId, catalogId)
+    fun createChangeRequest(catalogId: String, user: User, body: ChangeRequestUpdateBody): String {
+        validateNewChangeRequest(body.conceptId, catalogId)
         val newId = UUID.randomUUID().toString()
         ChangeRequest(
             id = newId,
             catalogId = catalogId,
-            conceptId = conceptId,
+            conceptId = body.conceptId,
             status = ChangeRequestStatus.OPEN,
             operations = emptyList(),
             proposedBy = user,
             timeForProposal = Instant.now(),
-            title = "Endringsforslag",
+            title = body.title,
         ).run { changeRequestRepository.save(this) }
 
         return newId
     }
 
-    fun saveChangeRequestOperations(id: String, catalogId: String, operations: List<JsonPatchOperation>): ChangeRequest? {
-        validateJsonPatchOperations(operations)
+    fun updateChangeRequest(id: String, catalogId: String, body: ChangeRequestUpdateBody): ChangeRequest? {
+        validateJsonPatchOperations(body.operations)
         return changeRequestRepository.getByIdAndCatalogId(id, catalogId)
-            ?.copy(operations = operations)
+            ?.copy(operations = body.operations)
+            ?.copy(title = body.title)
             ?.let { changeRequestRepository.save(it) }
     }
 
