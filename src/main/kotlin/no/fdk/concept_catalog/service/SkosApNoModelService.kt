@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.URITekst
+import no.fdk.concept_catalog.rdf.EUVOC
 import no.fdk.concept_catalog.rdf.SCHEMA
 import no.fdk.concept_catalog.rdf.SKOSNO
 import no.fdk.concept_catalog.rdf.XKOS
@@ -160,6 +161,7 @@ class SkosApNoModelService(
         addValidityPeriodToConcept(concept)
         addBegrepsRelasjonToConcept(concept)
         addReplacedByReferencesToConcept(concept)
+        addStatusToConcept(concept)
     }
 
     private fun getCollectionUri(publisherId: String): String {
@@ -229,6 +231,12 @@ class SkosApNoModelService(
         concept.omfang
             ?.takeIf { !it.tekst.isNullOrBlank() || it.uri.isValidURI() }
             ?.let { source -> addURIText(SKOSNO.omfang, source) }
+    }
+
+    private fun Resource.addStatusToConcept(concept: Begrep) {
+        concept.statusURI
+            ?.takeIf { it.isValidURI() }
+            ?.let { addProperty(EUVOC.status, model.safeCreateResource(it)) }
     }
 
     private fun Resource.addScopeNoteToDefinition(concept: Begrep) {
