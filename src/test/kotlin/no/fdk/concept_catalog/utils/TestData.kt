@@ -231,7 +231,7 @@ val BEGREP_3 = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
     ),
-    interneFelt = null
+    interneFelt = null,
 )
 
 val BEGREP_4 = Begrep(
@@ -255,7 +255,9 @@ val BEGREP_4 = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
     ),
-    interneFelt = null
+    interneFelt = mapOf(
+        Pair("felt1", InterntFelt("true")),
+        Pair("felt2", InterntFelt("false"))),
 )
 
 val BEGREP_5 = Begrep(

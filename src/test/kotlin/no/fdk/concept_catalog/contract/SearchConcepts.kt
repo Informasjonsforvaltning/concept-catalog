@@ -187,6 +187,30 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(listOf(BEGREP_4), withSubjectFagomr3.hits)
     }
     @Test
+    fun `Query with internalFields filter returns correct results`() {
+        val withInternalFieldsResponse = authorizedRequest(
+            "/begreper/search?orgNummer=111222333",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(internalFields =
+                SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("false"))))))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+        val withoutInternalFieldsResponse = authorizedRequest(
+            "/begreper/search?orgNummer=111222333",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(internalFields =
+                SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("true"))))))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), withInternalFieldsResponse["status"])
+        assertEquals(HttpStatus.OK.value(), withoutInternalFieldsResponse["status"])
+
+        val withInternalFields: Paginated = mapper.readValue(withInternalFieldsResponse["body"] as String)
+        assertEquals(listOf(BEGREP_4), withInternalFields.hits)
+
+        val withoutInternalFields: Paginated = mapper.readValue(withoutInternalFieldsResponse["body"] as String)
+        assertEquals(emptyList(), withoutInternalFields.hits)
+    }
+    @Test
     fun `Query filter with several values returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",

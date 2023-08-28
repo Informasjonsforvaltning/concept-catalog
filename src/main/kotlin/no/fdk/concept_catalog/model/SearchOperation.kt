@@ -23,17 +23,18 @@ class QueryFields(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchFilters(
-    val assignedUser: SearchFilter? = null,
-    val status: SearchFilter? = null,
+    val assignedUser: SearchFilter<List<String>>? = null,
+    val status: SearchFilter<List<String>>? = null,
     val published: BooleanFilter? = null,
     val onlyCurrentVersions: Boolean = true,
-    val subject: SearchFilter? = null,
-    val originalId: SearchFilter? = null,
+    val subject: SearchFilter<List<String>>? = null,
+    val originalId: SearchFilter<List<String>>? = null,
+    val internalFields: SearchFilter<Map<String, List<String>>>? = null
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class SearchFilter(
-    val value: List<String>
+class SearchFilter<T>(
+    val value: T
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
