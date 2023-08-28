@@ -46,6 +46,12 @@ class ConceptSearchService(
             mongoQuery.addCriteria(Criteria.where("originaltBegrep").`in`(filters.originalId.value))
         }
 
+        if(filters.internalFields != null) {
+            filters.internalFields.value.forEach { (key, value) ->
+                mongoQuery.addCriteria(Criteria.where("interneFelt.$key.value").`in`(value))
+            }
+        }
+
         return mongoQuery
     }
 
