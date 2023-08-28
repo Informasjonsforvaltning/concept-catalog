@@ -16,6 +16,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         revisjonAvSistPublisert = isRevisionOfHighestPublishedVersion(highestPublishedId),
         revisjonAv,
         status,
+        statusURI,
         erPublisert,
         publiseringsTidspunkt,
         gjeldendeRevisjon = unpublishedRevision,
@@ -64,6 +65,7 @@ private fun BegrepDBO.isRevisionOfHighestPublishedVersion(highestPublishedId: St
 fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
     copy(
         status = dto.status,
+        statusURI = dto.statusURI,
         anbefaltTerm = dto.anbefaltTerm,
         tillattTerm = dto.tillattTerm,
         frarådetTerm = dto.frarådetTerm,

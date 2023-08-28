@@ -16,6 +16,7 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dcat:  <http://www.w3.org/ns/dcat#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
 
 <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
         dct:replaces  "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old" .
@@ -26,6 +27,7 @@
         dct:isReplacedBy   "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322" ;
         dct:identifier      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old" ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
+        euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
         skosxl:altLabel     [ rdf:type            skosxl:Label ;
                               skosxl:literalForm  "tillattTerm"@nn
                             ] ;

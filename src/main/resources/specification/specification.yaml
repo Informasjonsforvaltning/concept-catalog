@@ -329,6 +329,9 @@ components:
           description: shows if the concept is a revision of the highest published version
         status:
           $ref: "#/components/schemas/Status"
+        statusURI:
+          type: string
+          description: Concept status represented by uri from external code list
         anbefaltTerm:
           $ref : "#/components/schemas/Term"
         tillattTerm:

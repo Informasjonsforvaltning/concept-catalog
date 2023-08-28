@@ -15,6 +15,7 @@ data class BegrepDBO (
     val versjonsnr: SemVer,
     val revisjonAv: String?,
     val status: Status?,
+    val statusURI: String? = null,
     val erPublisert: Boolean = false,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
@@ -53,6 +54,7 @@ data class Begrep (
     val revisjonAvSistPublisert: Boolean = false,
     val revisjonAv: String? = null,
     val status: Status? = null,
+    val statusURI: String? = null,
     val erPublisert: Boolean = false,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
