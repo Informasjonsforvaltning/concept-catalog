@@ -17,6 +17,7 @@ data class ChangeRequest(
     val timeForProposal: Instant,
     val title: String
 )
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ChangeRequestUpdateBody(
      val conceptId: String?,

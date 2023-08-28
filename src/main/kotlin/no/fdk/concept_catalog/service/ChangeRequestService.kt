@@ -58,8 +58,10 @@ class ChangeRequestService(
     fun updateChangeRequest(id: String, catalogId: String, body: ChangeRequestUpdateBody): ChangeRequest? {
         validateJsonPatchOperations(body.operations)
         return changeRequestRepository.getByIdAndCatalogId(id, catalogId)
-            ?.copy(operations = body.operations)
-            ?.copy(title = body.title)
+            ?.copy(
+                operations = body.operations,
+                title = body.title
+            )
             ?.let { changeRequestRepository.save(it) }
     }
 
