@@ -249,7 +249,7 @@ val BEGREP_4 = Begrep(
             forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
             kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
     fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
-    fagområdeKoder = listOf("fagomr1","fagomr2","fagomr3"),
+    fagområdeKoder = listOf("fagomr3"),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     ansvarligVirksomhet = Virksomhet(

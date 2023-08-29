@@ -39,7 +39,7 @@ class ConceptSearchService(
         }
 
         if (filters.subject != null) {
-            mongoQuery.addCriteria(Criteria.where("fagområdeKoder").`all`(filters.subject.value))
+            mongoQuery.addCriteria(Criteria.where("fagområdeKoder").`in`(filters.subject.value))
         }
 
         if (filters.originalId != null) {

@@ -181,10 +181,10 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), withSubjectFagomr3Response["status"])
 
         val withSubjectFagomr1: Paginated = mapper.readValue(withSubjectFagomr1Response["body"] as String)
-        assertEquals(listOf(BEGREP_4, BEGREP_5), withSubjectFagomr1.hits)
+        assertEquals(listOf(BEGREP_5), withSubjectFagomr1.hits)
 
         val withSubjectFagomr3: Paginated = mapper.readValue(withSubjectFagomr3Response["body"] as String)
-        assertEquals(listOf(BEGREP_4), withSubjectFagomr3.hits)
+        assertEquals(listOf(BEGREP_4, BEGREP_5), withSubjectFagomr3.hits)
     }
     @Test
     fun `Query with internalFields filter returns correct results`() {

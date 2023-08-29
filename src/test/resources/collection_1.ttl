@@ -67,6 +67,4 @@
                               vcard:hasTelephone  <tel:99887766>
                             ] ;
         dct:subject         "bruksområde"@nn,
-                              <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr1>,
-                              <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2>,
                               <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr3> .
