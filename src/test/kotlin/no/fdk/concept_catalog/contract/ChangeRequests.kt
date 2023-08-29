@@ -108,7 +108,6 @@ class ChangeRequests : ApiTestContext() {
         @Test
         fun notFoundForInvalidId() {
             val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET )
-
             assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
         }
 
@@ -198,7 +197,7 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val rsp = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_NEW), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
         }
@@ -230,7 +229,7 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun ableToCreateChangeRequest() {
-            val rsp0 = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+            val rsp0 = authorizedRequest(path, port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_NEW), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.CREATED.value(), rsp0["status"])
 
             val responseHeaders0: HttpHeaders = rsp0["header"] as HttpHeaders
@@ -248,7 +247,8 @@ class ChangeRequests : ApiTestContext() {
                 status = ChangeRequestStatus.OPEN,
                 operations = emptyList(),
                 proposedBy = User(id="1924782563", name="TEST USER", email=null),
-                timeForProposal = result0.timeForProposal
+                timeForProposal = result0.timeForProposal,
+                title = "Nytt endringsforslag"
             )
             assertEquals(expected0, result0)
         }
@@ -268,28 +268,26 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(body), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_UPDATE), JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.FORBIDDEN.value(), rsp["status"])
         }
 
         @Test
         fun notFoundForInvalidId() {
-            val body = listOf(JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf(Pair("nb", "tillatt nb"), Pair("nn", "tillatt nn"))))
-            val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, mapper.writeValueAsString(body), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+
+            val rsp = authorizedRequest("/111111111/endringsforslag/invalid", port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_UPDATE), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
 
             assertEquals(HttpStatus.NOT_FOUND.value(), rsp["status"])
         }
 
         @Test
         fun ableToUpdateChangeRequest() {
-            val operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/assignedUser", value = "updatedUserId") )
-            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(operations), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+            val rsp = authorizedRequest(path, port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_UPDATE), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.OK.value(), rsp["status"])
 
             val result: ChangeRequest = mapper.readValue(rsp["body"] as String)
-            val expected = CHANGE_REQUEST_0.copy(operations = operations, timeForProposal = result.timeForProposal)
+            val expected = CHANGE_REQUEST_0.copy(operations = CHANGE_REQUEST_UPDATE_BODY_UPDATE.operations, title = CHANGE_REQUEST_UPDATE_BODY_UPDATE.title, timeForProposal = result.timeForProposal)
             assertEquals(expected, result)
         }
 

@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.ChangeRequest
+import no.fdk.concept_catalog.model.ChangeRequestUpdateBody
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ChangeRequestService
@@ -47,13 +48,13 @@ class ChangeRequestController(
     fun createChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @RequestParam(value = "concept") conceptId: String?
+        @RequestBody body: ChangeRequestUpdateBody
     ) : ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null ->  ResponseEntity(HttpStatus.BAD_REQUEST)
             endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> {
-                val newId = changeRequestService.createChangeRequest(catalogId, conceptId, user)
+                val newId = changeRequestService.createChangeRequest(catalogId, user, body)
                 ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
             }
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
@@ -118,14 +119,14 @@ class ChangeRequestController(
         }
 
     @PostMapping(value= ["/{changeRequestId}"])
-    fun saveChangeRequestOperations(
+    fun updateChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String,
-        @RequestBody patchOperations: List<JsonPatchOperation>
+        @RequestBody body: ChangeRequestUpdateBody
     ) : ResponseEntity<ChangeRequest> =
         if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            changeRequestService.saveChangeRequestOperations(changeRequestId, catalogId, patchOperations)
+            changeRequestService.updateChangeRequest(changeRequestId, catalogId, body)
                 ?.let { ResponseEntity(it, HttpStatus.OK) }
                 ?: ResponseEntity(HttpStatus.NOT_FOUND)
         } else {

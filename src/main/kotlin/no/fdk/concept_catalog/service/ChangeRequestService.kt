@@ -1,14 +1,8 @@
 package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.fdk.concept_catalog.model.BegrepDBO
+import no.fdk.concept_catalog.model.*
 import java.util.UUID
-import no.fdk.concept_catalog.model.ChangeRequest
-import no.fdk.concept_catalog.model.ChangeRequestStatus
-import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.Status
-import no.fdk.concept_catalog.model.User
-import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isOrganizationNumber
@@ -44,26 +38,30 @@ class ChangeRequestService(
             ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
-    fun createChangeRequest(catalogId: String, conceptId: String?, user: User): String {
-        validateNewChangeRequest(conceptId, catalogId)
+    fun createChangeRequest(catalogId: String, user: User, body: ChangeRequestUpdateBody): String {
+        validateNewChangeRequest(body.conceptId, catalogId)
         val newId = UUID.randomUUID().toString()
         ChangeRequest(
             id = newId,
             catalogId = catalogId,
-            conceptId = conceptId,
+            conceptId = body.conceptId,
             status = ChangeRequestStatus.OPEN,
             operations = emptyList(),
             proposedBy = user,
-            timeForProposal = Instant.now()
+            timeForProposal = Instant.now(),
+            title = body.title,
         ).run { changeRequestRepository.save(this) }
 
         return newId
     }
 
-    fun saveChangeRequestOperations(id: String, catalogId: String, operations: List<JsonPatchOperation>): ChangeRequest? {
-        validateJsonPatchOperations(operations)
+    fun updateChangeRequest(id: String, catalogId: String, body: ChangeRequestUpdateBody): ChangeRequest? {
+        validateJsonPatchOperations(body.operations)
         return changeRequestRepository.getByIdAndCatalogId(id, catalogId)
-            ?.copy(operations = operations)
+            ?.copy(
+                operations = body.operations,
+                title = body.title
+            )
             ?.let { changeRequestRepository.save(it) }
     }
 

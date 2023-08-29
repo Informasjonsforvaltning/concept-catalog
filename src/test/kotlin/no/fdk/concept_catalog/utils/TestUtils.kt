@@ -271,6 +271,7 @@ private fun ChangeRequest.mapDBO(): org.bson.Document =
         .append("operations", operations.map{it.mapDBO()})
         .append("timeForProposal", timeForProposal)
         .append("proposedBy", proposedBy)
+        .append("title", title)
 
 private fun JsonPatchOperation.mapDBO(): org.bson.Document =
     org.bson.Document()
