@@ -24,8 +24,7 @@ class ConceptSearchService(
         val mongoQuery = Query(searchCriteria)
 
         if (filters.status != null) {
-            val statuses = filters.status.value.map { statusFromString(it) }
-            mongoQuery.addCriteria(Criteria.where("status").`in`(statuses))
+            mongoQuery.addCriteria(Criteria.where("statusURI").`in`(filters.status.value))
         }
 
         if (filters.published != null) {

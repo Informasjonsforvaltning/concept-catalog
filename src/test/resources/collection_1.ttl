@@ -16,11 +16,13 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dcat:  <http://www.w3.org/ns/dcat#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3>
         rdf:type          skos:Concept ;
         dct:identifier    "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3" ;
         dct:publisher     <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
+        euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
         dct:subject       "fagområde"@nb,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr1>,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2> ;
@@ -56,6 +58,7 @@
         rdf:type            skos:Concept ;
         dct:identifier      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4" ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
+        euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
         dct:temporal        [ rdf:type        dct:PeriodOfTime ;
                               schema:endDate  "2030-10-10"^^xsd:date
                             ] ;

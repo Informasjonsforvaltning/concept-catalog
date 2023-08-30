@@ -99,7 +99,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Query with status filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("Begrep", filters = SearchFilters(status = SearchFilter(listOf("godkjent"))))), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("Begrep", filters = SearchFilters(status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT"))))), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -214,7 +214,13 @@ class SearchConcepts : ApiTestContext() {
     fun `Query filter with several values returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("Begrep", filters = SearchFilters(status = SearchFilter(listOf("godkjent", "høring"))))), JwtToken(Access.ORG_WRITE).toString(),
+            port,
+            mapper.writeValueAsString(SearchOperation(
+                "Begrep",
+                filters = SearchFilters(status = SearchFilter(listOf(
+                    "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
+                    "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE"))))),
+            JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -253,14 +259,14 @@ class SearchConcepts : ApiTestContext() {
             "/begreper/search?orgNummer=123456789",
             port, mapper.writeValueAsString(SearchOperation(
                 query = "Begrep", fields = queryFields,
-                filters = SearchFilters(status = SearchFilter(listOf("godkjent"))))), JwtToken(Access.ORG_WRITE).toString(),
+                filters = SearchFilters(status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE"))))), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
         assertEquals(HttpStatus.OK.value(), statusResponse["status"])
 
         val statusResult: Paginated = mapper.readValue(statusResponse["body"] as String)
-        assertEquals(listOf(BEGREP_1), statusResult.hits)
+        assertEquals(listOf(BEGREP_2), statusResult.hits)
     }
 
     @Test
@@ -328,14 +334,14 @@ class SearchConcepts : ApiTestContext() {
     fun `Status filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(status = SearchFilter(listOf("godkjent"))))), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE"))))), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_2), result.hits)
     }
 
     @Test
@@ -479,7 +485,7 @@ class SearchConcepts : ApiTestContext() {
                 SearchOperation(
                     query = "",
                     filters = SearchFilters(
-                        status = SearchFilter(listOf("godkjent")),
+                        status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
                         published = BooleanFilter(false))
                 )
             ),
