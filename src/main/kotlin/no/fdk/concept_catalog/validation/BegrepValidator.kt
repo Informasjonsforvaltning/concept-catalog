@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.BegrepDBO
-import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Virksomhet
 import org.openapi4j.parser.OpenApi3Parser
 import org.openapi4j.parser.model.v3.OpenApi3
@@ -37,8 +36,6 @@ fun BegrepDBO.validateSchema() : ValidationData<Void> {
 fun Begrep.isValid(): Boolean = when {
     versjonsnr == null -> false
     versjonsnr.major == 0 -> false
-    status == null -> false
-    status == Status.UTKAST -> false
     anbefaltTerm == null -> false
     anbefaltTerm.navn.isNullOrEmpty() -> false
     !isValidTranslationsMap(anbefaltTerm.navn) -> false
