@@ -32,13 +32,13 @@ class Validation {
         whenever(conceptRepository.getByOriginaltBegrep("id5"))
             .thenReturn(listOf(BEGREP_5, BEGREP_5.copy(id = "id7", versjonsnr = SemVer(12,10, 0)), BEGREP_5.copy(id = "id6", versjonsnr = SemVer(9, 9, 1))).map { it.toDBO() })
 
-        assertFalse { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 10, 1))) }
-        assertFalse { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 11, 0))) }
-        assertFalse { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(245, 10, 0))) }
+        assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 10, 1))) }
+        assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 11, 0))) }
+        assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(245, 10, 0))) }
 
-        assertTrue { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 9, 95))) }
-        assertTrue { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(11, 100, 99))) }
-        assertTrue { conceptService.isNonDraftAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(9, 10, 1))) }
+        assertTrue { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 9, 95))) }
+        assertTrue { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(11, 100, 99))) }
+        assertTrue { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(9, 10, 1))) }
     }
 
 }

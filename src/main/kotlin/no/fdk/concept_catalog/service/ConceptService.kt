@@ -141,10 +141,10 @@ class ConceptService(
                 HttpStatus.BAD_REQUEST,
                 validation.results().toString()
             )
-            isNonDraftAndNotValid(patched.withHighestVersionDTO()) -> {
+            isPublishedAndNotValid(patched.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
-                    "Concept ${patched.id} has not passed validation for non draft concepts and has not been saved.",
+                    "Concept ${patched.id} has not passed validation for published concepts and has not been saved.",
                     badRequestException
                 )
                 throw badRequestException
@@ -168,10 +168,10 @@ class ConceptService(
             }
         } else conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
 
-    fun isNonDraftAndNotValid(concept: Begrep): Boolean {
+    fun isPublishedAndNotValid(concept: Begrep): Boolean {
         val published = getLastPublished(concept.originaltBegrep)
         return when {
-            concept.status == Status.UTKAST -> false
+            !concept.erPublisert -> false
             concept.versjonsnr == null -> true
             !concept.isValid() -> true
             published?.versjonsnr == null -> false
@@ -269,7 +269,6 @@ class ConceptService(
         val published = concept.copy(
             erPublisert = true,
             versjonsnr = getVersionOrMinimum(concept),
-            status = Status.PUBLISERT,
             publiseringsTidspunkt = Instant.now()
         )
 
@@ -278,7 +277,7 @@ class ConceptService(
                 HttpStatus.BAD_REQUEST,
                 "Unable to publish already published concepts"
             )
-            isNonDraftAndNotValid(published.withHighestVersionDTO()) -> {
+            isPublishedAndNotValid(published.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${concept.id} has not passed validation and has not been published.",
