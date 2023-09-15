@@ -211,6 +211,30 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(emptyList(), withoutInternalFields.hits)
     }
     @Test
+    fun `Query with label filter returns correct results`() {
+        val withLabelResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(label =
+            SearchFilter(listOf("merkelapp1"))))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+        val withoutLabelResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(label =
+            SearchFilter(listOf("merkelapp3"))))), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.OK.value(), withLabelResponse["status"])
+        assertEquals(HttpStatus.OK.value(), withoutLabelResponse["status"])
+
+        val withInternalFields: Paginated = mapper.readValue(withLabelResponse["body"] as String)
+        assertEquals(listOf(BEGREP_0), withInternalFields.hits)
+
+        val withoutInternalFields: Paginated = mapper.readValue(withoutLabelResponse["body"] as String)
+        assertEquals(emptyList(), withoutInternalFields.hits)
+    }
+    @Test
     fun `Query filter with several values returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",

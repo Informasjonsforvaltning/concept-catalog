@@ -29,7 +29,8 @@ class SearchFilters(
     val onlyCurrentVersions: Boolean = true,
     val subject: SearchFilter<List<String>>? = null,
     val originalId: SearchFilter<List<String>>? = null,
-    val internalFields: SearchFilter<Map<String, List<String>>>? = null
+    val internalFields: SearchFilter<Map<String, List<String>>>? = null,
+    val label: SearchFilter<List<String>>? = null,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

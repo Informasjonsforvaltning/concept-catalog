@@ -32,6 +32,7 @@ val BEGREP_0_OLD = Begrep(
         tekst = mapOf(Pair("nb", "old definisjon")),
         kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
     merknad = mapOf(Pair("nn", "old merknad")),
+    merkelapp = listOf("old merkelapp1", "old merkelapp2"),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
@@ -67,6 +68,7 @@ val BEGREP_0 = Begrep(
         tekst = mapOf(Pair("nb", "Rettslig forklaring")),
         kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
     merknad = mapOf(Pair("nn", "merknad")),
+    merkelapp = listOf("merkelapp1", "merkelapp2"),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),

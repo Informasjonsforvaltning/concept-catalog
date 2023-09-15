@@ -126,6 +126,7 @@ fun Begrep.toDBO(): BegrepDBO =
         folkeligForklaring,
         rettsligForklaring,
         merknad,
+        merkelapp,
         ansvarligVirksomhet,
         eksempel,
         fagområde,
@@ -202,6 +203,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("folkeligForklaring", folkeligForklaring?.mapDBO())
         .append("rettsligForklaring", rettsligForklaring?.mapDBO())
         .append("merknad", merknad)
+        .append("merkelapp", merkelapp)
         .append("eksempel", eksempel)
         .append("ansvarligVirksomhet", ansvarligVirksomhet?.mapDBO())
         .append("seOgså", seOgså)
