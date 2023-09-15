@@ -51,6 +51,10 @@ class ConceptSearchService(
             }
         }
 
+        if(filters.label != null) {
+            mongoQuery.addCriteria(Criteria.where("merkelapp").`in`(filters.label.value))
+        }
+
         return mongoQuery
     }
 
