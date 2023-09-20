@@ -37,10 +37,10 @@ class ConceptsController(
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
-                logger.info("creating concept for ${concept.ansvarligVirksomhet?.id}")
+                logger.info("creating concept for ${concept.ansvarligVirksomhet.id}")
                 conceptService.createConcept(concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -60,7 +60,7 @@ class ConceptsController(
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            concepts.any { !endpointPermissions.hasOrgWritePermission(jwt, it.ansvarligVirksomhet?.id) } ->
+            concepts.any { !endpointPermissions.hasOrgWritePermission(jwt, it.ansvarligVirksomhet.id) } ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
@@ -81,12 +81,12 @@ class ConceptsController(
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
-            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             !concept.erPublisert -> ResponseEntity(HttpStatus.BAD_REQUEST)
             conceptService.findIdOfUnpublishedRevision(concept) != null -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
-                logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet?.id}")
+                logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
                 conceptService.createRevisionOfConcept(revision, concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -102,7 +102,7 @@ class ConceptsController(
         val concept = conceptService.getConceptDBO(id)
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
-            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             concept.erPublisert -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
@@ -141,7 +141,7 @@ class ConceptsController(
         val concept = conceptService.getConceptById(id)
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
-            endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet?.id) ->
+            endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(concept, HttpStatus.OK)
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
         }
@@ -155,7 +155,7 @@ class ConceptsController(
         val concept = conceptService.getConceptDBO(id)
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
-            endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet?.id) ->
+            endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(conceptService.findRevisions(concept), HttpStatus.OK)
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
         }
@@ -169,7 +169,7 @@ class ConceptsController(
         val concept = conceptService.getConceptDBO(id)
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
-            endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) -> {
+            endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) -> {
                 ResponseEntity(conceptService.publish(concept), HttpStatus.OK)
             }
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
@@ -191,7 +191,7 @@ class ConceptsController(
         return when {
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet?.id) ->
+            !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, user, jwt), HttpStatus.OK)
         }

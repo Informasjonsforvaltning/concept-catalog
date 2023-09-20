@@ -206,7 +206,7 @@ class ChangeRequests : ApiTestContext() {
         fun badRequestWhenAttemptingToRequestChangesOnNonOriginalId() {
 
             val rsp = authorizedRequest(
-                "/${BEGREP_0.ansvarligVirksomhet?.id}/endringsforslag?concept=id0-old",
+                "/${BEGREP_0.ansvarligVirksomhet.id}/endringsforslag?concept=id0-old",
                 port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -236,7 +236,7 @@ class ChangeRequests : ApiTestContext() {
             val location0 = responseHeaders0.location
             assertNotNull(location0)
 
-            val getResponse0 = authorizedRequest(location0.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            val getResponse0 = authorizedRequest(location0!!.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             assertEquals(HttpStatus.OK.value(), getResponse0["status"])
             val result0: ChangeRequest = mapper.readValue(getResponse0["body"] as String)
 
@@ -401,7 +401,7 @@ class ChangeRequests : ApiTestContext() {
             val location = responseHeaders.location
             assertNotNull(location)
 
-            val getResponse = authorizedRequest(location.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            val getResponse = authorizedRequest(location!!.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             assertEquals(HttpStatus.OK.value(), getResponse["status"])
             val result: Begrep = mapper.readValue(getResponse["body"] as String)
             val expected = BEGREP_0.copy(
@@ -430,7 +430,7 @@ class ChangeRequests : ApiTestContext() {
             val location = responseHeaders.location
             assertNotNull(location)
 
-            val getResponse = authorizedRequest(location.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            val getResponse = authorizedRequest(location!!.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             assertEquals(HttpStatus.OK.value(), getResponse["status"])
             val result: Begrep = mapper.readValue(getResponse["body"] as String)
             val expected = BEGREP_2.copy(
@@ -449,7 +449,7 @@ class ChangeRequests : ApiTestContext() {
             val location = responseHeaders.location
             assertNotNull(location)
 
-            val getResponse = authorizedRequest(location.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            val getResponse = authorizedRequest(location!!.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             assertEquals(HttpStatus.OK.value(), getResponse["status"])
             val result: Begrep = mapper.readValue(getResponse["body"] as String)
             val expected = Begrep(

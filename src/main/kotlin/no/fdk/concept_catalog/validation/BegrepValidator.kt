@@ -42,7 +42,6 @@ fun Begrep.isValid(): Boolean = when {
     definisjon == null -> false
     definisjon.tekst.isNullOrEmpty() -> false
     !isValidTranslationsMap(definisjon.tekst) -> false
-    ansvarligVirksomhet == null -> false
     !ansvarligVirksomhet.isValid() -> false
     !isValidValidityPeriod(gyldigFom, gyldigTom) -> false
     else -> true
@@ -51,9 +50,9 @@ fun Begrep.isValid(): Boolean = when {
 private fun flattenSchema(schema: Schema): Schema {
     val copy = schema.copy().getFlatSchema(openApi?.context)
     copy.properties?.forEach { copy.properties[it.key] = flattenSchema(it.value) }
-    copy.oneOfSchemas?.forEachIndexed { index, schema -> copy.oneOfSchemas[index] = flattenSchema(schema) }
-    copy.allOfSchemas?.forEachIndexed { index, schema -> copy.allOfSchemas[index] = flattenSchema(schema) }
-    copy.anyOfSchemas?.forEachIndexed { index, schema -> copy.anyOfSchemas[index] = flattenSchema(schema) }
+    copy.oneOfSchemas?.forEachIndexed { index, schemaPart -> copy.oneOfSchemas[index] = flattenSchema(schemaPart) }
+    copy.allOfSchemas?.forEachIndexed { index, schemaPart -> copy.allOfSchemas[index] = flattenSchema(schemaPart) }
+    copy.anyOfSchemas?.forEachIndexed { index, schemaPart -> copy.anyOfSchemas[index] = flattenSchema(schemaPart) }
     copy.additionalProperties = copy.additionalProperties?.let{ flattenSchema(it) }
     copy.itemsSchema = copy.itemsSchema?.let{ flattenSchema(it) }
     copy.notSchema = copy.notSchema?.let{ flattenSchema(it) }
@@ -62,7 +61,7 @@ private fun flattenSchema(schema: Schema): Schema {
 }
 
 private fun Virksomhet.isValid(): Boolean = when {
-    id.isNullOrBlank() -> false
+    id.isBlank() -> false
     !id.isOrganizationNumber() -> false
     else -> true
 }
