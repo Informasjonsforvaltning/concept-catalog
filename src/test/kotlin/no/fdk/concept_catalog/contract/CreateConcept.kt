@@ -56,7 +56,7 @@ class CreateConcept : ApiTestContext() {
     @Test
     fun `Ok - Created - for write access`() {
         val before = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet?.id}",
+            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
             port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
@@ -67,7 +67,7 @@ class CreateConcept : ApiTestContext() {
         assertEquals(HttpStatus.CREATED.value(), rsp["status"])
 
         val after = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet?.id}",
+            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
             port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 

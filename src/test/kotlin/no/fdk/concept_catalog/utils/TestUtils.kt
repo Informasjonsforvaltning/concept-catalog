@@ -205,7 +205,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("merknad", merknad)
         .append("merkelapp", merkelapp)
         .append("eksempel", eksempel)
-        .append("ansvarligVirksomhet", ansvarligVirksomhet?.mapDBO())
+        .append("ansvarligVirksomhet", ansvarligVirksomhet.mapDBO())
         .append("seOgså", seOgså)
         .append("erstattesAv", erstattesAv)
         .append("fagområde", fagområde)

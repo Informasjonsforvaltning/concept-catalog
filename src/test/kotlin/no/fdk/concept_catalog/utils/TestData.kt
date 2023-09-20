@@ -309,6 +309,9 @@ val BEGREP_REVISION = Begrep(
     fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
+    ansvarligVirksomhet = Virksomhet(
+        id = "111222333"
+    ),
     interneFelt = null
 )
 

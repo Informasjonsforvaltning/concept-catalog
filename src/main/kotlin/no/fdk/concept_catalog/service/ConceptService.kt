@@ -43,13 +43,9 @@ class ConceptService(
         conceptRepository.findByIdOrNull(id)
 
     fun createConcept(concept: Begrep, user: User, jwt: Jwt): Begrep {
-        val newDefaultConcept: BegrepDBO = if (concept.ansvarligVirksomhet != null) {
-            createNewConcept(concept.ansvarligVirksomhet, user)
-                .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet.id) }
-                .updateLastChangedAndByWhom(user)
-        } else {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "concept is missing org data")
-        }
+        val newDefaultConcept: BegrepDBO = createNewConcept(concept.ansvarligVirksomhet, user)
+            .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet.id) }
+            .updateLastChangedAndByWhom(user)
 
         val newConcept: BegrepDBO = newDefaultConcept.addUpdatableFieldsFromDTO(concept)
 
@@ -89,13 +85,13 @@ class ConceptService(
     }
 
     fun createConcepts(concepts: List<Begrep>, user: User, jwt: Jwt) {
-        concepts.mapNotNull { it.ansvarligVirksomhet?.id }
+        concepts.map { it.ansvarligVirksomhet.id }
             .distinct()
             .forEach { publishNewCollectionIfFirstSavedConcept(it) }
 
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val newConceptsAndOperations = concepts
-            .map { it to createNewConcept(it.ansvarligVirksomhet!!, user).updateLastChangedAndByWhom(user) }
+            .map { it to createNewConcept(it.ansvarligVirksomhet, user).updateLastChangedAndByWhom(user) }
             .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
             .mapValues { createPatchOperations(it.key, it.value, mapper) }
             .onEach {
@@ -287,9 +283,7 @@ class ConceptService(
             }
         }
 
-        concept.ansvarligVirksomhet?.id?.let { publisherId ->
-            conceptPublisher.send(publisherId)
-        }
+        conceptPublisher.send(concept.ansvarligVirksomhet.id)
 
         return conceptRepository.save(published)
             .withHighestVersionDTO()

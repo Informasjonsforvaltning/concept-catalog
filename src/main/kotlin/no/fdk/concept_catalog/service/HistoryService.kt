@@ -24,7 +24,7 @@ class HistoryService(
     private val mapper: ObjectMapper
 ) {
     fun updateHistory(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): String? =
-        URL("${applicationProperties.historyServiceUri}/${concept.ansvarligVirksomhet?.id}/${concept.id}/updates")
+        URL("${applicationProperties.historyServiceUri}/${concept.ansvarligVirksomhet.id}/${concept.id}/updates")
             .let { it.openConnection() as HttpURLConnection }
             .postUpdateToHistoryService(HistoricPayload(user, operations), jwt)
 

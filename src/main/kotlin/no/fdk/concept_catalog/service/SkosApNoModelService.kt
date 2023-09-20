@@ -125,7 +125,7 @@ class SkosApNoModelService(
             val conceptResource = model.createResource(conceptURI)
                 .addProperty(RDF.type, SKOS.Concept)
                 .addProperty(DCTerms.identifier, model.createLiteral(conceptURI))
-                .safeAddPublisher(concept.ansvarligVirksomhet?.id)
+                .safeAddPublisher(concept.ansvarligVirksomhet.id)
                 .safeAddModified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
 
             conceptResource.addPropertiesToConcept(concept)
@@ -134,7 +134,7 @@ class SkosApNoModelService(
     }
 
     private fun Model.addConceptToModel(concept: Begrep) {
-        if (concept.originaltBegrep == null || concept.ansvarligVirksomhet?.id == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
+        if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
             val conceptURI = getConceptUri(getCollectionUri(concept.ansvarligVirksomhet.id), concept.originaltBegrep)
             val conceptResource = createResource(conceptURI)
@@ -324,9 +324,10 @@ class SkosApNoModelService(
         concept.fagområdeKoder
             ?.filter { it.isNotEmpty() }
             ?.forEach { kode ->
-                concept.ansvarligVirksomhet?.id?.let { virksomhetId ->
-                    addProperty(DCTerms.subject, model.safeCreateResource("${subjectsURI(virksomhetId)}$kode"))
-                }
+                addProperty(
+                    DCTerms.subject,
+                    model.safeCreateResource("${subjectsURI(concept.ansvarligVirksomhet.id)}$kode")
+                )
             }
     }
 
