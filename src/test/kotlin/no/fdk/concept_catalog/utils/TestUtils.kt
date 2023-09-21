@@ -200,7 +200,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("tillattTerm", tillattTerm)
         .append("frarådetTerm", frarådetTerm)
         .append("definisjon", definisjon?.mapDBO())
-        .append("definisjon for allmennheten", definisjonForAllmennheten?.mapDBO())
+        .append("definisjonForAllmennheten", definisjonForAllmennheten?.mapDBO())
         .append("rettsligForklaring", rettsligForklaring?.mapDBO())
         .append("merknad", merknad)
         .append("merkelapp", merkelapp)

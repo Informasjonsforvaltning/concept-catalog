@@ -77,7 +77,7 @@
                               skosno:forholdTilKilde  skosno:egendefinert
                             ] ;
         skosno:definisjon   [ rdf:type                skosno:Definisjon ;
-                              rdfs:label              "Folkelig forklaring"@nb ;
+                              rdfs:label              "definisjon for allmennheten"@nb ;
                               dct:audience            skosno:allmennheten ;
                               skosno:forholdTilKilde  skosno:egendefinert
                             ] ;
