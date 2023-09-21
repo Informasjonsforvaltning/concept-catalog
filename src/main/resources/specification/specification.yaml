@@ -340,9 +340,9 @@ components:
           $ref: "#/components/schemas/TekstMedSpraakKode"
         definisjon:
           $ref: "#/components/schemas/Definisjon"
-        folkeligForklaring:
+        definisjonForAllmennheten:
           $ref: "#/components/schemas/Definisjon"
-        rettsligForklaring:
+        definisjonForSpesialister:
           $ref: "#/components/schemas/Definisjon"
         merknad:
           $ref: '#/components/schemas/TekstMedSpraakKode'
