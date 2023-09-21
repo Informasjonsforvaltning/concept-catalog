@@ -184,7 +184,7 @@ class SkosApNoModelService(
     }
 
     private fun Resource.addPublicDefinitionToConcept(concept: Begrep) {
-        val definitionResource = model.createDefinitionResource(concept.folkeligForklaring)
+        val definitionResource = model.createDefinitionResource(concept.definisjonForAllmennheten)
         if (definitionResource != null) {
             definitionResource.addProperty(DCTerms.audience, SKOSNO.allmennheten)
 
