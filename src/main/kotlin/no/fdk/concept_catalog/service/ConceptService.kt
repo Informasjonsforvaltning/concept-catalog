@@ -153,16 +153,19 @@ class ConceptService(
         return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt).first()
     }
 
-    private fun saveConceptsAndUpdateHistory(conceptsAndOperations: Map<BegrepDBO, List<JsonPatchOperation>>, user: User, jwt: Jwt) =
-        if (applicationProperties.namespace == "staging") {
-            val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
-            try {
-                conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
-            } catch (ex: Exception) {
-                locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
-                throw ex
-            }
-        } else conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
+    private fun saveConceptsAndUpdateHistory(
+        conceptsAndOperations: Map<BegrepDBO, List<JsonPatchOperation>>,
+        user: User,
+        jwt: Jwt
+    ): List<Begrep> {
+        val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
+        try {
+            return conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
+        } catch (ex: Exception) {
+            locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
+            throw ex
+        }
+    }
 
     fun isPublishedAndNotValid(concept: Begrep): Boolean {
         val published = getLastPublished(concept.originaltBegrep)
