@@ -60,7 +60,7 @@ class ConceptsController(
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            concepts.any { !endpointPermissions.hasOrgWritePermission(jwt, it.ansvarligVirksomhet.id) } ->
+            concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, it.ansvarligVirksomhet.id) } ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
