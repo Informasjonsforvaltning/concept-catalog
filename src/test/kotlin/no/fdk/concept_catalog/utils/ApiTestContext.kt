@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.elasticsearch.ElasticsearchContainer
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -26,7 +27,8 @@ abstract class ApiTestContext {
     internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
             TestPropertyValues.of(
-                "spring.data.mongodb.uri=mongodb://$MONGO_USER:$MONGO_PASSWORD@localhost:${mongoContainer.getMappedPort(MONGO_PORT)}/$MONGO_DB_NAME?authSource=admin&authMechanism=SCRAM-SHA-1"
+                "spring.data.mongodb.uri=mongodb://$MONGO_USER:$MONGO_PASSWORD@localhost:${mongoContainer.getMappedPort(MONGO_PORT)}/$MONGO_DB_NAME?authSource=admin&authMechanism=SCRAM-SHA-1",
+                "spring.elasticsearch.uris=http://localhost:${elasticContainer.getMappedPort(9200)}"
             ).applyTo(configurableApplicationContext.environment)
         }
     }
@@ -35,6 +37,7 @@ abstract class ApiTestContext {
 
         private val logger = LoggerFactory.getLogger(ApiTestContext::class.java)
         var mongoContainer: KGenericContainer
+        var elasticContainer: ElasticsearchContainer
 
         init {
 
@@ -46,6 +49,11 @@ abstract class ApiTestContext {
                 .waitingFor(Wait.forListeningPort())
 
             mongoContainer.start()
+
+            elasticContainer = ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.2")
+                .withEnv(ELASTIC_ENV_VALUES)
+
+            elasticContainer.start()
 
             resetDB()
 

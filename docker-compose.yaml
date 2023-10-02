@@ -26,3 +26,15 @@ services:
       - MONGO_HOST=mongodb:27017
     ports:
       - "9090:8080"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - cluster.name=elasticsearch
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=elasticpwd
+      - ES_JAVA_OPTS=-Xms2G -Xmx2G
