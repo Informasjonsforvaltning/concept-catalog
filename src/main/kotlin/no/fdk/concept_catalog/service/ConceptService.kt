@@ -180,8 +180,8 @@ class ConceptService(
 
     fun getAllPublisherIds(): List<String> =
         conceptRepository.findAll()
+            .distinctBy { it.ansvarligVirksomhet.id }
             .map { it.ansvarligVirksomhet.id }
-            .distinct()
 
     fun getLastPublished(originaltBegrep: String?): Begrep? =
         if (originaltBegrep == null) null
@@ -200,7 +200,7 @@ class ConceptService(
             .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated =
-        searchConcepts(conceptRepository.findAll(), orgNumber, search)
+        resolveSearch(conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNumber), search)
             .map { it.withHighestVersionDTO() }
             .filter { if(search.filters.onlyCurrentVersions) it.isCurrentVersion() else true }
             .toList()

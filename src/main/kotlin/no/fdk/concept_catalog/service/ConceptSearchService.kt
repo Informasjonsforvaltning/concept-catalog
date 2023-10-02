@@ -3,9 +3,9 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.model.*
 import org.springframework.data.domain.Sort
 
-fun searchConcepts(concepts: List<BegrepDBO>, orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
+fun resolveSearch(concepts: List<BegrepDBO>, searchOperation: SearchOperation): List<BegrepDBO> =
     concepts
-        .doFilters(orgNumber, searchOperation)
+        .doFilters(searchOperation)
         .doSearch(searchOperation)
         .sortConcepts(searchOperation.sort)
 
@@ -52,9 +52,8 @@ private fun Map<String, List<String>>?.oneLangListValueMatchesQuery(query: Strin
         }
     }
 
-private fun List<BegrepDBO>.doFilters(orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
-    filter { it.ansvarligVirksomhet.id == orgNumber }
-        .filterByPublished(searchOperation)
+private fun List<BegrepDBO>.doFilters(searchOperation: SearchOperation): List<BegrepDBO> =
+    filterByPublished(searchOperation)
         .filterByStatus(searchOperation)
         .filterByAssignedUser(searchOperation)
         .filterByOriginalId(searchOperation)
