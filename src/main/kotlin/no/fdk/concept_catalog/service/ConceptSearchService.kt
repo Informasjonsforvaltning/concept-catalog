@@ -13,49 +13,17 @@ class ConceptSearchService(
     private val conceptRepository: MongoTemplate
 ) {
 
-    fun searchConcepts(orgNumber: String, search: SearchOperation): List<BegrepDBO> =
-        conceptRepository.find(search.toMongoQuery(orgNumber)
-            .with(search.sort.toSort()))
+    fun searchConcepts(orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
+        conceptRepository.find<BegrepDBO>(searchOperation.toMongoQuery(orgNumber)
+            .with(searchOperation.sort.toSort()))
+            .doFilters(orgNumber, searchOperation)
 
     private fun SearchOperation.toMongoQuery(orgNumber: String): Query {
         val searchCriteria = Criteria.where("ansvarligVirksomhet.id").`is`(orgNumber)
 
         if (!query.isNullOrBlank()) searchCriteria.orOperator(fields.queryCriteria(query))
-        val mongoQuery = Query(searchCriteria)
 
-        if (filters.status != null) {
-            mongoQuery.addCriteria(Criteria.where("statusURI").`in`(filters.status.value))
-        }
-
-        if (filters.published != null) {
-            // Use not equal to 'true' instead of is 'false', to also get hits on erPublisert with null value
-            if (filters.published.value) mongoQuery.addCriteria(Criteria.where("erPublisert").`is`(true))
-            else mongoQuery.addCriteria(Criteria.where("erPublisert").ne(true))
-        }
-
-        if (filters.assignedUser != null) {
-            mongoQuery.addCriteria(Criteria.where("assignedUser").`in`(filters.assignedUser.value))
-        }
-
-        if (filters.subject != null) {
-            mongoQuery.addCriteria(Criteria.where("fagområdeKoder").`in`(filters.subject.value))
-        }
-
-        if (filters.originalId != null) {
-            mongoQuery.addCriteria(Criteria.where("originaltBegrep").`in`(filters.originalId.value))
-        }
-
-        if(filters.internalFields != null) {
-            filters.internalFields.value.forEach { (key, value) ->
-                mongoQuery.addCriteria(Criteria.where("interneFelt.$key.value").`in`(value))
-            }
-        }
-
-        if(filters.label != null) {
-            mongoQuery.addCriteria(Criteria.where("merkelapp").`in`(filters.label.value))
-        }
-
-        return mongoQuery
+        return Query(searchCriteria)
     }
 
     private fun QueryFields.queryCriteria(query: String): List<Criteria> =
@@ -105,3 +73,57 @@ class ConceptSearchService(
         // options: "i" for case-insensitive match
         Criteria.where(field).regex(query, "i")
 }
+
+private fun List<BegrepDBO>.doFilters(orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
+    filter { it.ansvarligVirksomhet.id == orgNumber }
+        .filterByPublished(searchOperation)
+        .filterByStatus(searchOperation)
+        .filterByAssignedUser(searchOperation)
+        .filterByOriginalId(searchOperation)
+        .filterBySubject(searchOperation)
+        .filterByLabel(searchOperation)
+        .filterByInternalFields(searchOperation)
+
+private fun List<BegrepDBO>.filterByStatus(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (searchOperation.filters.status != null) {
+        filter { searchOperation.filters.status.value.contains(it.statusURI) }
+    } else this
+
+private fun List<BegrepDBO>.filterByPublished(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (searchOperation.filters.published != null) {
+        filter { it.erPublisert == searchOperation.filters.published.value }
+    } else this
+
+private fun List<BegrepDBO>.filterByAssignedUser(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (searchOperation.filters.assignedUser != null) {
+        filter { searchOperation.filters.assignedUser.value.contains(it.assignedUser) }
+    } else this
+
+private fun List<BegrepDBO>.filterByOriginalId(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (searchOperation.filters.originalId != null) {
+        filter { searchOperation.filters.originalId.value.contains(it.originaltBegrep) }
+    } else this
+
+private fun List<BegrepDBO>.filterByLabel(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (searchOperation.filters.label != null) {
+        filter {
+            searchOperation.filters.label.value
+                .any { label -> it.merkelapp?.contains(label) ?: false }
+        }
+    } else this
+
+private fun List<BegrepDBO>.filterBySubject(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (searchOperation.filters.subject != null) {
+        filter {
+            searchOperation.filters.subject.value
+                .any { filterCode -> it.fagområdeKoder?.contains(filterCode) ?: false }
+        }
+    } else this
+
+private fun List<BegrepDBO>.filterByInternalFields(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (searchOperation.filters.internalFields != null) {
+        filter {
+            searchOperation.filters.internalFields.value
+                .all { (key, value) -> value.contains(it.interneFelt?.get(key)?.value) }
+        }
+    } else this
