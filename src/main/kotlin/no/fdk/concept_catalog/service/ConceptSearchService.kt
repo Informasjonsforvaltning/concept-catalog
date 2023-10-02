@@ -14,9 +14,9 @@ class ConceptSearchService(
 ) {
 
     fun searchConcepts(orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
-        conceptRepository.find<BegrepDBO>(searchOperation.toMongoQuery(orgNumber)
-            .with(searchOperation.sort.toSort()))
+        conceptRepository.find<BegrepDBO>(searchOperation.toMongoQuery(orgNumber))
             .doFilters(orgNumber, searchOperation)
+            .sortConcepts(searchOperation.sort)
 
     private fun SearchOperation.toMongoQuery(orgNumber: String): Query {
         val searchCriteria = Criteria.where("ansvarligVirksomhet.id").`is`(orgNumber)
@@ -48,19 +48,6 @@ class ConceptSearchService(
                 languageCriteria(langPath = "merknad", query = query)
             } else emptyList()
         ).flatten()
-
-    private fun SortField.toSort(): Sort =
-        when (field) {
-            SortFieldEnum.ANBEFALT_TERM_NB ->
-                Sort.by(sortDirection(), "anbefaltTerm.navn.nb")
-            else -> Sort.by(sortDirection(), "endringslogelement.endringstidspunkt")
-        }
-
-    private fun SortField.sortDirection(): Sort.Direction =
-        when (direction) {
-            SortDirection.ASC -> Sort.Direction.ASC
-            else -> Sort.Direction.DESC
-        }
 
     private fun languageCriteria(langPath: String, query: String): List<Criteria> =
         listOf(
@@ -127,3 +114,22 @@ private fun List<BegrepDBO>.filterByInternalFields(searchOperation: SearchOperat
                 .all { (key, value) -> value.contains(it.interneFelt?.get(key)?.value) }
         }
     } else this
+
+private fun List<BegrepDBO>.sortConcepts(sortValues: SortField): List<BegrepDBO> {
+    val direction = sortValues.sortDirection()
+    return when {
+        sortValues.field == SortFieldEnum.ANBEFALT_TERM_NB && direction == Sort.Direction.ASC ->
+            sortedBy { it.anbefaltTerm?.navn?.get("nb") }
+        sortValues.field == SortFieldEnum.ANBEFALT_TERM_NB && direction == Sort.Direction.DESC ->
+            sortedByDescending { it.anbefaltTerm?.navn?.get("nb") }
+        direction == Sort.Direction.DESC ->
+            sortedByDescending { it.endringslogelement?.endringstidspunkt }
+        else -> sortedBy { it.endringslogelement?.endringstidspunkt }
+    }
+}
+
+private fun SortField.sortDirection(): Sort.Direction =
+    when (direction) {
+        SortDirection.ASC -> Sort.Direction.ASC
+        else -> Sort.Direction.DESC
+    }
