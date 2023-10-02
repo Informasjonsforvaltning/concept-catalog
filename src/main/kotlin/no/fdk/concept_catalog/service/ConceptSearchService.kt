@@ -2,21 +2,12 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.model.*
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.findAll
-import org.springframework.stereotype.Service
 
-@Service
-class ConceptSearchService(
-    private val conceptRepository: MongoTemplate
-) {
-
-    fun searchConcepts(orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
-        conceptRepository.findAll<BegrepDBO>()
-            .doFilters(orgNumber, searchOperation)
-            .doSearch(searchOperation)
-            .sortConcepts(searchOperation.sort)
-}
+fun searchConcepts(concepts: List<BegrepDBO>, orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
+    concepts
+        .doFilters(orgNumber, searchOperation)
+        .doSearch(searchOperation)
+        .sortConcepts(searchOperation.sort)
 
 private fun List<BegrepDBO>.doSearch(searchOperation: SearchOperation): List<BegrepDBO> =
     if (!searchOperation.query.isNullOrBlank()) {

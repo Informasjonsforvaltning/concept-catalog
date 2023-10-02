@@ -8,12 +8,10 @@ import no.fdk.concept_catalog.validation.isValid
 import no.fdk.concept_catalog.validation.validateSchema
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import org.springframework.web.client.HttpClientErrorException.BadRequest
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.Instant
@@ -25,8 +23,6 @@ private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 @Service
 class ConceptService(
     private val conceptRepository: ConceptRepository,
-    private val conceptSearchService: ConceptSearchService,
-    private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
     private val conceptPublisher: ConceptPublisher,
     private val historyService: HistoryService,
@@ -182,13 +178,10 @@ class ConceptService(
         if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.withHighestVersionDTO() }
         else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.withHighestVersionDTO() }
 
-    fun getAllPublisherIds(): List<String> {
-        return mongoOperations
-            .query(Begrep::class.java)
-            .distinct("ansvarligVirksomhet.id")
-            .`as`(String::class.java)
-            .all()
-    }
+    fun getAllPublisherIds(): List<String> =
+        conceptRepository.findAll()
+            .map { it.ansvarligVirksomhet.id }
+            .distinct()
 
     fun getLastPublished(originaltBegrep: String?): Begrep? =
         if (originaltBegrep == null) null
@@ -207,7 +200,7 @@ class ConceptService(
             .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated =
-        conceptSearchService.searchConcepts(orgNumber, search)
+        searchConcepts(conceptRepository.findAll(), orgNumber, search)
             .map { it.withHighestVersionDTO() }
             .filter { if(search.filters.onlyCurrentVersions) it.isCurrentVersion() else true }
             .toList()
