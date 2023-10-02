@@ -3,9 +3,7 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.model.*
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.find
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.findAll
 import org.springframework.stereotype.Service
 
 @Service
@@ -14,52 +12,54 @@ class ConceptSearchService(
 ) {
 
     fun searchConcepts(orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
-        conceptRepository.find<BegrepDBO>(searchOperation.toMongoQuery(orgNumber))
+        conceptRepository.findAll<BegrepDBO>()
             .doFilters(orgNumber, searchOperation)
+            .doSearch(searchOperation)
             .sortConcepts(searchOperation.sort)
+}
 
-    private fun SearchOperation.toMongoQuery(orgNumber: String): Query {
-        val searchCriteria = Criteria.where("ansvarligVirksomhet.id").`is`(orgNumber)
+private fun List<BegrepDBO>.doSearch(searchOperation: SearchOperation): List<BegrepDBO> =
+    if (!searchOperation.query.isNullOrBlank()) {
+        filter { it.matchesSearch(searchOperation.query, searchOperation.fields) }
+    } else this
 
-        if (!query.isNullOrBlank()) searchCriteria.orOperator(fields.queryCriteria(query))
-
-        return Query(searchCriteria)
+private fun BegrepDBO.matchesSearch(searchQuery: String, queryFields: QueryFields): Boolean =
+    when {
+        queryFields.anbefaltTerm && anbefaltTerm?.navn.oneLangMatchesQuery(searchQuery) -> true
+        queryFields.frarådetTerm && frarådetTerm.oneLangListValueMatchesQuery(searchQuery) -> true
+        queryFields.tillattTerm && tillattTerm.oneLangListValueMatchesQuery(searchQuery) -> true
+        queryFields.definisjon && definisjon?.tekst.oneLangMatchesQuery(searchQuery) -> true
+        queryFields.merknad && merknad.oneLangMatchesQuery(searchQuery) -> true
+        else -> false
     }
 
-    private fun QueryFields.queryCriteria(query: String): List<Criteria> =
-        listOf(
-            if (anbefaltTerm) {
-                languageCriteria(langPath = "anbefaltTerm.navn", query = query)
-            } else emptyList(),
+private fun Map<String, String>?.oneLangMatchesQuery(query: String): Boolean =
+    if (this == null) false
+    else {
+        val nb = get("nb")
+        val nn = get("nn")
+        val en = get("en")
+        when {
+            nb != null && nb.lowercase().contains(query.lowercase()) -> true
+            nn != null && nn.lowercase().contains(query.lowercase()) -> true
+            en != null && en.lowercase().contains(query.lowercase()) -> true
+            else -> false
+        }
+    }
 
-            if (frarådetTerm) {
-                languageCriteria(langPath = "frarådetTerm", query = query)
-            } else emptyList(),
-
-            if (tillattTerm) {
-                languageCriteria(langPath = "tillattTerm", query = query)
-            } else emptyList(),
-
-            if (definisjon) {
-                languageCriteria(langPath = "definisjon.tekst", query = query)
-            } else emptyList(),
-
-            if (merknad) {
-                languageCriteria(langPath = "merknad", query = query)
-            } else emptyList()
-        ).flatten()
-
-    private fun languageCriteria(langPath: String, query: String): List<Criteria> =
-        listOf(
-            regexCriteria(field = "$langPath.nb", query = query),
-            regexCriteria(field = "$langPath.en", query = query),
-            regexCriteria(field = "$langPath.nn", query = query)
-        )
-
-    private fun regexCriteria(field: String, query: String) =
-        // options: "i" for case-insensitive match
-        Criteria.where(field).regex(query, "i")
-}
+private fun Map<String, List<String>>?.oneLangListValueMatchesQuery(query: String): Boolean =
+    if (this == null) false
+    else {
+        val nb = get("nb")
+        val nn = get("nn")
+        val en = get("en")
+        when {
+            nb != null && nb.any { it.lowercase().contains(query.lowercase()) } -> true
+            nn != null && nn.any { it.lowercase().contains(query.lowercase()) } -> true
+            en != null && en.any { it.lowercase().contains(query.lowercase()) } -> true
+            else -> false
+        }
+    }
 
 private fun List<BegrepDBO>.doFilters(orgNumber: String, searchOperation: SearchOperation): List<BegrepDBO> =
     filter { it.ansvarligVirksomhet.id == orgNumber }
