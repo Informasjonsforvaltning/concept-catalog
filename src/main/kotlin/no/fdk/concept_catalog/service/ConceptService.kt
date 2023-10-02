@@ -315,4 +315,7 @@ class ConceptService(
     private fun Begrep.isUnpublished(): Boolean =
         id == originaltBegrep && !erPublisert
 
+    fun reindexElastic() =
+        conceptSearchService.reindexElastic()
+
 }

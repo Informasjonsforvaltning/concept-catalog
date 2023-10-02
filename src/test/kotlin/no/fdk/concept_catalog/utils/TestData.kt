@@ -16,6 +16,14 @@ val MONGO_ENV_VALUES: Map<String, String> = ImmutableMap.of(
     "MONGO_INITDB_ROOT_PASSWORD", MONGO_PASSWORD
 )
 
+val ELASTIC_ENV_VALUES: Map<String, String> = ImmutableMap.of(
+    "cluster.name", "elasticsearch",
+    "discovery.type", "single-node",
+    "xpack.security.enabled", "true",
+    "ELASTIC_PASSWORD", "elasticpwd",
+    "ES_JAVA_OPTS", "-Xms2G -Xmx2G"
+)
+
 val BEGREP_0_OLD = Begrep(
     id = "id0-old",
     originaltBegrep = "id0-old",

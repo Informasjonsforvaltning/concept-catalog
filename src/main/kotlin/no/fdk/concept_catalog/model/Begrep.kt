@@ -3,11 +3,14 @@ package no.fdk.concept_catalog.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.springframework.data.elasticsearch.annotations.Field
+import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.time.LocalDate
 
 @Document(collection = "begrep")
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "concepts")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class BegrepDBO (
     val id: String,
@@ -18,6 +21,7 @@ data class BegrepDBO (
     val statusURI: String? = null,
     val erPublisert: Boolean = false,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
+    @Field(type = FieldType.Date)
     val publiseringsTidspunkt: Instant? = null,
     val anbefaltTerm: Term?,
     val tillattTerm: Map<String, List<String>>?,
@@ -33,9 +37,12 @@ data class BegrepDBO (
     val fagområdeKoder: List<String>?,
     val omfang: URITekst?,
     val kontaktpunkt: Kontaktpunkt?,
+    @Field(type = FieldType.Date)
     val gyldigFom: LocalDate?,
+    @Field(type = FieldType.Date)
     val gyldigTom: LocalDate?,
     val endringslogelement: Endringslogelement?,
+    @Field(type = FieldType.Date)
     val opprettet: Instant? = null,
     val opprettetAv: String? = null,
     val seOgså: List<String>?,
