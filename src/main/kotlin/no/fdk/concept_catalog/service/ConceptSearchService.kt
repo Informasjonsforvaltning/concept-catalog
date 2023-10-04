@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.service
 
+import co.elastic.clients.elasticsearch._types.SortOrder
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
 import no.fdk.concept_catalog.model.*
 import org.springframework.data.domain.Pageable
