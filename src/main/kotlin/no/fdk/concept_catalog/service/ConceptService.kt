@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.configuration.ApplicationProperties
+import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isValid
@@ -13,7 +14,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import org.springframework.web.client.HttpClientErrorException.BadRequest
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.Instant
@@ -26,6 +26,7 @@ private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 class ConceptService(
     private val conceptRepository: ConceptRepository,
     private val conceptSearchService: ConceptSearchService,
+    private val conceptSearchRepository: ConceptSearchRepository,
     private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
     private val conceptPublisher: ConceptPublisher,
@@ -33,8 +34,10 @@ class ConceptService(
     private val mapper: ObjectMapper
 ) {
 
-    fun deleteConcept(concept: BegrepDBO) =
+    fun deleteConcept(concept: BegrepDBO) {
+        conceptSearchRepository.delete(concept)
         conceptRepository.delete(concept)
+    }
 
     fun getConceptById(id: String): Begrep? =
         conceptRepository.findByIdOrNull(id)?.withHighestVersionDTO()
@@ -160,6 +163,7 @@ class ConceptService(
     ): List<Begrep> {
         val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
         try {
+            conceptSearchRepository.saveAll(conceptsAndOperations.keys)
             return conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
         } catch (ex: Exception) {
             locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
@@ -288,6 +292,7 @@ class ConceptService(
 
         conceptPublisher.send(concept.ansvarligVirksomhet.id)
 
+        conceptSearchRepository.save(published)
         return conceptRepository.save(published)
             .withHighestVersionDTO()
     }

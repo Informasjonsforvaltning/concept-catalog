@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
+import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.repository.ConceptRepository
@@ -19,13 +20,14 @@ import kotlin.test.assertTrue
 class Validation {
     private val conceptRepository: ConceptRepository = mock()
     private val conceptSearch: ConceptSearchService = mock()
+    private val conceptSearchRepository: ConceptSearchRepository = mock()
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
     private val historyService: HistoryService = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, conceptSearch, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, conceptSearchRepository, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
 
     @Test
     fun `New non draft concepts has higher version than what is published`() {

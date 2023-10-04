@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.model.*
 import java.util.UUID
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
@@ -20,6 +21,7 @@ private val logger = LoggerFactory.getLogger(ChangeRequestService::class.java)
 class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
+    private val conceptSearchRepository: ConceptSearchRepository,
     private val conceptService: ConceptService,
     private val mapper: ObjectMapper
 ) {
@@ -78,14 +80,14 @@ class ChangeRequestService(
             ?.maxByOrNull { it.versjonsnr }
 
         val conceptToUpdate = when {
-            dbConcept == null -> conceptRepository.save(
-                createNewConcept(Virksomhet(id=catalogId), user)
-                    .updateLastChangedAndByWhom(user)
-            )
-            dbConcept.erPublisert -> conceptRepository.save(
-                dbConcept.createNewRevision(user)
-                    .updateLastChangedAndByWhom(user)
-            )
+            dbConcept == null -> createNewConcept(Virksomhet(id=catalogId), user)
+                .updateLastChangedAndByWhom(user)
+                .also { conceptSearchRepository.save(it) }
+                .let { conceptRepository.save(it) }
+            dbConcept.erPublisert -> dbConcept.createNewRevision(user)
+                .updateLastChangedAndByWhom(user)
+                .also { conceptSearchRepository.save(it) }
+                .let { conceptRepository.save(it) }
             else -> dbConcept
         }
 
@@ -94,7 +96,10 @@ class ChangeRequestService(
         } catch (ex: Exception) {
             logger.error("update of concept failed when accepting ${changeRequest.id}, reverting acceptation", ex)
             changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
-            if (conceptToUpdate.id != dbConcept?.id) conceptRepository.delete(conceptToUpdate)
+            if (conceptToUpdate.id != dbConcept?.id) {
+                conceptSearchRepository.delete(conceptToUpdate)
+                conceptRepository.delete(conceptToUpdate)
+            }
             throw ex
         }
 
