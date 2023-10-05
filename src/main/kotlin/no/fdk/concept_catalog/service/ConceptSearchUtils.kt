@@ -24,5 +24,36 @@ fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
                 }
             })
     }
+
+    if (originalId != null) {
+        queryFilters
+            .add(Query.of { queryBuilder ->
+                queryBuilder.terms { termsBuilder ->
+                    termsBuilder.field("originaltBegrep.keyword")
+                        .terms { fieldBuilder -> fieldBuilder.value(originalId.value.map { FieldValue.of(it) }) }
+                }
+            })
+    }
+
+    if (label != null) {
+        queryFilters
+            .add(Query.of { queryBuilder ->
+                queryBuilder.terms { termsBuilder ->
+                    termsBuilder.field("merkelapp.keyword")
+                        .terms { fieldBuilder -> fieldBuilder.value(label.value.map { FieldValue.of(it) }) }
+                }
+            })
+    }
+
+    if (subject != null) {
+        queryFilters
+            .add(Query.of { queryBuilder ->
+                queryBuilder.terms { termsBuilder ->
+                    termsBuilder.field("fagområdeKoder")
+                        .terms { fieldBuilder -> fieldBuilder.value(subject.value.map { FieldValue.of(it) }) }
+                }
+            })
+    }
+
     return queryFilters
 }

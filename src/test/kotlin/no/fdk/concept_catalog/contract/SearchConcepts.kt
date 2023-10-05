@@ -196,7 +196,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query with subjects filter returns correct results`() {
         val withSubjectFagomr1Response = authorizedRequest(
             "/begreper/search?orgNummer=111222333",
@@ -272,7 +271,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query with label filter returns correct results`() {
         val withLabelResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
