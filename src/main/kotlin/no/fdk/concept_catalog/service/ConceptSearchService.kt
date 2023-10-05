@@ -32,18 +32,30 @@ class ConceptSearchService(
         )
 
     private fun SearchOperation.toElasticQuery(orgNumber: String): Query {
-        val qb = NativeQuery.builder()
-        qb.withFilter{q -> q.bool {b -> b.must (filters.asQueryFilters(orgNumber))}}
-        qb.withSort { s -> s.field{ f -> f.field( sort.sortField()).order(sort.sortDirection())  }}
-        if (!query.isNullOrBlank()) qb.addFieldsQuery(fields, query)
-        qb.withPageable(Pageable.ofSize(pagination.getSize()).withPage(pagination.getPage()))
-        return qb.build()
+        val builder = NativeQuery.builder()
+        builder.withFilter { queryBuilder ->
+            queryBuilder.bool { boolBuilder ->
+                boolBuilder.must(
+                    filters.asQueryFilters(
+                        orgNumber
+                    )
+                )
+            }
+        }
+        builder.withSort { sortBuilder ->
+            sortBuilder.field { fieldBuilder ->
+                fieldBuilder.field(sort.sortField()).order(sort.sortDirection())
+            }
+        }
+        if (!query.isNullOrBlank()) builder.addFieldsQuery(fields, query)
+        builder.withPageable(Pageable.ofSize(pagination.getSize()).withPage(pagination.getPage()))
+        return builder.build()
     }
 
     private fun NativeQueryBuilder.addFieldsQuery(queryFields: QueryFields, queryValue: String) {
-        withQuery { q ->
-            q.multiMatch { mm ->
-                mm.fields(queryFields.paths())
+        withQuery { queryBuilder ->
+            queryBuilder.multiMatch { matchBuilder ->
+                matchBuilder.fields(queryFields.paths())
                     .query(queryValue)
                     .type(TextQueryType.BoolPrefix)
             }
@@ -55,6 +67,7 @@ class ConceptSearchService(
             SortDirection.ASC -> SortOrder.Asc
             else -> SortOrder.Desc
         }
+
     private fun SortField.sortField(): String =
         when (field) {
             SortFieldEnum.ANBEFALT_TERM_NB -> "anbefaltTerm.navn.nb.keyword"
