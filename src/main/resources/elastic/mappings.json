@@ -7,40 +7,35 @@
             "nb": {
               "type": "text",
               "analyzer": "ngram_analyzer",
-              "search_analyzer" : "standard"
+              "search_analyzer" : "standard",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
             },
             "nn": {
               "type": "text",
               "analyzer": "ngram_analyzer",
-              "search_analyzer" : "standard"
+              "search_analyzer" : "standard",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
             },
             "en": {
               "type": "text",
               "analyzer": "ngram_analyzer",
-              "search_analyzer" : "standard"
-            }
-          }
-        }
-      }
-    },
-    "definisjon": {
-      "properties": {
-        "tekst": {
-          "properties": {
-            "nb": {
-              "type": "text",
-              "analyzer": "ngram_analyzer",
-              "search_analyzer" : "standard"
-            },
-            "nn": {
-              "type": "text",
-              "analyzer": "ngram_analyzer",
-              "search_analyzer" : "standard"
-            },
-            "en": {
-              "type": "text",
-              "analyzer": "ngram_analyzer",
-              "search_analyzer" : "standard"
+              "search_analyzer" : "standard",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256
+                }
+              }
             }
           }
         }

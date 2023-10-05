@@ -40,7 +40,12 @@ class ConceptSearchService(
 
     private fun QueryFields.paths(): List<String> =
         listOf(
-            if (anbefaltTerm) boostedLanguagePaths("anbefaltTerm.navn")
+            // Boosting hits in anbefaltTerm
+            if (anbefaltTerm) listOf(
+                "anbefaltTerm.navn.nb^10",
+                "anbefaltTerm.navn.en^5",
+                "anbefaltTerm.navn.nn^5"
+            )
             else emptyList(),
 
             if (frarådetTerm) languagePaths("frarådetTerm")
@@ -55,9 +60,6 @@ class ConceptSearchService(
             if (merknad) languagePaths("merknad")
             else emptyList()
         ).flatten()
-
-    private fun boostedLanguagePaths(basePath: String): List<String> =
-        listOf("$basePath.nb^5", "$basePath.en^2", "$basePath.nn^2")
 
     private fun languagePaths(basePath: String): List<String> =
         listOf("$basePath.nb", "$basePath.en", "$basePath.nn")
