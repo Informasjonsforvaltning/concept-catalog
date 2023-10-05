@@ -5,12 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
+import org.springframework.data.elasticsearch.annotations.Mapping
+import org.springframework.data.elasticsearch.annotations.Setting
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.time.LocalDate
 
 @Document(collection = "begrep")
 @org.springframework.data.elasticsearch.annotations.Document(indexName = "concepts")
+@Setting(settingPath = "/elastic/settings.json")
+@Mapping(mappingPath = "/elastic/mappings.json")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class BegrepDBO (
     val id: String,

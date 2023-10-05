@@ -96,7 +96,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query returns correct results when searching in definisjon`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",

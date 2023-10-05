@@ -20,7 +20,9 @@ class ConceptSearchService(
 ) {
 
     fun reindexElastic() {
-        conceptSearchRepository.deleteAll()
+        try {
+            conceptSearchRepository.deleteAll()
+        } catch (_: Exception) { }
         conceptSearchRepository.saveAll(conceptRepository.findAll<BegrepDBO>())
     }
 
