@@ -123,7 +123,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query with assignedUser filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
