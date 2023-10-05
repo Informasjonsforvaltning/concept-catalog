@@ -100,7 +100,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Query returns correct results when searching in definisjon`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("ABLE")), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("SEARCHABLE")), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
