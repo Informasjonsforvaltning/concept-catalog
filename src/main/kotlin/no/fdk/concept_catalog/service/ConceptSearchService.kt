@@ -33,7 +33,7 @@ class ConceptSearchService(
 
     private fun SearchOperation.toElasticQuery(orgNumber: String): Query {
         val qb = NativeQuery.builder()
-        qb.withFilter { q -> q.match { m -> m.field("ansvarligVirksomhet.id").query(orgNumber) } }
+        qb.withFilter{q -> q.bool {b -> b.must (filters.asQueryFilters(orgNumber))}}
         qb.withSort { s -> s.field{ f -> f.field( sort.sortField()).order(sort.sortDirection())  }}
         if (!query.isNullOrBlank()) qb.addFieldsQuery(fields, query)
         qb.withPageable(Pageable.ofSize(pagination.getSize()).withPage(pagination.getPage()))
