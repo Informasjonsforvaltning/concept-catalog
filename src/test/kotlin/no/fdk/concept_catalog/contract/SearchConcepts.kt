@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
+import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
@@ -17,7 +18,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.findAll
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
@@ -35,17 +39,14 @@ private val mapper = JacksonConfigurer().objectMapper()
 @Tag("contract")
 class SearchConcepts : ApiTestContext() {
 
+    @Autowired
+    private lateinit var conceptRepository: MongoTemplate
+    @Autowired
+    private lateinit var conceptSearchRepository: ConceptSearchRepository
+
     @BeforeAll
     fun `elastic reindex`() {
-        val rsp = authorizedRequest(
-            "/begreper/reindex",
-            port,
-            null,
-            JwtToken(Access.ROOT).toString(),
-            HttpMethod.POST
-        )
-
-        assertEquals(HttpStatus.OK.value(), rsp["status"])
+        conceptSearchRepository.saveAll(conceptRepository.findAll<BegrepDBO>())
     }
 
     @Test

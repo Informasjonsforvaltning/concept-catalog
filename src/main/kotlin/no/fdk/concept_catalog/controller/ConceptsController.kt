@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.controller
 
+import no.fdk.concept_catalog.elastic.ElasticUpdater
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.Paginated
@@ -23,7 +24,8 @@ private val logger = LoggerFactory.getLogger(ConceptsController::class.java)
 @RequestMapping(value = ["/begreper"])
 class ConceptsController(
     private val endpointPermissions: EndpointPermissions,
-    private val conceptService: ConceptService
+    private val conceptService: ConceptService,
+    private val elasticUpdater: ElasticUpdater
 ) {
 
     @PostMapping(
@@ -100,7 +102,7 @@ class ConceptsController(
             !endpointPermissions.hasSysAdminPermission(jwt) -> ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 logger.info("reindexing elastic")
-                conceptService.reindexElastic()
+                elasticUpdater.reindexElastic()
                 ResponseEntity(HttpStatus.OK)
             }
         }

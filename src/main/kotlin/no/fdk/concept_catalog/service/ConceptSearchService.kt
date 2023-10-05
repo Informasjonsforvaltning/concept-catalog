@@ -1,30 +1,18 @@
 package no.fdk.concept_catalog.service
 
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
-import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.model.*
 import org.springframework.data.elasticsearch.client.elc.NativeQuery
 import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates
 import org.springframework.data.elasticsearch.core.query.Query
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.findAll
 import org.springframework.stereotype.Service
 
 @Service
 class ConceptSearchService(
-    private val conceptRepository: MongoTemplate,
-    private val conceptSearchRepository: ConceptSearchRepository,
     private val elasticsearchOperations: ElasticsearchOperations
 ) {
-
-    fun reindexElastic() {
-        try {
-            conceptSearchRepository.deleteAll()
-        } catch (_: Exception) { }
-        conceptSearchRepository.saveAll(conceptRepository.findAll<BegrepDBO>())
-    }
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): List<BegrepDBO> =
         elasticsearchOperations.search(
