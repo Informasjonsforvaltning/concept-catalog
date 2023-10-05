@@ -1,0 +1,50 @@
+{
+  "properties": {
+    "anbefaltTerm": {
+      "properties": {
+        "navn": {
+          "properties": {
+            "nb": {
+              "type": "text",
+              "analyzer": "ngram_analyzer",
+              "search_analyzer" : "standard"
+            },
+            "nn": {
+              "type": "text",
+              "analyzer": "ngram_analyzer",
+              "search_analyzer" : "standard"
+            },
+            "en": {
+              "type": "text",
+              "analyzer": "ngram_analyzer",
+              "search_analyzer" : "standard"
+            }
+          }
+        }
+      }
+    },
+    "definisjon": {
+      "properties": {
+        "tekst": {
+          "properties": {
+            "nb": {
+              "type": "text",
+              "analyzer": "ngram_analyzer",
+              "search_analyzer" : "standard"
+            },
+            "nn": {
+              "type": "text",
+              "analyzer": "ngram_analyzer",
+              "search_analyzer" : "standard"
+            },
+            "en": {
+              "type": "text",
+              "analyzer": "ngram_analyzer",
+              "search_analyzer" : "standard"
+            }
+          }
+        }
+      }
+    }
+  }
+}
