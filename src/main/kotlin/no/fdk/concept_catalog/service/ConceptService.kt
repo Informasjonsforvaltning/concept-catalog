@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.elastic.ConceptSearchRepository
+import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isValid
@@ -18,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
 import java.time.Instant
 import kotlin.math.ceil
-import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 
@@ -27,6 +28,7 @@ class ConceptService(
     private val conceptRepository: ConceptRepository,
     private val conceptSearchService: ConceptSearchService,
     private val conceptSearchRepository: ConceptSearchRepository,
+    private val currentConceptRepository: CurrentConceptRepository,
     private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
     private val conceptPublisher: ConceptPublisher,
@@ -36,6 +38,9 @@ class ConceptService(
 
     fun deleteConcept(concept: BegrepDBO) {
         conceptSearchRepository.delete(concept)
+        if (concept.id == concept.originaltBegrep) {
+            currentConceptRepository.delete(CurrentConcept(concept))
+        }
         conceptRepository.delete(concept)
     }
 
@@ -164,6 +169,10 @@ class ConceptService(
         val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
         try {
             conceptSearchRepository.saveAll(conceptsAndOperations.keys)
+            conceptsAndOperations.keys
+                .filter { it.id == it.originaltBegrep }
+                .map { CurrentConcept(it) }
+                .run { currentConceptRepository.saveAll(this) }
             return conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
         } catch (ex: Exception) {
             locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
@@ -211,35 +220,31 @@ class ConceptService(
             .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated =
-        conceptSearchService.searchConcepts(orgNumber, search)
-            .map { it.withHighestVersionDTO() }
-            .filter { if(search.filters.onlyCurrentVersions) it.isCurrentVersion() else true }
-            .toList()
-            .paginate(search.pagination)
+        if (search.filters.onlyCurrentVersions) {
+            val hits = conceptSearchService.searchCurrentConcepts(orgNumber, search)
 
-    private fun List<Begrep>.paginate(pagination: Pagination): Paginated {
-        val currentPage = if (pagination.page > 0) pagination.page else 0
-        val pageSize = if (pagination.size > 0) pagination.size else 10
-        val totalElements = size
-        val totalPages = ceil(totalElements.toDouble() / pageSize).roundToInt()
-        val nextPage = currentPage.inc()
+            hits.map { it.content }
+                .map { it.toDBO() }
+                .map { it.withHighestVersionDTO() }
+                .toList()
+                .paginate(hits.totalHits, search.pagination)
+        } else {
+            val hits = conceptSearchService.searchConcepts(orgNumber, search)
 
-        val fromIndex = currentPage.times(pageSize)
-        val toIndex = nextPage.times(pageSize)
-
-        val hits = when {
-            currentPage >= totalPages -> emptyList()
-            nextPage == totalPages -> subList(fromIndex, totalElements)
-            else -> subList(fromIndex, toIndex)
+            hits.map { it.content }
+                .map { it.withHighestVersionDTO() }
+                .toList()
+                .paginate(hits.totalHits, search.pagination)
         }
 
+    private fun List<Begrep>.paginate(totalHits: Long, pagination: Pagination): Paginated {
         return Paginated(
-            hits = hits,
+            hits = this,
             page = PageMeta(
-                currentPage = currentPage,
-                size = pageSize,
-                totalElements = totalElements,
-                totalPages = totalPages
+                currentPage = pagination.getPage(),
+                size = size,
+                totalElements = totalHits,
+                totalPages = ceil(totalHits.toDouble() / pagination.getSize()).roundToLong()
             )
         )
     }
@@ -293,6 +298,7 @@ class ConceptService(
         conceptPublisher.send(concept.ansvarligVirksomhet.id)
 
         conceptSearchRepository.save(published)
+        currentConceptRepository.save(CurrentConcept(published))
         return conceptRepository.save(published)
             .withHighestVersionDTO()
     }

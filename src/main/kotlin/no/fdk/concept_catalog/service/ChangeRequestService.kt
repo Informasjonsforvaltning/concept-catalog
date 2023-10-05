@@ -1,7 +1,7 @@
 package no.fdk.concept_catalog.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.elastic.ConceptSearchRepository
+import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.*
 import java.util.UUID
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
@@ -22,8 +22,8 @@ class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
     private val conceptSearchRepository: ConceptSearchRepository,
-    private val conceptService: ConceptService,
-    private val mapper: ObjectMapper
+    private val currentConceptRepository: CurrentConceptRepository,
+    private val conceptService: ConceptService
 ) {
     fun getCatalogRequests(catalogId: String, status: String?, conceptId: String?): List<ChangeRequest>  {
         val parsedStatus = changeRequestStatusFromString(status)
@@ -83,6 +83,7 @@ class ChangeRequestService(
             dbConcept == null -> createNewConcept(Virksomhet(id=catalogId), user)
                 .updateLastChangedAndByWhom(user)
                 .also { conceptSearchRepository.save(it) }
+                .also { currentConceptRepository.save(CurrentConcept(it)) }
                 .let { conceptRepository.save(it) }
             dbConcept.erPublisert -> dbConcept.createNewRevision(user)
                 .updateLastChangedAndByWhom(user)
@@ -98,6 +99,9 @@ class ChangeRequestService(
             changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
             if (conceptToUpdate.id != dbConcept?.id) {
                 conceptSearchRepository.delete(conceptToUpdate)
+                if (conceptToUpdate.id == conceptToUpdate.originaltBegrep) {
+                    currentConceptRepository.delete(CurrentConcept(conceptToUpdate))
+                }
                 conceptRepository.delete(conceptToUpdate)
             }
             throw ex

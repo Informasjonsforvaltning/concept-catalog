@@ -2,9 +2,11 @@ package no.fdk.concept_catalog.service
 
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
 import no.fdk.concept_catalog.model.*
+import org.springframework.data.domain.Pageable
 import org.springframework.data.elasticsearch.client.elc.NativeQuery
 import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
+import org.springframework.data.elasticsearch.core.SearchHits
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates
 import org.springframework.data.elasticsearch.core.query.Query
 import org.springframework.stereotype.Service
@@ -14,17 +16,25 @@ class ConceptSearchService(
     private val elasticsearchOperations: ElasticsearchOperations
 ) {
 
-    fun searchConcepts(orgNumber: String, search: SearchOperation): List<BegrepDBO> =
+    fun searchConcepts(orgNumber: String, search: SearchOperation): SearchHits<BegrepDBO> =
         elasticsearchOperations.search(
             search.toElasticQuery(orgNumber),
             BegrepDBO::class.java,
             IndexCoordinates.of("concepts")
-        ).map { it.content }.toList()
+        )
+
+    fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> =
+        elasticsearchOperations.search(
+            search.toElasticQuery(orgNumber),
+            CurrentConcept::class.java,
+            IndexCoordinates.of("concepts-current")
+        )
 
     private fun SearchOperation.toElasticQuery(orgNumber: String): Query {
         val qb = NativeQuery.builder()
         qb.withFilter { q -> q.match { m -> m.field("ansvarligVirksomhet.id").query(orgNumber) } }
         if (!query.isNullOrBlank()) qb.addFieldsQuery(fields, query)
+        qb.withPageable(Pageable.ofSize(pagination.getSize()).withPage(pagination.getPage()))
         return qb.build()
     }
 
