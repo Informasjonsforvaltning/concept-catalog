@@ -8,6 +8,17 @@ fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
     val queryFilters = mutableListOf(Query.of { queryBuilder ->
         queryBuilder.term { termBuilder -> termBuilder.field("ansvarligVirksomhet.id.keyword").value(orgNumber) }
     })
+
+    if (status != null) {
+        queryFilters
+            .add(Query.of { queryBuilder ->
+                queryBuilder.terms { termsBuilder ->
+                    termsBuilder.field("statusURI.keyword")
+                        .terms { fieldBuilder -> fieldBuilder.value(status.value.map { FieldValue.of(it) }) }
+                }
+            })
+    }
+
     if (published != null) {
         queryFilters.add(Query.of { queryBuilder ->
             queryBuilder.term { termBuilder ->
@@ -51,6 +62,16 @@ fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
                 queryBuilder.terms { termsBuilder ->
                     termsBuilder.field("fagområdeKoder")
                         .terms { fieldBuilder -> fieldBuilder.value(subject.value.map { FieldValue.of(it) }) }
+                }
+            })
+    }
+
+    internalFields?.value?.forEach { (key, value) ->
+        queryFilters
+            .add(Query.of { queryBuilder ->
+                queryBuilder.terms { termsBuilder ->
+                    termsBuilder.field("interneFelt.$key.value.keyword")
+                        .terms { fieldBuilder -> fieldBuilder.value(value.map { FieldValue.of(it) }) }
                 }
             })
     }

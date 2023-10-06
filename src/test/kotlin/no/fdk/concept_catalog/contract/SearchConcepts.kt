@@ -17,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 private val mapper = JacksonConfigurer().objectMapper()
@@ -70,7 +69,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -101,7 +99,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query with status filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -145,7 +142,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query with originalId filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -168,7 +164,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query with published filter returns correct results`() {
         val unPublishedResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -233,7 +228,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query with internalFields filter returns correct results`() {
         val withInternalFieldsResponse = authorizedRequest(
             "/begreper/search?orgNummer=111222333",
@@ -308,7 +302,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query filter with several values returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -337,7 +330,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query returns correct results when only title is active`() {
         val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, tillattTerm = false)
         val titleResponse = authorizedRequest(
@@ -356,7 +348,7 @@ class SearchConcepts : ApiTestContext() {
         val descriptionResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
             port,
-            mapper.writeValueAsString(SearchOperation("able", fields = queryFields)),
+            mapper.writeValueAsString(SearchOperation("searchable", fields = queryFields)),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
@@ -452,7 +444,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Status filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -621,7 +612,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Combination of status and published filter returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
