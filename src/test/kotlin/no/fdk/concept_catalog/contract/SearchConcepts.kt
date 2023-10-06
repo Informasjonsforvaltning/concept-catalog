@@ -2,9 +2,6 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
-import no.fdk.concept_catalog.elastic.ConceptSearchRepository
-import no.fdk.concept_catalog.elastic.CurrentConceptRepository
-import no.fdk.concept_catalog.elastic.shouldBeCurrent
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
@@ -15,16 +12,8 @@ import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.springframework.beans.factory.annotation.Autowired
+import org.junit.jupiter.api.*
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.findAll
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
@@ -41,26 +30,6 @@ private val mapper = JacksonConfigurer().objectMapper()
 @ContextConfiguration(initializers = [ApiTestContext.Initializer::class])
 @Tag("contract")
 class SearchConcepts : ApiTestContext() {
-
-    @Autowired
-    private lateinit var conceptRepository: MongoTemplate
-
-    @Autowired
-    private lateinit var conceptSearchRepository: ConceptSearchRepository
-
-    @Autowired
-    private lateinit var currentConceptRepository: CurrentConceptRepository
-
-    @BeforeAll
-    fun `elastic reindex`() {
-        val concepts = conceptRepository.findAll<BegrepDBO>()
-        conceptSearchRepository.saveAll(concepts)
-        concepts.forEach {
-            if (it.shouldBeCurrent(currentConceptRepository.findByIdOrNull(it.originaltBegrep))) currentConceptRepository.save(
-                CurrentConcept(it)
-            )
-        }
-    }
 
     @Test
     fun `Unauthorized when access token is not included`() {
