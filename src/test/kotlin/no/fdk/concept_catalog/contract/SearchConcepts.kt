@@ -587,7 +587,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query returns sorted results ordered by sistEndret ascending`() {
         val searchOp = SearchOperation(
             query = "",
@@ -607,7 +606,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    @Ignore
     fun `Query returns sorted results ordered by anbefaltTerm descending`() {
         val searchOp = SearchOperation(
             query = "",
