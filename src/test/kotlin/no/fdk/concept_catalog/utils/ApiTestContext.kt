@@ -2,10 +2,12 @@ package no.fdk.concept_catalog.utils
 
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.data.mongodb.core.MongoTemplate
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.elasticsearch.ElasticsearchContainer
@@ -18,10 +20,12 @@ abstract class ApiTestContext {
 
     @LocalServerPort
     var port: Int = 0
-
+    @Autowired
+    private lateinit var resetElastic: ResetElastic
     @BeforeEach
     fun resetDatabase() {
         resetDB()
+        resetElastic.elasticReindex()
     }
 
     internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
