@@ -7,11 +7,20 @@ import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.Mapping
 import org.springframework.data.elasticsearch.annotations.Setting
+import org.springframework.data.mongodb.core.index.CompoundIndex
+import org.springframework.data.mongodb.core.index.CompoundIndexes
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.time.LocalDate
 
 @Document(collection = "begrep")
+@CompoundIndexes(value = [
+    CompoundIndex(name = "ansvarlig_virksomhet", def = "{'ansvarligVirksomhet.id' : 1}"),
+    CompoundIndex(name = "ansvarlig_virksomhet_status", def = "{'ansvarligVirksomhet.id' : 1, 'status': 1}"),
+    CompoundIndex(name = "originalt_begrep", def = "{'originaltBegrep' : 1}"),
+    CompoundIndex(name = "originalt_begrep_er_publisert", def = "{'originaltBegrep' : 1, 'erPublisert': 1}")
+])
 @org.springframework.data.elasticsearch.annotations.Document(indexName = "concepts")
 @Setting(settingPath = "/elastic/settings.json")
 @Mapping(mappingPath = "/elastic/mappings.json")
