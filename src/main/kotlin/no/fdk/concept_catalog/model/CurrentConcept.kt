@@ -3,13 +3,13 @@ package no.fdk.concept_catalog.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.data.annotation.Id
-import org.springframework.data.elasticsearch.annotations.*
+import org.springframework.data.elasticsearch.annotations.Document
+import org.springframework.data.elasticsearch.annotations.Field
+import org.springframework.data.elasticsearch.annotations.FieldType
 import java.time.Instant
 import java.time.LocalDate
 
 @Document(indexName = "concepts-current")
-@Setting(settingPath = "/elastic/settings.json")
-@Mapping(mappingPath = "/elastic/mappings.json")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class CurrentConcept(
     val idOfThisVersion: String,
