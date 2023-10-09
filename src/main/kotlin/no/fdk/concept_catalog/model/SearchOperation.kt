@@ -26,7 +26,6 @@ class SearchFilters(
     val assignedUser: SearchFilter<List<String>>? = null,
     val status: SearchFilter<List<String>>? = null,
     val published: BooleanFilter? = null,
-    val onlyCurrentVersions: Boolean = true,
     val subject: SearchFilter<List<String>>? = null,
     val originalId: SearchFilter<List<String>>? = null,
     val internalFields: SearchFilter<Map<String, List<String>>>? = null,

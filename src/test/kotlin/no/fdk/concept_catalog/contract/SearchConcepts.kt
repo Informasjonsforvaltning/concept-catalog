@@ -479,27 +479,6 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    fun `Query with false value for current version filter returns correct results`() {
-        val rsp = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            port,
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "definisjon",
-                    filters = SearchFilters(onlyCurrentVersions = false)
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
-
-        assertEquals(HttpStatus.OK.value(), rsp["status"])
-
-        val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), result.hits)
-    }
-
-    @Test
     fun `Query returns no results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -578,7 +557,6 @@ class SearchConcepts : ApiTestContext() {
     fun `Query returns sorted results ordered by sistEndret ascending`() {
         val searchOp = SearchOperation(
             query = "",
-            filters = SearchFilters(onlyCurrentVersions = false),
             sort = SortField(field = SortFieldEnum.SIST_ENDRET, direction = SortDirection.ASC)
         )
         val rsp = authorizedRequest(
@@ -590,14 +568,13 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0_OLD, BEGREP_2, BEGREP_0, BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_2, BEGREP_0, BEGREP_1), result.hits)
     }
 
     @Test
     fun `Query returns sorted results ordered by anbefaltTerm descending`() {
         val searchOp = SearchOperation(
             query = "",
-            filters = SearchFilters(onlyCurrentVersions = false),
             sort = SortField(field = SortFieldEnum.ANBEFALT_TERM_NB, direction = SortDirection.DESC)
         )
         val rsp = authorizedRequest(
@@ -608,7 +585,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0_OLD, BEGREP_0, BEGREP_2, BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_0, BEGREP_2, BEGREP_1), result.hits)
     }
 
     @Test

@@ -2,7 +2,6 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
-import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.User
@@ -25,7 +24,6 @@ import kotlin.test.assertEquals
 class Rabbit {
     private val conceptRepository: ConceptRepository = mock()
     private val conceptSearch: ConceptSearchService = mock()
-    private val conceptSearchRepository: ConceptSearchRepository = mock()
     private val currentConceptRepository: CurrentConceptRepository = mock()
     private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
@@ -33,7 +31,7 @@ class Rabbit {
     private val historyService: HistoryService = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, conceptSearch, conceptSearchRepository, currentConceptRepository, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, currentConceptRepository, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
 
     @Test
     fun `Publish collection when first concept is created`() {
