@@ -17,13 +17,6 @@ class ConceptSearchService(
     private val elasticsearchOperations: ElasticsearchOperations
 ) {
 
-    fun searchConcepts(orgNumber: String, search: SearchOperation): SearchHits<BegrepDBO> =
-        elasticsearchOperations.search(
-            search.toElasticQuery(orgNumber),
-            BegrepDBO::class.java,
-            IndexCoordinates.of("concepts")
-        )
-
     fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> =
         elasticsearchOperations.search(
             search.toElasticQuery(orgNumber),

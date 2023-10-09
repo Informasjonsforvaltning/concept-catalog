@@ -15,20 +15,17 @@ private val logger = LoggerFactory.getLogger(ElasticUpdater::class.java)
 @Service
 class ElasticUpdater(
     private val conceptRepository: MongoTemplate,
-    private val conceptSearchRepository: ConceptSearchRepository,
     private val currentConceptRepository: CurrentConceptRepository
 ) {
 
     fun reindexElastic() = runBlocking {
         launch {
             try {
-                conceptSearchRepository.deleteAll()
                 currentConceptRepository.deleteAll()
             } catch (_: Exception) { }
 
             conceptRepository.findAll<BegrepDBO>()
                 .forEach {
-                    conceptSearchRepository.save(it)
                     if (it.shouldBeCurrent(currentConceptRepository.findByIdOrNull(it.originaltBegrep))) currentConceptRepository.save(CurrentConcept(it))
                 }
 

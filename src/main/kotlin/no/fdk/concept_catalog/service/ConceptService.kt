@@ -2,7 +2,6 @@ package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.configuration.ApplicationProperties
-import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
@@ -27,7 +26,6 @@ private val logger = LoggerFactory.getLogger(ConceptService::class.java)
 class ConceptService(
     private val conceptRepository: ConceptRepository,
     private val conceptSearchService: ConceptSearchService,
-    private val conceptSearchRepository: ConceptSearchRepository,
     private val currentConceptRepository: CurrentConceptRepository,
     private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
@@ -37,7 +35,6 @@ class ConceptService(
 ) {
 
     fun deleteConcept(concept: BegrepDBO) {
-        conceptSearchRepository.delete(concept)
         if (concept.id == concept.originaltBegrep) {
             currentConceptRepository.delete(CurrentConcept(concept))
         }
@@ -168,7 +165,6 @@ class ConceptService(
     ): List<Begrep> {
         val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
         try {
-            conceptSearchRepository.saveAll(conceptsAndOperations.keys)
             conceptsAndOperations.keys
                 .filter { it.id == it.originaltBegrep }
                 .map { CurrentConcept(it) }
@@ -219,25 +215,17 @@ class ConceptService(
             .distinctBy {concept -> concept.originaltBegrep }
             .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
 
-    fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated =
-        if (search.filters.onlyCurrentVersions) {
-            val hits = conceptSearchService.searchCurrentConcepts(orgNumber, search)
+    fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated {
+        val hits = conceptSearchService.searchCurrentConcepts(orgNumber, search)
 
-            hits.map { it.content }
-                .map { it.toDBO() }
-                .map { it.withHighestVersionDTO() }
-                .toList()
-                .paginate(hits.totalHits, search.pagination)
-        } else {
-            val hits = conceptSearchService.searchConcepts(orgNumber, search)
+        return hits.map { it.content }
+            .map { it.toDBO() }
+            .map { it.withHighestVersionDTO() }
+            .toList()
+            .asPaginatedWrapDTO(hits.totalHits, search.pagination)
+    }
 
-            hits.map { it.content }
-                .map { it.withHighestVersionDTO() }
-                .toList()
-                .paginate(hits.totalHits, search.pagination)
-        }
-
-    private fun List<Begrep>.paginate(totalHits: Long, pagination: Pagination): Paginated {
+    private fun List<Begrep>.asPaginatedWrapDTO(totalHits: Long, pagination: Pagination): Paginated {
         return Paginated(
             hits = this,
             page = PageMeta(
@@ -297,7 +285,6 @@ class ConceptService(
 
         conceptPublisher.send(concept.ansvarligVirksomhet.id)
 
-        conceptSearchRepository.save(published)
         currentConceptRepository.save(CurrentConcept(published))
         return conceptRepository.save(published)
             .withHighestVersionDTO()

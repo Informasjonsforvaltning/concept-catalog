@@ -1,6 +1,5 @@
 package no.fdk.concept_catalog.utils
 
-import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.elastic.shouldBeCurrent
 import no.fdk.concept_catalog.model.BegrepDBO
@@ -17,16 +16,11 @@ class ResetElastic {
     private lateinit var conceptRepository: MongoTemplate
 
     @Autowired
-    private lateinit var conceptSearchRepository: ConceptSearchRepository
-
-    @Autowired
     private lateinit var currentConceptRepository: CurrentConceptRepository
 
     fun elasticReindex() {
         val concepts = conceptRepository.findAll<BegrepDBO>()
-        conceptSearchRepository.deleteAll()
         currentConceptRepository.deleteAll()
-        conceptSearchRepository.saveAll(concepts)
         concepts.forEach {
             if (it.shouldBeCurrent(currentConceptRepository.findByIdOrNull(it.originaltBegrep))) {
                 currentConceptRepository.save(CurrentConcept(it))

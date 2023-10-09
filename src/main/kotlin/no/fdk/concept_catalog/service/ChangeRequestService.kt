@@ -1,6 +1,5 @@
 package no.fdk.concept_catalog.service
 
-import no.fdk.concept_catalog.elastic.ConceptSearchRepository
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.*
 import java.util.UUID
@@ -21,7 +20,6 @@ private val logger = LoggerFactory.getLogger(ChangeRequestService::class.java)
 class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
-    private val conceptSearchRepository: ConceptSearchRepository,
     private val currentConceptRepository: CurrentConceptRepository,
     private val conceptService: ConceptService
 ) {
@@ -82,12 +80,10 @@ class ChangeRequestService(
         val conceptToUpdate = when {
             dbConcept == null -> createNewConcept(Virksomhet(id=catalogId), user)
                 .updateLastChangedAndByWhom(user)
-                .also { conceptSearchRepository.save(it) }
                 .also { currentConceptRepository.save(CurrentConcept(it)) }
                 .let { conceptRepository.save(it) }
             dbConcept.erPublisert -> dbConcept.createNewRevision(user)
                 .updateLastChangedAndByWhom(user)
-                .also { conceptSearchRepository.save(it) }
                 .let { conceptRepository.save(it) }
             else -> dbConcept
         }
@@ -98,7 +94,6 @@ class ChangeRequestService(
             logger.error("update of concept failed when accepting ${changeRequest.id}, reverting acceptation", ex)
             changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
             if (conceptToUpdate.id != dbConcept?.id) {
-                conceptSearchRepository.delete(conceptToUpdate)
                 if (conceptToUpdate.id == conceptToUpdate.originaltBegrep) {
                     currentConceptRepository.delete(CurrentConcept(conceptToUpdate))
                 }
