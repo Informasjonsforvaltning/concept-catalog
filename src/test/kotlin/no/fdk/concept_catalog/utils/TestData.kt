@@ -131,10 +131,11 @@ val BEGREP_1 = Begrep(
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "is searchable")), null),
     status = Status.GODKJENT,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
-    anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1"), Pair("en", "Lorem ipsum"))),
+    anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1 Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
+    merknad = mapOf(Pair("nb", "asdf")),
     endringslogelement = Endringslogelement(
         endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
@@ -155,7 +156,7 @@ val BEGREP_2 = Begrep(
     status = Status.HOERING,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE",
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
-    tillattTerm = mapOf(Pair("nn", listOf("Lorem ipsum"))),
+    tillattTerm = mapOf(Pair("nb", listOf("Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
