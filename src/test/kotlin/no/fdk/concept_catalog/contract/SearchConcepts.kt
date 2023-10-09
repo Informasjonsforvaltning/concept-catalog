@@ -415,14 +415,14 @@ class SearchConcepts : ApiTestContext() {
     fun `Query returns correct results when searching in merknad`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("merknad")), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("asdf")), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0), result.hits)
+        assertEquals(listOf(BEGREP_1), result.hits)
 
     }
 
