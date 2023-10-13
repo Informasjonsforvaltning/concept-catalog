@@ -444,6 +444,9 @@ components:
           type: string
           format: email
           description: e-post adressen til kontaktpunkt
+          nullable: true
+          default: ""
+          minLength: 0
         harTelefon:
           type: string
           description: telefonnummer til kontaktpunkt
