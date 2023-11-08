@@ -67,7 +67,7 @@ class CreateRevision : ApiTestContext() {
     }
 
     @Test
-    fun `Ok - Created - for write access`() {
+    fun `Ok - Created with version - for write access`() {
         val before = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
             port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
@@ -98,5 +98,50 @@ class CreateRevision : ApiTestContext() {
         assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
         assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
         assertEquals(revision?.id, concept4After?.gjeldendeRevisjon)
+    }
+
+    @Test
+    fun `Ok - Created without version - for write access`() {
+        val before = authorizedRequest(
+            "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
+            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+        )
+
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_4.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION.copy(versjonsnr = null)),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+        )
+        assertEquals(HttpStatus.CREATED.value(), rsp["status"])
+
+        val after = authorizedRequest(
+            "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
+            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+        )
+
+        val beforeList: List<Begrep> = mapper.readValue<List<Begrep>>(before["body"] as String).filter{ it -> it.id != "id5" }
+        val afterList: List<Begrep> = mapper.readValue<List<Begrep>>(after["body"] as String).filter{ it -> it.id != "id5" }
+        assertEquals(beforeList.size + 1, afterList.size)
+
+        val revision: Begrep? = afterList.firstOrNull { it.id != "id4" }
+        val concept4After: Begrep? = afterList.firstOrNull { it.id == "id4" }
+
+        assertEquals(BEGREP_4.originaltBegrep, revision?.originaltBegrep)
+        assertEquals(SemVer(1, 0, 1), revision?.versjonsnr)
+        assertEquals(Status.UTKAST, revision?.status)
+        assertEquals(false, revision?.erPublisert)
+        assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
+        assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
+        assertEquals(revision?.id, concept4After?.gjeldendeRevisjon)
+    }
+
+    @Test
+    fun `Bad request - Created with invalid version - for write access`() {
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_4.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION.copy(versjonsnr = SemVer(1,0,0))),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+        )
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+        val error: Map<String, Any> = mapper.readValue(rsp["body"] as String)
+        assertEquals("Invalid version 1.0.0. Version must be greater than 1.0.0", error["message"])
     }
 }

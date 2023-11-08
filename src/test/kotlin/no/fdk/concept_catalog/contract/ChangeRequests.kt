@@ -458,7 +458,7 @@ class ChangeRequests : ApiTestContext() {
                 erPublisert = false,
                 gjeldendeRevisjon = null,
                 revisjonAvSistPublisert = true,
-                versjonsnr = SemVer(0, 0, 1),
+                versjonsnr = SemVer(0, 1, 0),
                 ansvarligVirksomhet = Virksomhet(
                     id = "123456789"
                 ),

@@ -38,7 +38,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Feilmelding"
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: true
         content:
@@ -116,7 +116,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Feilmelding"
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: true
         content:
@@ -184,7 +184,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Feilmelding"
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: true
         content:
@@ -220,7 +220,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Feilmelding"
+                $ref: "#/components/schemas/Error"
       requestBody:
         required: true
         content:
@@ -475,14 +475,25 @@ components:
         - godkjent
         - høring
         - publisert
-    Feilmelding:
+    Error:
       type: object
       required:
-        - melding
+        - timestamp
+        - status
+        - error
+        - message
       properties:
-        melding:
+        timestamp:
           type: string
-          nullable: false
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        exception:
+          type: string
+        message:
+          type: string
     SemVer:
       type: object
       required:

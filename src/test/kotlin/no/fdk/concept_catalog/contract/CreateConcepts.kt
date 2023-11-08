@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_CREATED
 import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
@@ -86,4 +87,16 @@ class CreateConcepts : ApiTestContext() {
         assertEquals(beforeList.size + 2, afterList.size)
     }
 
+    @Test
+    fun `Bad request - Invalid version - for write access`() {
+        val rsp = authorizedRequest(
+            "/begreper/import", port,
+            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED.copy(versjonsnr = SemVer(0,0,0)), BEGREP_TO_BE_CREATED)),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+        )
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
+        val error: Map<String, Any> = mapper.readValue(rsp["body"] as String)
+        assertEquals("Concept 0 - {}\n" +
+                "Invalid version 0.0.0. Version must be minimum 0.1.0\n\n", error["message"])
+    }
 }
