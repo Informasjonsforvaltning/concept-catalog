@@ -304,7 +304,7 @@ val BEGREP_5 = Begrep(
 )
 
 val BEGREP_REVISION = Begrep(
-    versjonsnr = SemVer(1, 0, 0),
+    versjonsnr = SemVer(1, 0, 1),
     status = Status.UTKAST,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
     erPublisert = true,

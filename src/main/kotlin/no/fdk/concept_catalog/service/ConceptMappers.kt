@@ -5,7 +5,7 @@ import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.*
 
-val NEW_CONCEPT_VERSION = SemVer(0, 0, 1)
+val NEW_CONCEPT_VERSION = SemVer(0, 1, 0)
 
 fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String?, unpublishedRevision: String?): Begrep =
     Begrep(
@@ -67,6 +67,7 @@ fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
     copy(
         status = dto.status,
         statusURI = dto.statusURI,
+        versjonsnr = dto.versjonsnr ?: versjonsnr,
         anbefaltTerm = dto.anbefaltTerm,
         tillattTerm = dto.tillattTerm,
         frarådetTerm = dto.frarådetTerm,

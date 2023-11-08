@@ -54,6 +54,12 @@ class ConceptService(
 
         val newConcept: BegrepDBO = newDefaultConcept.addUpdatableFieldsFromDTO(concept)
 
+        if(!newConcept.validateMinimumVersion()) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid version ${newConcept.versjonsnr}. Version must be minimum 0.1.0"
+            )
+        }
         val validation = newConcept.validateSchema()
         if (!validation.isValid) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
@@ -84,6 +90,14 @@ class ConceptService(
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
         val newRevision = concept.createNewRevision(user).updateLastChangedAndByWhom(user)
         val newWithUpdatedValues = newRevision.addUpdatableFieldsFromDTO(revisionValues)
+
+        if(!newWithUpdatedValues.validateVersionUpgrade(concept.versjonsnr)) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid version ${newWithUpdatedValues.versjonsnr}. Version must be greater than ${concept.versjonsnr}"
+            )
+        }
+
         val operations = createPatchOperations(newRevision, newWithUpdatedValues, mapper)
 
         return saveConceptsAndUpdateHistory(mapOf(Pair(newWithUpdatedValues, operations)), user, jwt).first()
@@ -94,26 +108,38 @@ class ConceptService(
             .distinct()
             .forEach { publishNewCollectionIfFirstSavedConcept(it) }
 
+        val invalidVersionsList = mutableListOf<BegrepDBO>()
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val newConceptsAndOperations = concepts
             .map { it to createNewConcept(it.ansvarligVirksomhet, user).updateLastChangedAndByWhom(user) }
             .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
             .mapValues { createPatchOperations(it.key, it.value, mapper) }
             .onEach {
+                if(!it.key.validateMinimumVersion()) {
+                    invalidVersionsList.add(it.key)
+                }
+
                 val validation = it.key.validateSchema()
                 if (!validation.isValid) {
                     validationResultsMap[it.key] = validation.results()
                 }
             }
 
-        if (validationResultsMap.isNotEmpty()) {
+        if (validationResultsMap.isNotEmpty() || invalidVersionsList.isNotEmpty()) {
             throw ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 validationResultsMap.entries.mapIndexed { index, entry ->
-                    "Begrep ${index}"
+                    "Concept ${index}"
                         .plus(entry.key.anbefaltTerm?.navn?.let { " - $it" } ?: "")
                         .plus("\n")
                         .plus(entry.value.toString())
+                        .plus("\n\n")
+                }.joinToString("\n") +
+                invalidVersionsList.mapIndexed { index, entry ->
+                    "Concept ${index}"
+                        .plus(entry.anbefaltTerm?.navn?.let { " - $it" } ?: "")
+                        .plus("\n")
+                        .plus("Invalid version ${entry.versjonsnr}. Version must be minimum 0.1.0")
                         .plus("\n\n")
                 }.joinToString("\n")
             )
@@ -307,10 +333,14 @@ class ConceptService(
             ).maxByOrNull { it.opprettet?.epochSecond ?: 0 }?.id
         }
 
-    private fun Begrep.isCurrentVersion(): Boolean =
-        erSistPublisert || isUnpublished()
-
-    private fun Begrep.isUnpublished(): Boolean =
-        id == originaltBegrep && !erPublisert
-
+    fun BegrepDBO.validateMinimumVersion(): Boolean =
+        when {
+            versjonsnr < SemVer(0,1,0) -> false
+            else -> true
+        }
+    fun BegrepDBO.validateVersionUpgrade(currentVersion: SemVer?): Boolean =
+        when {
+            currentVersion != null && versjonsnr <= currentVersion -> false
+            else -> true
+        }
 }

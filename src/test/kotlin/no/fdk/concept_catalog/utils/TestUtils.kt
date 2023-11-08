@@ -25,8 +25,6 @@ import java.io.StringReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 fun apiGet(port: Int, endpoint: String, acceptHeader: MediaType): Map<String, Any> {
 
@@ -91,13 +89,13 @@ fun authorizedRequest(
         mapOf(
             "status" to e.statusCode.value(),
             "header" to " ",
-            "body" to e.toString()
+            "body" to e.responseBodyAsString
         )
     } catch (e: HttpServerErrorException) {
         mapOf(
             "status" to e.statusCode.value(),
             "header" to " ",
-            "body" to e.toString()
+            "body" to e.responseBodyAsString
         )
     } catch (e: Exception) {
         mapOf(
