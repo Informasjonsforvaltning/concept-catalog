@@ -57,7 +57,7 @@ data class CurrentConcept(
         dbo.anbefaltTerm, dbo.tillattTerm, dbo.frarådetTerm, dbo.definisjon,
         dbo.definisjonForAllmennheten, dbo.definisjonForSpesialister,
         dbo.merknad, dbo.merkelapp, dbo.ansvarligVirksomhet, dbo.eksempel,
-        dbo.fagområde, dbo.fagområdeKoder, dbo.omfang, dbo.kontaktpunkt,
+        dbo.fagområde, dbo.fagområdeKoder?.filterNotNull(), dbo.omfang, dbo.kontaktpunkt,
         dbo.gyldigFom, dbo.gyldigTom, dbo.endringslogelement, dbo.opprettet,
         dbo.opprettetAv, dbo.seOgså, dbo.erstattesAv, dbo.assignedUser,
         dbo.abbreviatedLabel, dbo.begrepsRelasjon, dbo.interneFelt

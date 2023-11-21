@@ -31,7 +31,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         ansvarligVirksomhet,
         eksempel,
         fagområde,
-        fagområdeKoder,
+        fagområdeKoder?.filterNotNull(),
         omfang,
         kontaktpunkt,
         gyldigFom,
