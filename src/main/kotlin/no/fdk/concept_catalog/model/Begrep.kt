@@ -38,7 +38,7 @@ data class BegrepDBO (
     val ansvarligVirksomhet: Virksomhet,
     val eksempel: Map<String, String>?,
     val fagområde: Map<String, List<String>>?,
-    val fagområdeKoder: List<String>?,
+    val fagområdeKoder: List<String?>?,
     val omfang: URITekst?,
     val kontaktpunkt: Kontaktpunkt?,
     val gyldigFom: LocalDate?,

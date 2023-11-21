@@ -322,7 +322,7 @@ class SkosApNoModelService(
                 }
             }
         concept.fagområdeKoder
-            ?.filter { it.isNotEmpty() }
+            ?.filter { !it.isNullOrEmpty() }
             ?.forEach { kode ->
                 addProperty(
                     DCTerms.subject,
