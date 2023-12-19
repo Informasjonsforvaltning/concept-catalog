@@ -35,9 +35,11 @@ class ConceptSearchService(
                 )
             }
         }
-        builder.withSort { sortBuilder ->
-            sortBuilder.field { fieldBuilder ->
-                fieldBuilder.field(sort.sortField()).order(sort.sortDirection())
+        if (sort != null) {
+            builder.withSort { sortBuilder ->
+                sortBuilder.field { fieldBuilder ->
+                    fieldBuilder.field(sort.sortField()).order(sort.sortDirection())
+                }
             }
         }
         if (!query.isNullOrBlank()) builder.addFieldsQuery(fields, query)
@@ -48,6 +50,9 @@ class ConceptSearchService(
     private fun NativeQueryBuilder.addFieldsQuery(queryFields: QueryFields, queryValue: String) {
         withQuery { queryBuilder ->
             queryBuilder.multiMatch { matchBuilder ->
+                matchBuilder.fields(queryFields.boostedPaths())
+                    .query(queryValue)
+                    .type(TextQueryType.Phrase)
                 matchBuilder.fields(queryFields.paths())
                     .query(queryValue)
                     .type(TextQueryType.BoolPrefix)
@@ -67,9 +72,27 @@ class ConceptSearchService(
             else -> "endringslogelement.endringstidspunkt"
         }
 
+    private fun QueryFields.boostedPaths(): List<String> =
+        listOf(
+            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 20)
+            else emptyList(),
+
+            if (frarådetTerm) languagePaths("frarådetTerm", 5)
+            else emptyList(),
+
+            if (tillattTerm) languagePaths("tillattTerm", 5)
+            else emptyList(),
+
+            if (definisjon) languagePaths("definisjon.tekst", 8)
+            else emptyList(),
+
+            if (merknad) languagePaths("merknad", 5)
+            else emptyList()
+        ).flatten()
+
     private fun QueryFields.paths(): List<String> =
         listOf(
-            if (anbefaltTerm) languagePaths("anbefaltTerm.navn")
+            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 10)
             else emptyList(),
 
             if (frarådetTerm) languagePaths("frarådetTerm")
@@ -85,7 +108,7 @@ class ConceptSearchService(
             else emptyList()
         ).flatten()
 
-    private fun languagePaths(basePath: String): List<String> =
-        listOf("$basePath.nb")
+    private fun languagePaths(basePath: String, boost: Int? = null): List<String> =
+        listOf("$basePath.nb${if (boost != null) "^$boost" else ""}")
 
 }
