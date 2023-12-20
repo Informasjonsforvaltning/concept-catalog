@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service
 class ConceptSearchService(
     private val elasticsearchOperations: ElasticsearchOperations
 ) {
-
     fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> =
         elasticsearchOperations.search(
             search.toElasticQuery(orgNumber),
@@ -44,18 +43,31 @@ class ConceptSearchService(
         }
         if (!query.isNullOrBlank()) builder.addFieldsQuery(fields, query)
         builder.withPageable(Pageable.ofSize(pagination.getSize()).withPage(pagination.getPage()))
+
         return builder.build()
     }
 
+
     private fun NativeQueryBuilder.addFieldsQuery(queryFields: QueryFields, queryValue: String) {
         withQuery { queryBuilder ->
-            queryBuilder.multiMatch { matchBuilder ->
-                matchBuilder.fields(queryFields.boostedPaths())
-                    .query(queryValue)
-                    .type(TextQueryType.Phrase)
-                matchBuilder.fields(queryFields.paths())
-                    .query(queryValue)
-                    .type(TextQueryType.BoolPrefix)
+            queryBuilder.bool { boolBuilder ->
+                boolBuilder.should {
+                    it.multiMatch { matchBuilder ->
+                        matchBuilder.fields(queryFields.boostedPaths())
+                            .query(queryValue)
+                            .type(TextQueryType.Phrase)
+                    }
+                }
+
+                boolBuilder.should {
+                    it.multiMatch { matchBuilder ->
+                        matchBuilder.fields(queryFields.paths())
+                            .query(queryValue)
+                            .type(TextQueryType.BoolPrefix)
+                    }
+                }
+
+                boolBuilder.minimumShouldMatch("1")
             }
         }
     }
