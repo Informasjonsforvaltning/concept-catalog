@@ -8,7 +8,7 @@ class SearchOperation(
     val query: String?,
     val fields: QueryFields = QueryFields(),
     val filters: SearchFilters = SearchFilters(),
-    val sort: SortField = SortField(),
+    val sort: SortField? = null,
     val pagination: Pagination = Pagination()
 )
 

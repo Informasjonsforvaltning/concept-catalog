@@ -30,6 +30,8 @@ private val mapper = JacksonConfigurer().objectMapper()
 @Tag("contract")
 class SearchConcepts : ApiTestContext() {
 
+    val sortByModified = SortField(field = SortFieldEnum.SIST_ENDRET, direction = SortDirection.DESC)
+
     @Test
     fun `Unauthorized when access token is not included`() {
         val rsp = authorizedRequest(
@@ -72,7 +74,7 @@ class SearchConcepts : ApiTestContext() {
     fun `Query returns correct results`() {
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
-            port, mapper.writeValueAsString(SearchOperation("Begrep")), JwtToken(Access.ORG_WRITE).toString(),
+            port, mapper.writeValueAsString(SearchOperation("Begrep", sort = sortByModified)), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
 
@@ -147,7 +149,7 @@ class SearchConcepts : ApiTestContext() {
             "/begreper/search?orgNummer=123456789",
             port, mapper.writeValueAsString(
                 SearchOperation(
-                    "", filters = SearchFilters(
+                    "", sort = sortByModified, filters = SearchFilters(
                         originalId = SearchFilter(
                             listOf("id0-old", "id1")
                         )
@@ -168,14 +170,14 @@ class SearchConcepts : ApiTestContext() {
         val unPublishedResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
             port,
-            mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(published = BooleanFilter(false)))),
+            mapper.writeValueAsString(SearchOperation("", sort = sortByModified, filters = SearchFilters(published = BooleanFilter(false)))),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
         val publishedResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
             port,
-            mapper.writeValueAsString(SearchOperation("", filters = SearchFilters(published = BooleanFilter(true)))),
+            mapper.writeValueAsString(SearchOperation("", sort = sortByModified, filters = SearchFilters(published = BooleanFilter(true)))),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
@@ -308,7 +310,7 @@ class SearchConcepts : ApiTestContext() {
             port,
             mapper.writeValueAsString(
                 SearchOperation(
-                    "Begrep",
+                    "Begrep", sort = sortByModified,
                     filters = SearchFilters(
                         status = SearchFilter(
                             listOf(
@@ -335,7 +337,7 @@ class SearchConcepts : ApiTestContext() {
         val titleResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
             port,
-            mapper.writeValueAsString(SearchOperation("Begrep", fields = queryFields)),
+            mapper.writeValueAsString(SearchOperation("Begrep", sort = sortByModified, fields = queryFields)),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
@@ -382,7 +384,7 @@ class SearchConcepts : ApiTestContext() {
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
             port,
-            mapper.writeValueAsString(SearchOperation("", fields = queryFields)),
+            mapper.writeValueAsString(SearchOperation("", sort = sortByModified, fields = queryFields)),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
@@ -499,7 +501,7 @@ class SearchConcepts : ApiTestContext() {
             val rsp = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
                 port,
-                mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = -1, size = -1))),
+                mapper.writeValueAsString(SearchOperation("", sort = sortByModified, pagination = Pagination(page = -1, size = -1))),
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
@@ -531,14 +533,14 @@ class SearchConcepts : ApiTestContext() {
             val rsp0 = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
                 port,
-                mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = 0, size = 2))),
+                mapper.writeValueAsString(SearchOperation("", sort = sortByModified, pagination = Pagination(page = 0, size = 2))),
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )
             val rsp1 = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
                 port,
-                mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = 1, size = 2))),
+                mapper.writeValueAsString(SearchOperation("", sort = sortByModified, pagination = Pagination(page = 1, size = 2))),
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
             )

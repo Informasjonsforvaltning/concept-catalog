@@ -11,6 +11,6 @@ enum class SortDirection(val label: String) {
 }
 
 class SortField(
-    val field: SortFieldEnum = SortFieldEnum.SIST_ENDRET,
-    val direction: SortDirection = SortDirection.DESC,
+    val field: SortFieldEnum,
+    val direction: SortDirection,
 )
