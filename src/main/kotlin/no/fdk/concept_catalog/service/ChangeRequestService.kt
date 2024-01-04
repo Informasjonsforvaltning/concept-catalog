@@ -46,7 +46,7 @@ class ChangeRequestService(
             catalogId = catalogId,
             conceptId = body.conceptId,
             status = ChangeRequestStatus.OPEN,
-            operations = emptyList(),
+            operations = body.operations,
             proposedBy = user,
             timeForProposal = Instant.now(),
             title = body.title,
