@@ -241,6 +241,10 @@ class ConceptService(
             .distinctBy {concept -> concept.originaltBegrep }
             .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
 
+    fun getLatestVersion(originalId: String): BegrepDBO? =
+        conceptRepository.getByOriginaltBegrep(originalId)
+            .maxByOrNull { it.versjonsnr }
+
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated {
         val hits = conceptSearchService.searchCurrentConcepts(orgNumber, search)
 

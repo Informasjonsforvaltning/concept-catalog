@@ -503,7 +503,7 @@ val CHANGE_REQUEST_UPDATE_BODY_NEW = ChangeRequestUpdateBody(
     operations = listOf(
         JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null),
     ),
-    title = "Nytt endringsforslag"
+    title = "Forslag til nytt begrep"
 )
 
 val CHANGE_REQUEST_UPDATE_BODY_UPDATE = ChangeRequestUpdateBody(
@@ -511,4 +511,10 @@ val CHANGE_REQUEST_UPDATE_BODY_UPDATE = ChangeRequestUpdateBody(
     operations = listOf(
         JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
     title = "Ny tittel endringsforslag"
+)
+
+val CHANGE_REQUEST_UPDATE_BODY_0 = ChangeRequestUpdateBody(
+    conceptId = BEGREP_TO_BE_UPDATED.id,
+    operations = listOf( JsonPatchOperation(op = OpEnum.ADD, path = "/anbefaltTerm/navn/nb", value = "Enda en ny anbefalt term") ),
+    title = "Endringsforslag 7"
 )
