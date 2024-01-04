@@ -6,6 +6,7 @@ import java.util.UUID
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isOrganizationNumber
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
@@ -21,7 +22,8 @@ class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
     private val currentConceptRepository: CurrentConceptRepository,
-    private val conceptService: ConceptService
+    private val conceptService: ConceptService,
+    private val mapper: ObjectMapper
 ) {
     fun getCatalogRequests(catalogId: String, status: String?, conceptId: String?): List<ChangeRequest>  {
         val parsedStatus = changeRequestStatusFromString(status)
@@ -39,7 +41,8 @@ class ChangeRequestService(
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
     fun createChangeRequest(catalogId: String, user: User, body: ChangeRequestUpdateBody): String {
-        validateNewChangeRequest(body.conceptId, catalogId)
+        validateNewChangeRequest(body, catalogId, user)
+
         val newId = UUID.randomUUID().toString()
         ChangeRequest(
             id = newId,
@@ -55,8 +58,12 @@ class ChangeRequestService(
         return newId
     }
 
-    fun updateChangeRequest(id: String, catalogId: String, body: ChangeRequestUpdateBody): ChangeRequest? {
-        validateJsonPatchOperations(body.operations)
+    fun updateChangeRequest(id: String, catalogId: String, user: User, body: ChangeRequestUpdateBody): ChangeRequest? {
+        validateJsonPatchOperations(
+            getConceptWithFallback(body.conceptId, catalogId, user),
+            body.operations
+        )
+
         return changeRequestRepository.getByIdAndCatalogId(id, catalogId)
             ?.copy(
                 operations = body.operations,
@@ -116,26 +123,38 @@ class ChangeRequestService(
     fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest? =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
 
-    private fun validateNewChangeRequest(conceptId: String?, catalogId: String) {
+    private fun validateNewChangeRequest(changeRequest: ChangeRequestUpdateBody, catalogId: String, user: User) {
         if (!catalogId.isOrganizationNumber()) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided catalogId is not valid organization number")
-        } else if (conceptId != null) {
-            val openChangeRequestForConcept = changeRequestRepository.getByConceptIdAndStatus(conceptId, ChangeRequestStatus.OPEN)
-            val concept = conceptRepository.findByIdOrNull(conceptId)
-
-            when {
-                openChangeRequestForConcept.isNotEmpty() -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Found unhandled change request for concept")
-                concept?.ansvarligVirksomhet?.id != catalogId -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Concept is part of another collection")
-                concept.originaltBegrep != conceptId -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided conceptId is not the original")
-            }
         }
+        if (changeRequest.conceptId != null) {
+            val openChangeRequestForConcept = changeRequestRepository.getByConceptIdAndStatus(changeRequest.conceptId, ChangeRequestStatus.OPEN)
+            if (openChangeRequestForConcept.isNotEmpty())
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Found unhandled change request for concept")
+
+            val concept = conceptRepository.findByIdOrNull(changeRequest.conceptId)
+            if (concept?.ansvarligVirksomhet?.id != catalogId)
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Concept is part of another collection");
+            if (concept.originaltBegrep != changeRequest.conceptId)
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided conceptId is not the original")
+        }
+
+        validateJsonPatchOperations(
+            getConceptWithFallback(changeRequest.conceptId, catalogId, user),
+            changeRequest.operations
+        )
     }
 
-    private fun validateJsonPatchOperations(operations: List<JsonPatchOperation>) {
+    private fun validateJsonPatchOperationsPaths(operations: List<JsonPatchOperation>) {
         val invalidPaths = listOf("/id", "/catalogId", "/conceptId", "/status")
         if (operations.any { it.path in invalidPaths }) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch of paths $invalidPaths is not permitted")
         }
+    }
+
+    private fun validateJsonPatchOperations(concept: BegrepDBO, operations: List<JsonPatchOperation>) {
+        validateJsonPatchOperationsPaths(operations)
+        patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
     }
 
     private fun changeRequestStatusFromString(str: String?): ChangeRequestStatus? =
@@ -146,4 +165,8 @@ class ChangeRequestService(
             else -> null
         }
 
+    private fun getConceptWithFallback(conceptId: String?, catalogId: String, user: User): BegrepDBO =
+        conceptId
+            ?.let { conceptService.getLatestVersion(it) }
+            ?: createNewConcept(Virksomhet(id=catalogId), user)
 }

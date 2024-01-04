@@ -52,7 +52,7 @@ class ChangeRequestController(
     ) : ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null ->  ResponseEntity(HttpStatus.BAD_REQUEST)
+            user == null ->  ResponseEntity(HttpStatus.UNAUTHORIZED)
             endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> {
                 val newId = changeRequestService.createChangeRequest(catalogId, user, body)
                 ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
@@ -124,14 +124,18 @@ class ChangeRequestController(
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String,
         @RequestBody body: ChangeRequestUpdateBody
-    ) : ResponseEntity<ChangeRequest> =
-        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            changeRequestService.updateChangeRequest(changeRequestId, catalogId, body)
-                ?.let { ResponseEntity(it, HttpStatus.OK) }
-                ?: ResponseEntity(HttpStatus.NOT_FOUND)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
+    ) : ResponseEntity<ChangeRequest> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> {
+                changeRequestService.updateChangeRequest(changeRequestId, catalogId, user, body)
+                    ?.let { ResponseEntity(it, HttpStatus.OK) }
+                    ?: ResponseEntity(HttpStatus.NOT_FOUND)
+            }
         }
+    }
 }
 
 private fun locationHeaderForCreated(newId: String, catalogId: String): HttpHeaders =

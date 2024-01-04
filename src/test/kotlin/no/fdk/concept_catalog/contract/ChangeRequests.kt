@@ -228,7 +228,7 @@ class ChangeRequests : ApiTestContext() {
         }
 
         @Test
-        fun ableToCreateChangeRequest() {
+        fun ableToCreateSuggestionForNewConcept() {
             val rsp0 = authorizedRequest(path, port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_NEW), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
             assertEquals(HttpStatus.CREATED.value(), rsp0["status"])
 
@@ -248,7 +248,33 @@ class ChangeRequests : ApiTestContext() {
                 operations = CHANGE_REQUEST_UPDATE_BODY_NEW.operations,
                 proposedBy = User(id="1924782563", name="TEST USER", email=null),
                 timeForProposal = result0.timeForProposal,
-                title = "Nytt endringsforslag"
+                title = "Forslag til nytt begrep"
+            )
+            assertEquals(expected0, result0)
+        }
+
+        @Test
+        fun ableToCreateChangeRequest() {
+            val rsp0 = authorizedRequest(path, port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_0), JwtToken(Access.ORG_READ).toString(), HttpMethod.POST )
+            assertEquals(HttpStatus.CREATED.value(), rsp0["status"])
+
+            val responseHeaders0: HttpHeaders = rsp0["header"] as HttpHeaders
+            val location0 = responseHeaders0.location
+            assertNotNull(location0)
+
+            val getResponse0 = authorizedRequest(location0!!.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            assertEquals(HttpStatus.OK.value(), getResponse0["status"])
+            val result0: ChangeRequest = mapper.readValue(getResponse0["body"] as String)
+
+            val expected0 = ChangeRequest(
+                id = result0.id,
+                catalogId = "111111111",
+                conceptId = BEGREP_TO_BE_UPDATED.id,
+                status = ChangeRequestStatus.OPEN,
+                operations = CHANGE_REQUEST_UPDATE_BODY_0.operations,
+                proposedBy = User(id="1924782563", name="TEST USER", email=null),
+                timeForProposal = result0.timeForProposal,
+                title = "Endringsforslag 7"
             )
             assertEquals(expected0, result0)
         }
