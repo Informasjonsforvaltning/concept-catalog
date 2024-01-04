@@ -236,7 +236,7 @@ class ChangeRequests : ApiTestContext() {
             val location0 = responseHeaders0.location
             assertNotNull(location0)
 
-            val getResponse0 = authorizedRequest(location0!!.toString(), port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            val getResponse0 = authorizedRequest(location0!!.toString(), port, mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_NEW), JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             assertEquals(HttpStatus.OK.value(), getResponse0["status"])
             val result0: ChangeRequest = mapper.readValue(getResponse0["body"] as String)
 
@@ -245,7 +245,7 @@ class ChangeRequests : ApiTestContext() {
                 catalogId = "111111111",
                 conceptId = null,
                 status = ChangeRequestStatus.OPEN,
-                operations = emptyList(),
+                operations = CHANGE_REQUEST_UPDATE_BODY_NEW.operations,
                 proposedBy = User(id="1924782563", name="TEST USER", email=null),
                 timeForProposal = result0.timeForProposal,
                 title = "Nytt endringsforslag"
