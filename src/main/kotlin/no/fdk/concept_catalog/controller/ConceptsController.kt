@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.model.Paginated
 import no.fdk.concept_catalog.model.SearchOperation
+import no.fdk.concept_catalog.model.Suggestion
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.statusFromString
@@ -227,6 +228,26 @@ class ConceptsController(
         return when {
             !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
             else -> ResponseEntity(conceptService.searchConcepts(orgNumber, searchOperation), HttpStatus.OK)
+        }
+    }
+
+    @GetMapping(
+        value = ["/suggestions"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun suggestBegrep(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestParam(
+            value = "org",
+            required = true
+        ) orgNumber: String,
+        @RequestParam(
+            value = "q"
+        ) query: String
+    ): ResponseEntity<List<Suggestion>> {
+        return when {
+            !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> ResponseEntity(conceptService.suggestConcepts(orgNumber, query), HttpStatus.OK)
         }
     }
 

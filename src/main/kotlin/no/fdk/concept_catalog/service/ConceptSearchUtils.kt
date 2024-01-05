@@ -4,10 +4,13 @@ import co.elastic.clients.elasticsearch._types.FieldValue
 import co.elastic.clients.elasticsearch._types.query_dsl.Query
 import no.fdk.concept_catalog.model.SearchFilters
 
-fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
-    val queryFilters = mutableListOf(Query.of { queryBuilder ->
+private fun orgFilter(orgNumber: String): Query =
+    Query.of { queryBuilder ->
         queryBuilder.term { termBuilder -> termBuilder.field("ansvarligVirksomhet.id.keyword").value(orgNumber) }
-    })
+    }
+
+fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
+    val queryFilters = mutableListOf(orgFilter(orgNumber))
 
     if (status != null) {
         queryFilters
@@ -78,3 +81,6 @@ fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
 
     return queryFilters
 }
+
+fun suggestionFilters(orgNumber: String): List<Query> =
+    listOf(orgFilter(orgNumber))

@@ -255,6 +255,21 @@ class ConceptService(
             .asPaginatedWrapDTO(hits.totalHits, search.pagination)
     }
 
+    fun suggestConcepts(orgNumber: String, query: String): List<Suggestion> =
+        conceptSearchService.suggestConcepts(orgNumber, query)
+                .map { it.content }
+                .map { it.toSuggestion() }
+                .toList()
+
+    private fun CurrentConcept.toSuggestion(): Suggestion =
+        Suggestion(
+            id = idOfThisVersion,
+            originaltBegrep = originaltBegrep,
+            erPublisert = erPublisert,
+            anbefaltTerm = anbefaltTerm,
+            definisjon = definisjon?.copy(kildebeskrivelse = null)
+        )
+
     private fun List<Begrep>.asPaginatedWrapDTO(totalHits: Long, pagination: Pagination): Paginated {
         return Paginated(
             hits = this,

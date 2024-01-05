@@ -16,12 +16,36 @@ import org.springframework.stereotype.Service
 class ConceptSearchService(
     private val elasticsearchOperations: ElasticsearchOperations
 ) {
+
+    fun suggestConcepts(orgNumber: String, query: String): SearchHits<CurrentConcept> =
+        elasticsearchOperations.search(
+            suggestionQuery(orgNumber, query),
+            CurrentConcept::class.java,
+            IndexCoordinates.of("concepts-current")
+        )
+
     fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> =
         elasticsearchOperations.search(
             search.toElasticQuery(orgNumber),
             CurrentConcept::class.java,
             IndexCoordinates.of("concepts-current")
         )
+
+    private fun suggestionQuery(orgNumber: String, query: String): Query {
+        val builder = NativeQuery.builder()
+        builder.withFilter { queryBuilder ->
+            queryBuilder.bool { boolBuilder ->
+                boolBuilder.must(suggestionFilters(orgNumber))
+            }
+        }
+        builder.withQuery { queryBuilder ->
+            queryBuilder.matchPhrasePrefix { matchBuilder ->
+                matchBuilder.query(query)
+                    .field("anbefaltTerm.navn.nb")
+            }
+        }
+        return builder.build()
+    }
 
     private fun SearchOperation.toElasticQuery(orgNumber: String): Query {
         val builder = NativeQuery.builder()
