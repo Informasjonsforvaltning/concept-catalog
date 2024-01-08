@@ -7,11 +7,8 @@ import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Tag
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -319,18 +316,22 @@ class ChangeRequests : ApiTestContext() {
 
         @Test
         fun badRequestWhenUpdatingIdFields() {
-            val bodyId = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/id", "123456"))
-            val bodyCatalogId = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/catalogId", "123456"))
-            val bodyConceptId = listOf(JsonPatchOperation(op = OpEnum.ADD, "/conceptId", "123456"))
-            val rspId = authorizedRequest(path, port, mapper.writeValueAsString(bodyId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
-            val rspCatalogId = authorizedRequest(path, port, mapper.writeValueAsString(bodyCatalogId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
-            val rspConceptId = authorizedRequest(path, port, mapper.writeValueAsString(bodyConceptId), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val illegalIdReplace = CHANGE_REQUEST_UPDATE_BODY_0.copy(operations=listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/id", "123456")))
+            val illegalCatalogIdReplace = CHANGE_REQUEST_UPDATE_BODY_0.copy(operations=listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/catalogId", "123456")))
+            val illegalConceptIdAdd = CHANGE_REQUEST_UPDATE_BODY_0.copy(operations=listOf(JsonPatchOperation(op = OpEnum.ADD, "/conceptId", "123456")))
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), rspId["status"])
-            assertEquals(HttpStatus.BAD_REQUEST.value(), rspCatalogId["status"])
-            assertEquals(HttpStatus.BAD_REQUEST.value(), rspConceptId["status"])
+            val rspBody0 = authorizedRequest(path, port, mapper.writeValueAsString(illegalIdReplace), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val rspBody1 = authorizedRequest(path, port, mapper.writeValueAsString(illegalCatalogIdReplace), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+            val rspBody2 = authorizedRequest(path, port, mapper.writeValueAsString(illegalConceptIdAdd), JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST )
+
+            val errMsg = "Patch of paths [/id, /catalogId, /conceptId, /status] is not permitted"
+            assertEquals(HttpStatus.BAD_REQUEST.value(), rspBody0["status"])
+            assertEquals(mapper.readValue<HashMap<String, Any>>(rspBody0["body"] as String)["message"] as String, errMsg)
+            assertEquals(HttpStatus.BAD_REQUEST.value(), rspBody1["status"])
+            assertEquals(mapper.readValue<HashMap<String, Any>>(rspBody1["body"] as String)["message"] as String, errMsg)
+            assertEquals(HttpStatus.BAD_REQUEST.value(), rspBody2["status"])
+            assertEquals(mapper.readValue<HashMap<String, Any>>(rspBody2["body"] as String)["message"] as String, errMsg)
         }
-
     }
 
     @Nested

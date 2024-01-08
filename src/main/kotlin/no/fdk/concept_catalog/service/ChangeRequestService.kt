@@ -134,7 +134,7 @@ class ChangeRequestService(
 
             val concept = conceptRepository.findByIdOrNull(changeRequest.conceptId)
             if (concept?.ansvarligVirksomhet?.id != catalogId)
-                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Concept is part of another collection");
+                    throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No concept with id ${changeRequest.conceptId} in catalog")
             if (concept.originaltBegrep != changeRequest.conceptId)
                     throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided conceptId is not the original")
         }

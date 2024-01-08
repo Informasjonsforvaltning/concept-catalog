@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.security
 
 import no.fdk.concept_catalog.model.User
+import org.slf4j.LoggerFactory
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Component
 
@@ -11,6 +12,8 @@ private fun roleOrgRead(orgnr: String) = "organization:$orgnr:read"
 
 @Component
 class EndpointPermissions {
+
+    private val logger = LoggerFactory.getLogger(EndpointPermissions::class.java)
 
     fun getOrgsByPermission(jwt: Jwt, permission: String): Set<String> {
         val authorities: String? = jwt.claims["authorities"] as? String
@@ -69,12 +72,12 @@ class EndpointPermissions {
 
     fun getUser(jwt: Jwt): User? =
         jwt.let { it.claims["user_name"] as? String }
+            .also { if (it == null) logger.error("user_name claim missing in token") }
             ?.let { id ->
                 User(
-                    id=id,
-                    email=jwt.claims["email"] as? String,
-                    name=jwt.claims["name"] as? String
+                    id = id,
+                    email = jwt.claims["email"] as? String,
+                    name = jwt.claims["name"] as? String
                 )
             }
-
 }

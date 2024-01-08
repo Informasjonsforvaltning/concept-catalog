@@ -2,7 +2,6 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.ChangeRequestUpdateBody
-import no.fdk.concept_catalog.model.JsonPatchOperation
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ChangeRequestService
 import org.springframework.http.HttpHeaders
@@ -14,14 +13,12 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.client.HttpClientErrorException.BadRequest
 
 @RestController
 @CrossOrigin
@@ -52,7 +49,7 @@ class ChangeRequestController(
     ) : ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null ->  ResponseEntity(HttpStatus.UNAUTHORIZED)
+            user == null -> ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> {
                 val newId = changeRequestService.createChangeRequest(catalogId, user, body)
                 ResponseEntity(locationHeaderForCreated(newId, catalogId), HttpStatus.CREATED)
@@ -69,7 +66,7 @@ class ChangeRequestController(
     ) : ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            user == null -> ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             !endpointPermissions.hasOrgWritePermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 val conceptId = changeRequestService.acceptChangeRequest(changeRequestId, catalogId, user, jwt)
@@ -127,7 +124,7 @@ class ChangeRequestController(
     ) : ResponseEntity<ChangeRequest> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            user == null -> ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             !endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
             else -> {
                 changeRequestService.updateChangeRequest(changeRequestId, catalogId, user, body)
