@@ -137,10 +137,12 @@ fun Begrep.toDBO(): BegrepDBO =
         opprettet,
         opprettetAv,
         seOgså,
+        internSeOgså,
         erstattesAv,
         assignedUser,
         abbreviatedLabel,
         begrepsRelasjon,
+        internBegrepsRelasjon,
         interneFelt
     )
 
@@ -205,11 +207,13 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("eksempel", eksempel)
         .append("ansvarligVirksomhet", ansvarligVirksomhet.mapDBO())
         .append("seOgså", seOgså)
+        .append("internSeOgså", internSeOgså)
         .append("erstattesAv", erstattesAv)
         .append("fagområde", fagområde)
         .append("fagområdeKoder", fagområdeKoder)
         .append("assignedUser", assignedUser)
         .append("begrepsRelasjon", begrepsRelasjon?.map { it.mapDBO() })
+        .append("internBegrepsRelasjon", internBegrepsRelasjon?.map { it.mapDBO() })
         .append("kontaktpunkt", kontaktpunkt?.mapDBO())
         .append("gyldigFom", gyldigFom)
         .append("gyldigTom", gyldigTom)

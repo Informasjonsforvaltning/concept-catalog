@@ -22,7 +22,8 @@
         rdf:type          skos:Concept ;
         dct:identifier    "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3" ;
         dct:publisher     <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
-        euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
+        euvoc:status      <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
+        rdfs:seeAlso      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4";
         dct:subject       "fagområde"@nb,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr1>,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2> ;
@@ -33,6 +34,10 @@
         skosxl:prefLabel  [ rdf:type            skosxl:Label ;
                             skosxl:literalForm  "Begrep 3"@nn
                           ] ;
+        skosno:assosiativRelasjon  [ rdf:type         skosno:AssosiativRelasjon;
+                                     dct:description  "Beskrivelse"@nb;
+                                     skos:related     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4>
+                                   ];
         skosno:definisjon  [ rdf:type                skosno:Definisjon ;
                              rdfs:label              "definisjon"@nb ;
                              dct:source              [ rdfs:label    "Festdirektoratet"@nb ;

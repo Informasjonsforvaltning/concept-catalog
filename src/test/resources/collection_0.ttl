@@ -54,10 +54,6 @@
                                   skosno:inndelingskriterium  "Inndelingskriterium"@nb ;
                                   xkos:specializes    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
                                 ] ;
-        skosno:assosiativRelasjon [ rdf:type                skosno:AssosiativRelasjon ;
-                                  dct:description         "Beskrivelse"@nb ;
-                                  skos:related  <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-                                ] ;
         skosno:partitivRelasjon [ rdf:type                    skosno:PartitivRelasjon ;
                                   dct:description  "Inndelingskriterium"@nb ;
                                   dct:hasPart     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>

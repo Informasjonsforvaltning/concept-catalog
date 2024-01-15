@@ -45,10 +45,12 @@ data class CurrentConcept(
     val opprettet: Instant? = null,
     val opprettetAv: String? = null,
     val seOgså: List<String>?,
+    val internSeOgså: List<String>?,
     val erstattesAv: List<String>?,
     val assignedUser: String?,
     val abbreviatedLabel: String?,
     val begrepsRelasjon: List<BegrepsRelasjon>?,
+    val internBegrepsRelasjon: List<BegrepsRelasjon>?,
     val interneFelt: Map<String, InterntFelt>?
 ) {
     constructor(dbo: BegrepDBO) : this(
@@ -59,8 +61,8 @@ data class CurrentConcept(
         dbo.merknad, dbo.merkelapp, dbo.ansvarligVirksomhet, dbo.eksempel,
         dbo.fagområde, dbo.fagområdeKoder?.filterNotNull(), dbo.omfang, dbo.kontaktpunkt,
         dbo.gyldigFom, dbo.gyldigTom, dbo.endringslogelement, dbo.opprettet,
-        dbo.opprettetAv, dbo.seOgså, dbo.erstattesAv, dbo.assignedUser,
-        dbo.abbreviatedLabel, dbo.begrepsRelasjon, dbo.interneFelt
+        dbo.opprettetAv, dbo.seOgså, dbo.internSeOgså, dbo.erstattesAv, dbo.assignedUser,
+        dbo.abbreviatedLabel, dbo.begrepsRelasjon, dbo.internBegrepsRelasjon, dbo.interneFelt
     )
 
     fun toDBO(): BegrepDBO =
@@ -72,7 +74,7 @@ data class CurrentConcept(
             merknad, merkelapp, ansvarligVirksomhet, eksempel,
             fagområde, fagområdeKoder, omfang, kontaktpunkt,
             gyldigFom, gyldigTom, endringslogelement, opprettet,
-            opprettetAv, seOgså, erstattesAv, assignedUser,
-            abbreviatedLabel, begrepsRelasjon, interneFelt
+            opprettetAv, seOgså, internSeOgså, erstattesAv, assignedUser,
+            abbreviatedLabel, begrepsRelasjon, internBegrepsRelasjon, interneFelt
         )
 }

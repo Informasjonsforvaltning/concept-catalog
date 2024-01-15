@@ -83,12 +83,14 @@ val BEGREP_0 = Begrep(
     seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
     erstattesAv = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
     assignedUser = "user-id",
-    begrepsRelasjon = listOf(
+    internBegrepsRelasjon = listOf(
         BegrepsRelasjon(
             relasjon = "assosiativ",
             beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
-            relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"
-        ),
+            relatertBegrep = "id1"
+        )
+    ),
+    begrepsRelasjon = listOf(
         BegrepsRelasjon(
             relasjon = "partitiv",
             relasjonsType = "omfatter",
@@ -243,6 +245,11 @@ val BEGREP_3 = Begrep(
     fagområde = mapOf(Pair("nb", listOf("fagområde"))),
     fagområdeKoder = listOf("fagomr1","fagomr2"),
     omfang = URITekst(uri = "https://test.no", tekst = "Test"),
+    internSeOgså = listOf("id4"),
+    internBegrepsRelasjon = listOf(BegrepsRelasjon(
+        relasjon = "assosiativ",
+        beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
+        relatertBegrep = "id4")),
     gyldigFom = LocalDate.of(2020, 10, 10),
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"

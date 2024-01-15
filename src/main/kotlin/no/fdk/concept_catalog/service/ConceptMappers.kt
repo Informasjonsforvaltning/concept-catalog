@@ -40,10 +40,12 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         opprettet,
         opprettetAv,
         seOgså,
+        internSeOgså,
         erstattesAv,
         assignedUser,
         abbreviatedLabel,
         begrepsRelasjon,
+        internBegrepsRelasjon,
         interneFelt
     )
 
@@ -84,10 +86,12 @@ fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
         gyldigFom = dto.gyldigFom,
         gyldigTom = dto.gyldigTom,
         seOgså = dto.seOgså,
+        internSeOgså = dto.internSeOgså,
         erstattesAv = dto.erstattesAv,
         assignedUser = dto.assignedUser,
         abbreviatedLabel = dto.abbreviatedLabel,
         begrepsRelasjon = dto.begrepsRelasjon,
+        internBegrepsRelasjon = dto.internBegrepsRelasjon,
         interneFelt = dto.interneFelt
     )
 
@@ -148,10 +152,12 @@ fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
         gyldigTom = null,
         endringslogelement = null,
         seOgså = ArrayList(),
+        internSeOgså = null,
         erstattesAv = ArrayList(),
         assignedUser = null,
         abbreviatedLabel = null,
         begrepsRelasjon = ArrayList(),
+        internBegrepsRelasjon = null,
         interneFelt = null
     )
 }
