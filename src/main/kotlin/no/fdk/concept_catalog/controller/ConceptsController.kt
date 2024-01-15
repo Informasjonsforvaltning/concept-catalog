@@ -242,12 +242,16 @@ class ConceptsController(
             required = true
         ) orgNumber: String,
         @RequestParam(
+            value = "published",
+            required = false
+        ) published: Boolean?,
+        @RequestParam(
             value = "q"
         ) query: String
     ): ResponseEntity<List<Suggestion>> {
         return when {
             !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            else -> ResponseEntity(conceptService.suggestConcepts(orgNumber, query), HttpStatus.OK)
+            else -> ResponseEntity(conceptService.suggestConcepts(orgNumber, published, query), HttpStatus.OK)
         }
     }
 
