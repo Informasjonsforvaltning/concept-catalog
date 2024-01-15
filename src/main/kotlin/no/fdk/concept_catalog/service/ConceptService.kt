@@ -255,8 +255,8 @@ class ConceptService(
             .asPaginatedWrapDTO(hits.totalHits, search.pagination)
     }
 
-    fun suggestConcepts(orgNumber: String, query: String): List<Suggestion> =
-        conceptSearchService.suggestConcepts(orgNumber, query)
+    fun suggestConcepts(orgNumber: String, published: Boolean?, query: String): List<Suggestion> =
+        conceptSearchService.suggestConcepts(orgNumber, published, query)
                 .map { it.content }
                 .map { it.toSuggestion() }
                 .toList()

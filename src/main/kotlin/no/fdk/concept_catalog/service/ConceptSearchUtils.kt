@@ -82,5 +82,16 @@ fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
     return queryFilters
 }
 
-fun suggestionFilters(orgNumber: String): List<Query> =
-    listOf(orgFilter(orgNumber))
+fun suggestionFilters(orgNumber: String, published: Boolean?): List<Query> {
+    val filters = mutableListOf(orgFilter(orgNumber))
+
+    if (published != null) {
+        filters.add(Query.of { queryBuilder ->
+            queryBuilder.term { termBuilder ->
+                termBuilder.field("erPublisert").value(FieldValue.of(published))
+            }
+        })
+    }
+
+    return filters
+}

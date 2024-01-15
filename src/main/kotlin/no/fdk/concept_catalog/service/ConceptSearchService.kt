@@ -17,9 +17,9 @@ class ConceptSearchService(
     private val elasticsearchOperations: ElasticsearchOperations
 ) {
 
-    fun suggestConcepts(orgNumber: String, query: String): SearchHits<CurrentConcept> =
+    fun suggestConcepts(orgNumber: String, published: Boolean?, query: String): SearchHits<CurrentConcept> =
         elasticsearchOperations.search(
-            suggestionQuery(orgNumber, query),
+            suggestionQuery(orgNumber, published, query),
             CurrentConcept::class.java,
             IndexCoordinates.of("concepts-current")
         )
@@ -31,11 +31,11 @@ class ConceptSearchService(
             IndexCoordinates.of("concepts-current")
         )
 
-    private fun suggestionQuery(orgNumber: String, query: String): Query {
+    private fun suggestionQuery(orgNumber: String, published: Boolean?, query: String): Query {
         val builder = NativeQuery.builder()
         builder.withFilter { queryBuilder ->
             queryBuilder.bool { boolBuilder ->
-                boolBuilder.must(suggestionFilters(orgNumber))
+                boolBuilder.must(suggestionFilters(orgNumber, published))
             }
         }
         builder.withQuery { queryBuilder ->
