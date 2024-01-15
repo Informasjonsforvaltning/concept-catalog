@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.BegrepsRelasjon
 import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.URITekst
@@ -81,7 +82,7 @@ class SkosApNoModelService(
         val model = ModelFactory.createDefaultModel()
 
         if (concept?.ansvarligVirksomhet?.id == collectionId) {
-            model.addConceptToModel(concept)
+            model.addConceptToModel(concept, conceptService.getLastPublishedForOrganization(collectionId).mapNotNull { it.id })
         } else throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
         return model
@@ -99,9 +100,10 @@ class SkosApNoModelService(
     private fun Model.addConceptsToCollection(publisherId: String) {
         val collectionResource = createCollectionResource(publisherId)
 
-        conceptService
-                .getLastPublishedForOrganization(publisherId)
-                .forEach { collectionResource.addConceptToCollection(it) }
+        val publishedConcepts = conceptService.getLastPublishedForOrganization(publisherId)
+        val publishedConceptIds = publishedConcepts.mapNotNull { it.id }
+
+        publishedConcepts.forEach { collectionResource.addConceptToCollection(it, publishedConceptIds) }
     }
 
     private fun Resource.safeAddPublisher(publisherId: String?): Resource {
@@ -118,7 +120,7 @@ class SkosApNoModelService(
         return this
     }
 
-    private fun Resource.addConceptToCollection(concept: Begrep) {
+    private fun Resource.addConceptToCollection(concept: Begrep, publishedIds: List<String>) {
         if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
             val conceptURI = getConceptUri(uri, concept.originaltBegrep)
@@ -128,26 +130,27 @@ class SkosApNoModelService(
                 .safeAddPublisher(concept.ansvarligVirksomhet.id)
                 .safeAddModified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
 
-            conceptResource.addPropertiesToConcept(concept)
+            conceptResource.addPropertiesToConcept(concept, uri, publishedIds)
             addProperty(SKOS.member, conceptResource)
         }
     }
 
-    private fun Model.addConceptToModel(concept: Begrep) {
+    private fun Model.addConceptToModel(concept: Begrep, publishedIds: List<String>) {
         if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
-            val conceptURI = getConceptUri(getCollectionUri(concept.ansvarligVirksomhet.id), concept.originaltBegrep)
+            val collectionURI = getCollectionUri(concept.ansvarligVirksomhet.id)
+            val conceptURI = getConceptUri(collectionURI, concept.originaltBegrep)
             val conceptResource = createResource(conceptURI)
                 .addProperty(RDF.type, SKOS.Concept)
                 .addProperty(DCTerms.identifier, createLiteral(conceptURI))
                 .safeAddPublisher(concept.ansvarligVirksomhet.id)
                 .safeAddModified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
 
-            conceptResource.addPropertiesToConcept(concept)
+            conceptResource.addPropertiesToConcept(concept, collectionURI, publishedIds)
         }
     }
 
-    private fun Resource.addPropertiesToConcept(concept: Begrep) {
+    private fun Resource.addPropertiesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
         addPrefLabelToConcept(concept)
         addDefinitionToConcept(concept)
         addPublicDefinitionToConcept(concept)
@@ -157,9 +160,9 @@ class SkosApNoModelService(
         addExampleToConcept(concept)
         addSubjectToConcept(concept)
         addContactPointToConcept(concept)
-        addSeeAlsoReferencesToConcept(concept)
+        addSeeAlsoReferencesToConcept(concept, collectionURI, publishedIds)
         addValidityPeriodToConcept(concept)
-        addBegrepsRelasjonToConcept(concept)
+        addBegrepsRelasjonToConcept(concept, collectionURI, publishedIds)
         addReplacedByReferencesToConcept(concept)
         addStatusToConcept(concept)
     }
@@ -351,68 +354,79 @@ class SkosApNoModelService(
             }
     }
 
-    private fun Resource.addBegrepsRelasjonToConcept(concept: Begrep) {
+    private fun Resource.addBegrepsRelasjonToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
         concept.begrepsRelasjon
-            ?.forEach {
-                val relation = it.relasjon
-                val relatedConcept = it.relatertBegrep
-                val relationResource = model.createResource()
+            ?.forEach { addRelationResource(it, it.relatertBegrep) }
 
-                if (relation == ASSOCIATIVE) {
-                    relationResource.addProperty(RDF.type, SKOSNO.AssosiativRelasjon)
-
-                    it.beskrivelse
-                        ?.filterValues { description -> description.isNotBlank() }
-                        ?.takeIf { description -> description.isNotEmpty() }
-                        ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
-
-                    if (relatedConcept?.isNotBlank() == true) {
-                        relationResource.addProperty(SKOS.related, model.safeCreateResource(relatedConcept))
-                    }
-                    addProperty(SKOSNO.assosiativRelasjon, relationResource)
-                }
-                if (relation == PARTITIVE) {
-                    relationResource.addProperty(RDF.type, SKOSNO.PartitivRelasjon)
-
-                    val relationType = it.relasjonsType
-
-                    it.inndelingskriterium
-                        ?.filterValues { criteria -> criteria.isNotBlank() }
-                        ?.takeIf { criteria -> criteria.isNotEmpty() }
-                        ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
-
-                    if (relationType == OMFATTER) {
-                        relationResource.addProperty(DCTerms.hasPart, model.safeCreateResource(relatedConcept))
-                    }
-                    if (relationType == ERDELAV) {
-                        relationResource.addProperty(DCTerms.isPartOf, model.safeCreateResource(relatedConcept))
-                    }
-                    addProperty(SKOSNO.partitivRelasjon, relationResource)
-                }
-                if (relation == GENERIC) {
-                    relationResource.addProperty(RDF.type, SKOSNO.GeneriskRelasjon)
-
-                    val relationType = it.relasjonsType
-
-                    it.inndelingskriterium
-                        ?.filterValues { criteria -> criteria.isNotBlank() }
-                        ?.takeIf { criteria -> criteria.isNotEmpty() }
-                        ?.forEach { (key, value) -> relationResource.addProperty(SKOSNO.inndelingskriterium, value, key) }
-
-                    if (relationType == OVERORDNET) {
-                        relationResource.addProperty(XKOS.specializes, model.safeCreateResource(relatedConcept))
-                    }
-                    if (relationType == UNDERORDNET) {
-                        relationResource.addProperty(XKOS.generalizes, model.safeCreateResource(relatedConcept))
-                    }
-                    addProperty(SKOSNO.generiskRelasjon, relationResource)
-                }
-            }
+        concept.internBegrepsRelasjon
+            ?.filter { publishedIds.contains(it.relatertBegrep) }
+            ?.forEach { addRelationResource(it, it.internalRelationURI(collectionURI)) }
     }
 
-    private fun Resource.addSeeAlsoReferencesToConcept(concept: Begrep) {
+
+
+    private fun Resource.addRelationResource(relation: BegrepsRelasjon, relationURI: String?) {
+        val relationResource = model.createResource()
+
+        if (relation.relasjon == ASSOCIATIVE) {
+            relationResource.addProperty(RDF.type, SKOSNO.AssosiativRelasjon)
+
+            relation.beskrivelse
+                ?.filterValues { description -> description.isNotBlank() }
+                ?.takeIf { description -> description.isNotEmpty() }
+                ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
+
+            if (relationURI?.isNotBlank() == true) {
+                relationResource.addProperty(SKOS.related, model.safeCreateResource(relationURI))
+            }
+            addProperty(SKOSNO.assosiativRelasjon, relationResource)
+        }
+        if (relation.relasjon == PARTITIVE) {
+            relationResource.addProperty(RDF.type, SKOSNO.PartitivRelasjon)
+
+            val relationType = relation.relasjonsType
+
+            relation.inndelingskriterium
+                ?.filterValues { criteria -> criteria.isNotBlank() }
+                ?.takeIf { criteria -> criteria.isNotEmpty() }
+                ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
+
+            if (relationType == OMFATTER) {
+                relationResource.addProperty(DCTerms.hasPart, model.safeCreateResource(relationURI))
+            }
+            if (relationType == ERDELAV) {
+                relationResource.addProperty(DCTerms.isPartOf, model.safeCreateResource(relationURI))
+            }
+            addProperty(SKOSNO.partitivRelasjon, relationResource)
+        }
+        if (relation.relasjon == GENERIC) {
+            relationResource.addProperty(RDF.type, SKOSNO.GeneriskRelasjon)
+
+            val relationType = relation.relasjonsType
+
+            relation.inndelingskriterium
+                ?.filterValues { criteria -> criteria.isNotBlank() }
+                ?.takeIf { criteria -> criteria.isNotEmpty() }
+                ?.forEach { (key, value) -> relationResource.addProperty(SKOSNO.inndelingskriterium, value, key) }
+
+            if (relationType == OVERORDNET) {
+                relationResource.addProperty(XKOS.specializes, model.safeCreateResource(relationURI))
+            }
+            if (relationType == UNDERORDNET) {
+                relationResource.addProperty(XKOS.generalizes, model.safeCreateResource(relationURI))
+            }
+            addProperty(SKOSNO.generiskRelasjon, relationResource)
+        }
+    }
+
+    private fun Resource.addSeeAlsoReferencesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
         concept.seOgså
             ?.filter { it.isNotBlank() }
+            ?.forEach { addProperty(RDFS.seeAlso, model.createLiteral(it)) }
+
+        concept.internSeOgså
+            ?.filter { publishedIds.contains(it) }
+            ?.map { getConceptUri(collectionURI, it) }
             ?.forEach { addProperty(RDFS.seeAlso, model.createLiteral(it)) }
     }
 
@@ -488,4 +502,7 @@ class SkosApNoModelService(
                 }
             }
             .let { safeCreateResource("tel:$it") }
+
+    private fun BegrepsRelasjon.internalRelationURI(collectionURI: String): String? =
+        relatertBegrep?.let { getConceptUri(collectionURI, it) }
 }
