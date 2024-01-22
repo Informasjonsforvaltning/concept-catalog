@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
+import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 private val mapper = JacksonConfigurer().objectMapper()
