@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.service
 
 import co.elastic.clients.elasticsearch._types.SortOrder
+import co.elastic.clients.elasticsearch._types.query_dsl.Operator
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
 import no.fdk.concept_catalog.model.*
 import org.springframework.data.domain.Pageable
@@ -79,6 +80,7 @@ class ConceptSearchService(
                     it.multiMatch { matchBuilder ->
                         matchBuilder.fields(queryFields.exactPaths())
                             .query(queryValue)
+                            .operator(Operator.And)
                             .type(TextQueryType.Phrase)
                     }
                 }
@@ -87,6 +89,7 @@ class ConceptSearchService(
                     it.multiMatch { matchBuilder ->
                         matchBuilder.fields(queryFields.prefixPaths())
                             .query(queryValue)
+                            .operator(Operator.And)
                             .type(TextQueryType.BoolPrefix)
                     }
                 }

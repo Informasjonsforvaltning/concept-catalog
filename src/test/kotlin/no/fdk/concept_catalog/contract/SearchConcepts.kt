@@ -5,7 +5,6 @@ import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
-import no.fdk.concept_catalog.utils.BEGREP_0_OLD
 import no.fdk.concept_catalog.utils.BEGREP_1
 import no.fdk.concept_catalog.utils.BEGREP_2
 import no.fdk.concept_catalog.utils.authorizedRequest
@@ -17,7 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
-import kotlin.test.Ignore
 import kotlin.test.assertEquals
 
 private val mapper = JacksonConfigurer().objectMapper()
