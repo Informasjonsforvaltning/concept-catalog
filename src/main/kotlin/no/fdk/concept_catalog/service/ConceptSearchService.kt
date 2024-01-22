@@ -77,7 +77,7 @@ class ConceptSearchService(
             queryBuilder.bool { boolBuilder ->
                 boolBuilder.should {
                     it.multiMatch { matchBuilder ->
-                        matchBuilder.fields(queryFields.boostedPaths())
+                        matchBuilder.fields(queryFields.exactPaths())
                             .query(queryValue)
                             .type(TextQueryType.Phrase)
                     }
@@ -85,7 +85,7 @@ class ConceptSearchService(
 
                 boolBuilder.should {
                     it.multiMatch { matchBuilder ->
-                        matchBuilder.fields(queryFields.paths())
+                        matchBuilder.fields(queryFields.prefixPaths())
                             .query(queryValue)
                             .type(TextQueryType.BoolPrefix)
                     }
@@ -108,33 +108,33 @@ class ConceptSearchService(
             else -> "endringslogelement.endringstidspunkt"
         }
 
-    private fun QueryFields.boostedPaths(): List<String> =
+    private fun QueryFields.exactPaths(): List<String> =
         listOf(
-            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 20)
+            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 30)
+            else emptyList(),
+
+            if (frarådetTerm) languagePaths("frarådetTerm", 10)
+            else emptyList(),
+
+            if (tillattTerm) languagePaths("tillattTerm", 10)
+            else emptyList(),
+
+            if (definisjon) languagePaths("definisjon.tekst")
+            else emptyList(),
+
+            if (merknad) languagePaths("merknad")
+            else emptyList()
+        ).flatten()
+
+    private fun QueryFields.prefixPaths(): List<String> =
+        listOf(
+            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 15)
             else emptyList(),
 
             if (frarådetTerm) languagePaths("frarådetTerm", 5)
             else emptyList(),
 
             if (tillattTerm) languagePaths("tillattTerm", 5)
-            else emptyList(),
-
-            if (definisjon) languagePaths("definisjon.tekst", 8)
-            else emptyList(),
-
-            if (merknad) languagePaths("merknad", 5)
-            else emptyList()
-        ).flatten()
-
-    private fun QueryFields.paths(): List<String> =
-        listOf(
-            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 10)
-            else emptyList(),
-
-            if (frarådetTerm) languagePaths("frarådetTerm")
-            else emptyList(),
-
-            if (tillattTerm) languagePaths("tillattTerm")
             else emptyList(),
 
             if (definisjon) languagePaths("definisjon.tekst")
@@ -145,6 +145,8 @@ class ConceptSearchService(
         ).flatten()
 
     private fun languagePaths(basePath: String, boost: Int? = null): List<String> =
-        listOf("$basePath.nb${if (boost != null) "^$boost" else ""}")
+        listOf("$basePath.nb${if (boost != null) "^$boost" else ""}",
+            "$basePath.nn${if (boost != null) "^$boost" else ""}",
+            "$basePath.en${if (boost != null) "^$boost" else ""}")
 
 }
