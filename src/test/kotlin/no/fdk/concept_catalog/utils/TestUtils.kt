@@ -143,7 +143,8 @@ fun Begrep.toDBO(): BegrepDBO =
         abbreviatedLabel,
         begrepsRelasjon,
         internBegrepsRelasjon,
-        interneFelt
+        interneFelt,
+        internErstattesAv
     )
 
 class TestResponseReader {
@@ -220,6 +221,7 @@ private fun Begrep.mapDBO(): org.bson.Document =
         .append("endringslogelement", endringslogelement?.mapDBO())
         .append("omfang", omfang?.mapDBO())
         .append("interneFelt", interneFelt)
+        .append("internErstattesAv", internErstattesAv)
 
 private fun Term.mapDBO(): org.bson.Document =
     org.bson.Document()

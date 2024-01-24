@@ -163,7 +163,7 @@ class SkosApNoModelService(
         addSeeAlsoReferencesToConcept(concept, collectionURI, publishedIds)
         addValidityPeriodToConcept(concept)
         addBegrepsRelasjonToConcept(concept, collectionURI, publishedIds)
-        addReplacedByReferencesToConcept(concept)
+        addReplacedByReferencesToConcept(concept, collectionURI, publishedIds)
         addStatusToConcept(concept)
     }
 
@@ -430,10 +430,17 @@ class SkosApNoModelService(
             ?.forEach { addProperty(RDFS.seeAlso, model.createLiteral(it)) }
     }
 
-    private fun Resource.addReplacedByReferencesToConcept(concept: Begrep) {
+    private fun Resource.addReplacedByReferencesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
         concept.erstattesAv
             ?.filter { it.isNotBlank() }
             ?.forEach {
+                addProperty(DCTerms.isReplacedBy, model.createLiteral(it))
+                model.getResource(it).addProperty(DCTerms.replaces, model.createLiteral(uri))
+            }
+        concept.internErstattesAv
+            ?.filter { publishedIds.contains(it) }
+            ?.map {getConceptUri(collectionURI, it)}
+            ?.forEach{
                 addProperty(DCTerms.isReplacedBy, model.createLiteral(it))
                 model.getResource(it).addProperty(DCTerms.replaces, model.createLiteral(uri))
             }

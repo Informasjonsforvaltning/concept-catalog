@@ -53,7 +53,8 @@ data class BegrepDBO (
     val abbreviatedLabel: String?,
     val begrepsRelasjon: List<BegrepsRelasjon>?,
     val internBegrepsRelasjon: List<BegrepsRelasjon>?,
-    val interneFelt: Map<String, InterntFelt>?
+    val interneFelt: Map<String, InterntFelt>?,
+    val internErstattesAv: List<String>?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -96,7 +97,9 @@ data class Begrep (
     val abbreviatedLabel: String? = null,
     val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList(),
     val internBegrepsRelasjon: List<BegrepsRelasjon>? = null,
-    val interneFelt: Map<String, InterntFelt>?
+    val interneFelt: Map<String, InterntFelt>?,
+    val internErstattesAv: List<String>?
+
 )
 
 data class SemVer(val major: Int, val minor: Int, val patch: Int): Comparable<SemVer> {
