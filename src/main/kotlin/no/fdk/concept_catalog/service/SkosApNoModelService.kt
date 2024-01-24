@@ -422,27 +422,27 @@ class SkosApNoModelService(
     private fun Resource.addSeeAlsoReferencesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
         concept.seOgså
             ?.filter { it.isNotBlank() }
-            ?.forEach { addProperty(RDFS.seeAlso, model.createLiteral(it)) }
+            ?.forEach { addProperty(RDFS.seeAlso, model.safeCreateResource(it)) }
 
         concept.internSeOgså
             ?.filter { publishedIds.contains(it) }
             ?.map { getConceptUri(collectionURI, it) }
-            ?.forEach { addProperty(RDFS.seeAlso, model.createLiteral(it)) }
+            ?.forEach { addProperty(RDFS.seeAlso, model.safeCreateResource(it)) }
     }
 
     private fun Resource.addReplacedByReferencesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
         concept.erstattesAv
             ?.filter { it.isNotBlank() }
             ?.forEach {
-                addProperty(DCTerms.isReplacedBy, model.createLiteral(it))
-                model.getResource(it).addProperty(DCTerms.replaces, model.createLiteral(uri))
+                addProperty(DCTerms.isReplacedBy, model.safeCreateResource(it))
+                model.getResource(it).addProperty(DCTerms.replaces, model.safeCreateResource(uri))
             }
         concept.internErstattesAv
             ?.filter { publishedIds.contains(it) }
             ?.map {getConceptUri(collectionURI, it)}
             ?.forEach{
-                addProperty(DCTerms.isReplacedBy, model.createLiteral(it))
-                model.getResource(it).addProperty(DCTerms.replaces, model.createLiteral(uri))
+                addProperty(DCTerms.isReplacedBy, model.safeCreateResource(it))
+                model.getResource(it).addProperty(DCTerms.replaces, model.safeCreateResource(uri))
             }
     }
 

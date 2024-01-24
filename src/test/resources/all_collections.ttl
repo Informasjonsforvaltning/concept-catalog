@@ -19,13 +19,13 @@
 @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
 
 <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-        dct:replaces  "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old" .
+        dct:replaces  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old> .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old>
         rdf:type            skos:Concept ;
-        rdfs:seeAlso        "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322" ;
+        rdfs:seeAlso        <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
         dct:identifier      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old" ;
-        dct:isReplacedBy    "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322" ;
+        dct:isReplacedBy    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
         skosxl:altLabel     [ rdf:type            skosxl:Label ;
@@ -90,8 +90,8 @@
         rdf:type          skos:Concept ;
         dct:identifier    "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3" ;
         dct:publisher     <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
-        rdfs:seeAlso       "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4" ;
-        dct:isReplacedBy   "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4" ;
+        rdfs:seeAlso      <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4> ;
+        dct:isReplacedBy  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4> ;
         dct:subject       "fagområde"@nb,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr1>,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2> ;
@@ -132,7 +132,7 @@
         rdf:type            skos:Concept ;
         dct:identifier      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4" ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
-        dct:replaces        "https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3" ;
+        dct:replaces        <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3> ;
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
         dct:temporal        [ rdf:type        dct:PeriodOfTime ;
                               schema:endDate  "2030-10-10"^^xsd:date
