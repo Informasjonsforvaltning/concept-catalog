@@ -50,7 +50,8 @@ val BEGREP_0_OLD = Begrep(
         endringstidspunkt = ZonedDateTime.of(
             2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
-    interneFelt = emptyMap()
+    interneFelt = emptyMap(),
+    internErstattesAv = listOf("id1"),
 )
 
 val BEGREP_0 = Begrep(
@@ -121,7 +122,8 @@ val BEGREP_0 = Begrep(
         endringstidspunkt = ZonedDateTime.of(
             2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
-    interneFelt = mapOf(Pair("felt-id", InterntFelt("feltverdi")))
+    interneFelt = mapOf(Pair("felt-id", InterntFelt("feltverdi"))),
+    internErstattesAv = listOf("id1"),
 )
 
 val BEGREP_1 = Begrep(
@@ -143,7 +145,8 @@ val BEGREP_1 = Begrep(
         endringstidspunkt = ZonedDateTime.of(
             2020, 12, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null,
 )
 
 val BEGREP_2 = Begrep(
@@ -168,6 +171,7 @@ val BEGREP_2 = Begrep(
             2020, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
         ).toInstant()),
     interneFelt = null,
+    internErstattesAv = null,
 )
 
 val BEGREP_WRONG_ORG = Begrep(
@@ -178,7 +182,8 @@ val BEGREP_WRONG_ORG = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "999888777"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null,
 )
 
 val BEGREP_TO_BE_CREATED = Begrep(
@@ -189,7 +194,8 @@ val BEGREP_TO_BE_CREATED = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null,
 )
 
 val BEGREP_TO_BE_DELETED = Begrep(
@@ -202,7 +208,8 @@ val BEGREP_TO_BE_DELETED = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null,
 )
 
 val BEGREP_TO_BE_UPDATED = Begrep(
@@ -222,6 +229,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     ),
     assignedUser = "user-id",
     interneFelt = null,
+    internErstattesAv = null,
 )
 
 val BEGREP_3 = Begrep(
@@ -255,6 +263,7 @@ val BEGREP_3 = Begrep(
         id = "111222333"
     ),
     interneFelt = null,
+    internErstattesAv = listOf("id4")
 )
 
 val BEGREP_4 = Begrep(
@@ -282,7 +291,8 @@ val BEGREP_4 = Begrep(
     interneFelt = mapOf(
         Pair("felt1", InterntFelt("true")),
         Pair("felt2", InterntFelt("false"))),
-)
+    internErstattesAv = null,
+    )
 
 val BEGREP_5 = Begrep(
     id = "id5",
@@ -307,7 +317,8 @@ val BEGREP_5 = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null
 )
 
 val BEGREP_REVISION = Begrep(
@@ -328,7 +339,8 @@ val BEGREP_REVISION = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null
 )
 
 val BEGREP_6 = Begrep(
@@ -350,7 +362,8 @@ val BEGREP_6 = Begrep(
             forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
             kilde = listOf(URITekst(uri = "", tekst = "hei")))),
     omfang = URITekst(uri = "", tekst = "omfangtekst6"),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null
 )
 
 val BEGREP_HAS_REVISION = Begrep(
@@ -365,7 +378,8 @@ val BEGREP_HAS_REVISION = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null
 )
 
 val BEGREP_UNPUBLISHED_REVISION = Begrep(
@@ -379,7 +393,8 @@ val BEGREP_UNPUBLISHED_REVISION = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "111111111"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null
 )
 
 val BEGREP_HAS_MULTIPLE_REVISIONS = Begrep(
@@ -395,7 +410,8 @@ val BEGREP_HAS_MULTIPLE_REVISIONS = Begrep(
     ansvarligVirksomhet = Virksomhet(
         id = "222222222"
     ),
-    interneFelt = null
+    interneFelt = null,
+    internErstattesAv = null
 )
 
 val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST = Begrep(
@@ -410,6 +426,7 @@ val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST = Begrep(
         id = "222222222"
     ),
     interneFelt = null,
+    internErstattesAv = null
 )
 
 val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND = Begrep(
@@ -424,6 +441,7 @@ val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND = Begrep(
         id = "222222222"
     ),
     interneFelt = null,
+    internErstattesAv = null
 )
 
 val CHANGE_REQUEST_0 = ChangeRequest(

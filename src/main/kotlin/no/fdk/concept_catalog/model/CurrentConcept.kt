@@ -51,7 +51,8 @@ data class CurrentConcept(
     val abbreviatedLabel: String?,
     val begrepsRelasjon: List<BegrepsRelasjon>?,
     val internBegrepsRelasjon: List<BegrepsRelasjon>?,
-    val interneFelt: Map<String, InterntFelt>?
+    val interneFelt: Map<String, InterntFelt>?,
+    val internErstattesAv: List<String>?
 ) {
     constructor(dbo: BegrepDBO) : this(
         dbo.id, dbo.originaltBegrep, dbo.versjonsnr, dbo.revisjonAv,
@@ -62,7 +63,8 @@ data class CurrentConcept(
         dbo.fagområde, dbo.fagområdeKoder?.filterNotNull(), dbo.omfang, dbo.kontaktpunkt,
         dbo.gyldigFom, dbo.gyldigTom, dbo.endringslogelement, dbo.opprettet,
         dbo.opprettetAv, dbo.seOgså, dbo.internSeOgså, dbo.erstattesAv, dbo.assignedUser,
-        dbo.abbreviatedLabel, dbo.begrepsRelasjon, dbo.internBegrepsRelasjon, dbo.interneFelt
+        dbo.abbreviatedLabel, dbo.begrepsRelasjon, dbo.internBegrepsRelasjon, dbo.interneFelt,
+        dbo.internErstattesAv
     )
 
     fun toDBO(): BegrepDBO =
@@ -75,6 +77,6 @@ data class CurrentConcept(
             fagområde, fagområdeKoder, omfang, kontaktpunkt,
             gyldigFom, gyldigTom, endringslogelement, opprettet,
             opprettetAv, seOgså, internSeOgså, erstattesAv, assignedUser,
-            abbreviatedLabel, begrepsRelasjon, internBegrepsRelasjon, interneFelt
+            abbreviatedLabel, begrepsRelasjon, internBegrepsRelasjon, interneFelt, internErstattesAv
         )
 }

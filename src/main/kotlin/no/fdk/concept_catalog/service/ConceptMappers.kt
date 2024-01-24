@@ -46,7 +46,8 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         abbreviatedLabel,
         begrepsRelasjon,
         internBegrepsRelasjon,
-        interneFelt
+        interneFelt,
+        internErstattesAv
     )
 
 private fun BegrepDBO.isHighestPublishedVersion(highestPublishedVersion: SemVer?): Boolean =
@@ -92,7 +93,8 @@ fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
         abbreviatedLabel = dto.abbreviatedLabel,
         begrepsRelasjon = dto.begrepsRelasjon,
         internBegrepsRelasjon = dto.internBegrepsRelasjon,
-        interneFelt = dto.interneFelt
+        interneFelt = dto.interneFelt,
+        internErstattesAv = dto.internErstattesAv
     )
 
 fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =
@@ -158,6 +160,7 @@ fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
         abbreviatedLabel = null,
         begrepsRelasjon = ArrayList(),
         internBegrepsRelasjon = null,
-        interneFelt = null
+        interneFelt = null,
+        internErstattesAv = null
     )
 }

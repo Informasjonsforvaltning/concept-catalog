@@ -444,6 +444,7 @@ class ChangeRequests : ApiTestContext() {
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
                 status = Status.UTKAST,
                 assignedUser = "newUserId",
+                internErstattesAv = listOf("id1")
             )
             assertEquals(expected, result)
         }
@@ -494,7 +495,8 @@ class ChangeRequests : ApiTestContext() {
                 opprettetAv = "TEST USER",
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
                 status = Status.UTKAST,
-                assignedUser="newUserId"
+                assignedUser="newUserId",
+                internErstattesAv = null
             )
             assertEquals(expected, result)
         }
