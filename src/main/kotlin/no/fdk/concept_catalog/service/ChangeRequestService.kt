@@ -38,6 +38,7 @@ class ChangeRequestService(
     fun deleteChangeRequest(id: String, catalogId: String): Unit =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
             ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
+            ?.also { logger.debug("deleted change request with id $id") }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
     fun createChangeRequest(catalogId: String, user: User, body: ChangeRequestUpdateBody): String {
@@ -53,7 +54,8 @@ class ChangeRequestService(
             proposedBy = user,
             timeForProposal = Instant.now(),
             title = body.title,
-        ).run { changeRequestRepository.save(this) }
+        ).let { changeRequestRepository.save(it) }
+            .also { logger.debug("new change request ${it.id} successfully created") }
 
         return newId
     }
@@ -70,6 +72,7 @@ class ChangeRequestService(
                 title = body.title
             )
             ?.let { changeRequestRepository.save(it) }
+            ?.also { logger.debug("updated change request ${it.id}") }
     }
 
     fun acceptChangeRequest(id: String, catalogId: String, user: User, jwt: Jwt): String {
@@ -77,7 +80,8 @@ class ChangeRequestService(
 
         changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
             ?.copy(status = ChangeRequestStatus.ACCEPTED)
-            ?.run { changeRequestRepository.save(this) }
+            ?.let { changeRequestRepository.save(it) }
+            ?.also { logger.debug("accepted change request ${it.id}") }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
         val dbConcept = changeRequest.conceptId
@@ -116,7 +120,8 @@ class ChangeRequestService(
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
             ?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
             ?.copy(status = ChangeRequestStatus.REJECTED)
-            ?.run { changeRequestRepository.save(this) }
+            ?.let { changeRequestRepository.save(it) }
+            ?.also { logger.debug("rejected change request ${it.id}") }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
     }
 
@@ -153,8 +158,13 @@ class ChangeRequestService(
     }
 
     private fun validateJsonPatchOperations(concept: BegrepDBO, operations: List<JsonPatchOperation>) {
-        validateJsonPatchOperationsPaths(operations)
-        patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
+        try {
+            validateJsonPatchOperationsPaths(operations)
+            patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
+        } catch (ex: Exception) {
+            logger.error("failed to validate change request for concept ${concept.id}", ex)
+            throw ex
+        }
     }
 
     private fun changeRequestStatusFromString(str: String?): ChangeRequestStatus? =
