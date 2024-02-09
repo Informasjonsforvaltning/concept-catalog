@@ -55,8 +55,6 @@ class SkosApNoModelService(
         else createResource()
 
     fun buildModelForPublishersCollection(publisherId: String): Model {
-        logger.debug("Building concept collection model for publisher: {}", publisherId)
-
         val model = ModelFactory.createDefaultModel()
         model.addConceptNamespaces()
         model.addConceptsToCollection(publisherId)
@@ -64,8 +62,6 @@ class SkosApNoModelService(
     }
 
     fun buildModelForAllCollections(): Model {
-        logger.debug("Building concept collection models for all publishers")
-
         val model = ModelFactory.createDefaultModel()
         model.addConceptNamespaces()
 
@@ -77,7 +73,6 @@ class SkosApNoModelService(
     }
 
     fun buildModelForConcept(collectionId: String, id: String): Model {
-        logger.debug("Building model for concept: {}", id)
         val concept = conceptService.getLastPublished(id)
         val model = ModelFactory.createDefaultModel()
 

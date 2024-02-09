@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import jakarta.json.Json
 import jakarta.json.JsonException
-import no.fdk.concept_catalog.APP_LOG
 import no.fdk.concept_catalog.model.JsonPatchOperation
 import org.springframework.http.HttpStatus
 import org.springframework.web.server.ResponseStatusException
@@ -15,7 +14,6 @@ inline fun <reified T> patchOriginal(original: T, operations: List<JsonPatchOper
     try {
         return applyPatch(original, operations, mapper)
     } catch (ex: Exception) {
-        APP_LOG.error("failed to apply json patch operations", ex)
         when (ex) {
             is JsonException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)
             is JsonProcessingException -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message)

@@ -39,6 +39,7 @@ class ConceptService(
             currentConceptRepository.delete(CurrentConcept(concept))
         }
         conceptRepository.delete(concept)
+            .also { logger.debug("deleted concept ${concept.id}") }
     }
 
     fun getConceptById(id: String): Begrep? =
@@ -67,7 +68,9 @@ class ConceptService(
 
         val operations = createPatchOperations(newDefaultConcept, newConcept, mapper)
 
-        return saveConceptsAndUpdateHistory(mapOf(Pair(newConcept, operations)), user, jwt).first()
+        return saveConceptsAndUpdateHistory(mapOf(Pair(newConcept, operations)), user, jwt)
+            .first()
+            .also { logger.debug("new concept ${it.id} successfully created") }
     }
 
     fun getAllCollections(): List<Begrepssamling> =
@@ -100,7 +103,9 @@ class ConceptService(
 
         val operations = createPatchOperations(newRevision, newWithUpdatedValues, mapper)
 
-        return saveConceptsAndUpdateHistory(mapOf(Pair(newWithUpdatedValues, operations)), user, jwt).first()
+        return saveConceptsAndUpdateHistory(mapOf(Pair(newWithUpdatedValues, operations)), user, jwt)
+            .first()
+            .also { logger.debug("new revision ${it.id} successfully created") }
     }
 
     fun createConcepts(concepts: List<Begrep>, user: User, jwt: Jwt) {
@@ -146,16 +151,22 @@ class ConceptService(
         }
 
         saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
+            .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
     }
 
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
-        val patched = patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
-            .copy(
-                id = concept.id,
-                originaltBegrep = concept.originaltBegrep,
-                ansvarligVirksomhet = concept.ansvarligVirksomhet
-            )
-            .updateLastChangedAndByWhom(user)
+        val patched = try {
+            patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
+                .copy(
+                    id = concept.id,
+                    originaltBegrep = concept.originaltBegrep,
+                    ansvarligVirksomhet = concept.ansvarligVirksomhet
+                )
+                .updateLastChangedAndByWhom(user)
+        } catch (ex: Exception) {
+            logger.error("failed to patch concept ${concept.id}", ex)
+            throw ex
+        }
 
         val validation = patched.validateSchema()
 
@@ -181,7 +192,9 @@ class ConceptService(
                 "Unable to publish concepts as part of normal update"
             )
         }
-        return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt).first()
+        return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt)
+            .first()
+            .also { logger.debug("concept ${it.id} successfully updated") }
     }
 
     private fun saveConceptsAndUpdateHistory(
@@ -197,6 +210,7 @@ class ConceptService(
                 .run { currentConceptRepository.saveAll(this) }
             return conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }
         } catch (ex: Exception) {
+            logger.error("save failed, removing history update", ex)
             locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
             throw ex
         }
