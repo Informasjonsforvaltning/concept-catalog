@@ -56,14 +56,15 @@ class ConceptService(
         val newConcept: BegrepDBO = newDefaultConcept.addUpdatableFieldsFromDTO(concept)
 
         if(!newConcept.validateMinimumVersion()) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Invalid version ${newConcept.versjonsnr}. Version must be minimum 0.1.0"
-            )
+            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid version ${newConcept.versjonsnr}. Version must be minimum 0.1.0")
+            logger.error("aborting create", badRequest)
+            throw badRequest
         }
         val validation = newConcept.validateSchema()
         if (!validation.isValid) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
+            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
+            logger.error("invalid concept, aborting create", badRequest)
+            throw badRequest
         }
 
         val operations = createPatchOperations(newDefaultConcept, newConcept, mapper)
@@ -95,10 +96,9 @@ class ConceptService(
         val newWithUpdatedValues = newRevision.addUpdatableFieldsFromDTO(revisionValues)
 
         if(!newWithUpdatedValues.validateVersionUpgrade(concept.versjonsnr)) {
-            throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Invalid version ${newWithUpdatedValues.versjonsnr}. Version must be greater than ${concept.versjonsnr}"
-            )
+            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid version ${newWithUpdatedValues.versjonsnr}. Version must be greater than ${concept.versjonsnr}")
+            logger.error("revision of ${concept.id} aborted", badRequest)
+            throw badRequest
         }
 
         val operations = createPatchOperations(newRevision, newWithUpdatedValues, mapper)
@@ -131,7 +131,7 @@ class ConceptService(
             }
 
         if (validationResultsMap.isNotEmpty() || invalidVersionsList.isNotEmpty()) {
-            throw ResponseStatusException(
+            val badRequest = ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 validationResultsMap.entries.mapIndexed { index, entry ->
                     "Concept ${index}"
@@ -148,6 +148,8 @@ class ConceptService(
                         .plus("\n\n")
                 }.joinToString("\n")
             )
+            logger.error("validation of some concepts failed, aborting create", badRequest)
+            throw badRequest
         }
 
         saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
@@ -171,14 +173,16 @@ class ConceptService(
         val validation = patched.validateSchema()
 
         when {
-            concept.erPublisert -> throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Unable to patch published concepts"
-            )
-            !validation.isValid -> throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                validation.results().toString()
-            )
+            concept.erPublisert -> {
+                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to patch published concepts")
+                logger.error("aborting update of ${concept.id}", badRequest)
+                throw badRequest
+            }
+            !validation.isValid -> {
+                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
+                logger.error("aborting update of ${concept.id}, update failed validation", badRequest)
+                throw badRequest
+            }
             isPublishedAndNotValid(patched.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
@@ -187,10 +191,11 @@ class ConceptService(
                 )
                 throw badRequestException
             }
-            patched.erPublisert || patched.publiseringsTidspunkt != null -> throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Unable to publish concepts as part of normal update"
-            )
+            patched.erPublisert || patched.publiseringsTidspunkt != null -> {
+                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to publish concepts as part of normal update")
+                logger.error("aborting update of ${concept.id}", badRequest)
+                throw badRequest
+            }
         }
         return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt)
             .first()
@@ -328,10 +333,11 @@ class ConceptService(
         )
 
         when {
-            concept.erPublisert -> throw ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "Unable to publish already published concepts"
-            )
+            concept.erPublisert -> {
+                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to publish already published concepts")
+                logger.error("aborting publish of ${concept.id}", badRequest)
+                throw badRequest
+            }
             isPublishedAndNotValid(published.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
