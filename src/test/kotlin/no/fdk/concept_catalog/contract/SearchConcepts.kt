@@ -199,7 +199,7 @@ class SearchConcepts : ApiTestContext() {
             mapper.writeValueAsString(
                 SearchOperation(
                     "",
-                    filters = SearchFilters(subject = SearchFilter(listOf("fagomr1")))
+                    filters = SearchFilters(subject = SearchFilter(listOf("5e6b2561-6157-4eb4-b396-d773cd00de12")))
                 )
             ),
             JwtToken(Access.ORG_WRITE).toString(),
@@ -211,7 +211,7 @@ class SearchConcepts : ApiTestContext() {
             mapper.writeValueAsString(
                 SearchOperation(
                     "",
-                    filters = SearchFilters(subject = SearchFilter(listOf("fagomr1", "fagomr3")))
+                    filters = SearchFilters(subject = SearchFilter(listOf("5e6b2561-6157-4eb4-b396-d773cd00de12", "fagomr3")))
                 )
             ),
             JwtToken(Access.ORG_WRITE).toString(),

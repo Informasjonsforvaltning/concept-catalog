@@ -63,7 +63,7 @@ fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
         queryFilters
             .add(Query.of { queryBuilder ->
                 queryBuilder.terms { termsBuilder ->
-                    termsBuilder.field("fagområdeKoder")
+                    termsBuilder.field("fagområdeKoder.keyword")
                         .terms { fieldBuilder -> fieldBuilder.value(subject.value.map { FieldValue.of(it) }) }
                 }
             })

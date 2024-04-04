@@ -93,7 +93,7 @@
         rdfs:seeAlso      <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4> ;
         dct:isReplacedBy  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4> ;
         dct:subject       "fagområde"@nb,
-                            <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr1>,
+                            <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#5e6b2561-6157-4eb4-b396-d773cd00de12>,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2> ;
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
         dct:temporal      [ rdf:type          dct:PeriodOfTime ;
