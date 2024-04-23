@@ -13,7 +13,7 @@
     <parent>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-parent</artifactId>
-      <version>3.2.4</version>
+      <version>3.2.5</version>
       <relativePath/>
     </parent>
 
@@ -30,7 +30,7 @@
 
         <kotlin.version>1.9.23</kotlin.version>
         <testcontainers.version>1.19.7</testcontainers.version>
-        <jena.version>4.9.0</jena.version>
+        <jena.version>5.0.0</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
     </properties>
 
@@ -151,13 +151,13 @@
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
             <artifactId>mockito-kotlin</artifactId>
-            <version>5.2.1</version>
+            <version>5.3.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
-            <version>3.5.2</version>
+            <version>3.5.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
