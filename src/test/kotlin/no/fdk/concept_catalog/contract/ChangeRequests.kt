@@ -439,8 +439,6 @@ class ChangeRequests : ApiTestContext() {
                 publiseringsTidspunkt = null,
                 revisjonAv = BEGREP_0.id,
                 revisjonAvSistPublisert = true,
-                opprettet = result.opprettet,
-                opprettetAv = "TEST USER",
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
                 status = Status.UTKAST,
                 assignedUser = "newUserId",

@@ -112,16 +112,14 @@ fun incrementSemVer(semVer: SemVer?): SemVer =
         patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch
     )
 
-fun BegrepDBO.createNewRevision(user: User): BegrepDBO =
+fun BegrepDBO.createNewRevision(): BegrepDBO =
     copy(
         id = UUID.randomUUID().toString(),
         versjonsnr = incrementSemVer(versjonsnr),
         revisjonAv = id,
         status = Status.UTKAST,
         erPublisert = false,
-        publiseringsTidspunkt = null,
-        opprettet = Instant.now(),
-        opprettetAv = user.name
+        publiseringsTidspunkt = null
     )
 
 fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
