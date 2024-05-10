@@ -92,7 +92,7 @@ class ConceptService(
         )
 
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
-        val newRevision = concept.createNewRevision(user).updateLastChangedAndByWhom(user)
+        val newRevision = concept.createNewRevision().updateLastChangedAndByWhom(user)
         val newWithUpdatedValues = newRevision.addUpdatableFieldsFromDTO(revisionValues)
 
         if(!newWithUpdatedValues.validateVersionUpgrade(concept.versjonsnr)) {

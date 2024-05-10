@@ -93,7 +93,7 @@ class ChangeRequestService(
                 .updateLastChangedAndByWhom(user)
                 .also { currentConceptRepository.save(CurrentConcept(it)) }
                 .let { conceptRepository.save(it) }
-            dbConcept.erPublisert -> dbConcept.createNewRevision(user)
+            dbConcept.erPublisert -> dbConcept.createNewRevision()
                 .updateLastChangedAndByWhom(user)
                 .let { conceptRepository.save(it) }
             else -> dbConcept
