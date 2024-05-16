@@ -48,10 +48,9 @@
                                                        rdfs:seeAlso  <https://testdirektoratet.no>
                                                      ] ;
                              skosno:forholdTilKilde  skosno:basertPåKilde ;
-                             skosno:omfang           [ rdfs:label    "Test"@nb ;
-                                                       rdfs:seeAlso  <https://test.no>
-                                                     ]
-                           ] .
+                           ] ;
+
+        skosno:valueRange   <https://test.no> .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333>
         rdf:type        skos:Collection ;
@@ -76,5 +75,6 @@
                               vcard:hasEmail      <mailto:test@test.no> ;
                               vcard:hasTelephone  <tel:99887766>
                             ] ;
+        skosno:valueRange   "omfang"@nb ;
         dct:subject         "bruksområde"@nn,
                               <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr3> .

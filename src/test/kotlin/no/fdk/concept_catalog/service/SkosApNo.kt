@@ -86,51 +86,17 @@ class SkosApNo {
     }
 
     @Test
-    fun `Handles null and blank URI in omfang`() {
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(omfang = URITekst(uri = "", tekst = "Testdirektoratet")))
-        val modelBlankURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val omfangBlankURI = modelBlankURI.listObjectsOfProperty(SKOSNO.omfang).toList().first().asResource()
-        assertFalse { omfangBlankURI.hasProperty(RDFS.seeAlso) }
-        assertTrue { omfangBlankURI.hasProperty(RDFS.label) }
-
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(omfang = URITekst(uri = null, tekst = "Testdirektoratet")))
-        val modelNullURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val omfangNullURI = modelNullURI.listObjectsOfProperty(SKOSNO.omfang).toList().first().asResource()
-        assertFalse { omfangNullURI.hasProperty(RDFS.seeAlso) }
-        assertTrue { omfangNullURI.hasProperty(RDFS.label) }
-    }
-
-    @Test
-    fun `Handles null and blank label in omfang`() {
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(omfang = URITekst(uri = "https://valid.uri.no", tekst = "")))
-        val modelBlankLabel = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val omfangBlankLabel = modelBlankLabel.listObjectsOfProperty(SKOSNO.omfang).toList().first().asResource()
-        assertFalse { omfangBlankLabel.hasProperty(RDFS.label) }
-        assertTrue { omfangBlankLabel.hasProperty(RDFS.seeAlso) }
-
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(omfang = URITekst(uri = "https://valid.uri.no", tekst = null)))
-        val modelNullLabel = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val omfangNullLabel = modelNullLabel.listObjectsOfProperty(SKOSNO.omfang).toList().first().asResource()
-        assertFalse { omfangNullLabel.hasProperty(RDFS.label) }
-        assertTrue { omfangNullLabel.hasProperty(RDFS.seeAlso) }
-    }
-
-    @Test
     fun `Handles null and blank uri and label in omfang`() {
         whenever(conceptService.getLastPublished(BEGREP_6.id))
             .thenReturn(BEGREP_6.copy(omfang = URITekst(uri = "", tekst = "")))
         val modelBlankURIandLabel = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val omfangBlankURIandLabel = modelBlankURIandLabel.listObjectsOfProperty(SKOSNO.omfang).toList()
+        val omfangBlankURIandLabel = modelBlankURIandLabel.listObjectsOfProperty(SKOSNO.valueRange).toList()
         assertTrue { omfangBlankURIandLabel.isEmpty() }
 
         whenever(conceptService.getLastPublished(BEGREP_6.id))
             .thenReturn(BEGREP_6.copy(omfang = URITekst(uri = null, tekst = null)))
         val modelNullURIandLabel = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val omfangNullURIandLabel = modelNullURIandLabel.listObjectsOfProperty(SKOSNO.omfang).toList()
+        val omfangNullURIandLabel = modelNullURIandLabel.listObjectsOfProperty(SKOSNO.valueRange).toList()
         assertTrue { omfangNullURIandLabel.isEmpty() }
     }
 

@@ -160,6 +160,8 @@ class SkosApNoModelService(
         addBegrepsRelasjonToConcept(concept, collectionURI, publishedIds)
         addReplacedByReferencesToConcept(concept, collectionURI, publishedIds)
         addStatusToConcept(concept)
+        addScopeNoteToConcept(concept)
+        addScopeToConcept(concept)
     }
 
     private fun getCollectionUri(publisherId: String): String {
@@ -204,9 +206,6 @@ class SkosApNoModelService(
     private fun Resource.addDefinitionToConcept(concept: Begrep) {
         val definitionResource = model.createDefinitionResource(concept.definisjon)
         if (definitionResource != null) {
-            definitionResource.addScopeToDefinition(concept)
-            definitionResource.addScopeNoteToDefinition(concept)
-
             addProperty(SKOSNO.definisjon, definitionResource)
         }
     }
@@ -225,10 +224,10 @@ class SkosApNoModelService(
                 definitionResource
             }
 
-    private fun Resource.addScopeToDefinition(concept: Begrep) {
+    private fun Resource.addScopeToConcept(concept: Begrep) {
         concept.omfang
             ?.takeIf { !it.tekst.isNullOrBlank() || it.uri.isValidURI() }
-            ?.let { source -> addURIText(SKOSNO.omfang, source) }
+            ?.let { source -> addURIOrText(SKOSNO.valueRange, source) }
     }
 
     private fun Resource.addStatusToConcept(concept: Begrep) {
@@ -237,7 +236,7 @@ class SkosApNoModelService(
             ?.let { addProperty(EUVOC.status, model.safeCreateResource(it)) }
     }
 
-    private fun Resource.addScopeNoteToDefinition(concept: Begrep) {
+    private fun Resource.addScopeNoteToConcept(concept: Begrep) {
         concept.merknad
             ?.filterValues { it.isNotBlank() }
             ?.forEach { (key, value) -> addProperty(SKOS.scopeNote, value, key) }
@@ -260,6 +259,15 @@ class SkosApNoModelService(
                         .forEach { sourceEntry -> addURIText(DCTerms.source, sourceEntry) }
                 }
             }
+    }
+
+    private fun Resource.addURIOrText(predicate: Property, uriText: URITekst) {
+        if (uriText.uri.isValidURI()) {
+            addProperty(predicate, model.safeCreateResource(uriText.uri))
+        }
+        else if (!uriText.tekst.isNullOrBlank()) {
+            addProperty(predicate, uriText.tekst, NB)
+        }
     }
 
     private fun Resource.addURIText(predicate: Property, uriText: URITekst) {
