@@ -19,7 +19,7 @@ class SKOSNO {
         val alternativFormulering: Property = ResourceFactory.createProperty( "${uri}alternativFormulering")
         val bruksområde: Property = ResourceFactory.createProperty( "${uri}bruksområde")
         val forholdTilKilde: Property = ResourceFactory.createProperty( "${uri}forholdTilKilde")
-        val omfang: Property = ResourceFactory.createProperty( "${uri}omfang")
+        val valueRange: Property = ResourceFactory.createProperty( "${uri}valueRange")
         val datastrukturterm: Property = ResourceFactory.createProperty( "${uri}datastrukturterm")
         val assosiativRelasjon: Property = ResourceFactory.createProperty( "${uri}assosiativRelasjon")
         val partitivRelasjon: Property = ResourceFactory.createProperty( "${uri}partitivRelasjon")

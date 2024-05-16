@@ -252,7 +252,7 @@ val BEGREP_3 = Begrep(
     eksempel = mapOf(Pair("en", "example")),
     fagområde = mapOf(Pair("nb", listOf("fagområde"))),
     fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12","fagomr2"),
-    omfang = URITekst(uri = "https://test.no", tekst = "Test"),
+    omfang = URITekst(uri="https://test.no"),
     internSeOgså = listOf("id4"),
     internBegrepsRelasjon = listOf(BegrepsRelasjon(
         relasjon = "assosiativ",
@@ -292,6 +292,7 @@ val BEGREP_4 = Begrep(
         Pair("felt1", InterntFelt("true")),
         Pair("felt2", InterntFelt("false"))),
     internErstattesAv = null,
+    omfang = URITekst(tekst = "omfang")
     )
 
 val BEGREP_5 = Begrep(
@@ -361,7 +362,7 @@ val BEGREP_6 = Begrep(
         kildebeskrivelse = Kildebeskrivelse(
             forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
             kilde = listOf(URITekst(uri = "", tekst = "hei")))),
-    omfang = URITekst(uri = "", tekst = "omfangtekst6"),
+    omfang = URITekst(tekst="omfangtekst6"),
     interneFelt = null,
     internErstattesAv = null
 )
