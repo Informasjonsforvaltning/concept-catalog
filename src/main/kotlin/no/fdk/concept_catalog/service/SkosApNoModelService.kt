@@ -369,7 +369,7 @@ class SkosApNoModelService(
             relation.beskrivelse
                 ?.filterValues { description -> description.isNotBlank() }
                 ?.takeIf { description -> description.isNotEmpty() }
-                ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
+                ?.forEach { (key, value) -> relationResource.addProperty(SKOSNO.relationRole, value, key) }
 
             if (relationURI?.isNotBlank() == true) {
                 relationResource.addProperty(SKOS.related, model.safeCreateResource(relationURI))

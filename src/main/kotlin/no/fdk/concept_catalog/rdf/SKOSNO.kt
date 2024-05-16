@@ -15,6 +15,7 @@ class SKOSNO {
         val PartitivRelasjon: Resource = ResourceFactory.createResource("${uri}PartitivRelasjon")
 
         val definisjon: Property = ResourceFactory.createProperty( "${uri}definisjon")
+        val relationRole: Property = ResourceFactory.createProperty("${uri}relationRole")
         val alternativFormulering: Property = ResourceFactory.createProperty( "${uri}alternativFormulering")
         val bruksområde: Property = ResourceFactory.createProperty( "${uri}bruksområde")
         val forholdTilKilde: Property = ResourceFactory.createProperty( "${uri}forholdTilKilde")
