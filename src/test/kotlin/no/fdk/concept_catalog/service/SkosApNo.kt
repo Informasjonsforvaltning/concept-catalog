@@ -9,6 +9,7 @@ import no.fdk.concept_catalog.rdf.SKOSNO
 import no.fdk.concept_catalog.utils.*
 import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.RDFS
+import org.apache.jena.vocabulary.RDFSyntax.RDF
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -122,5 +123,6 @@ class SkosApNo {
 
         val sourceNullURI = modelInvalidURI.listObjectsOfProperty(EUVOC.xlDefinition).toList().first().asResource()
         assertFalse { sourceNullURI.hasProperty(RDFS.seeAlso) }
+        assertTrue { sourceNullURI.hasProperty(DCTerms.source) }
     }
 }

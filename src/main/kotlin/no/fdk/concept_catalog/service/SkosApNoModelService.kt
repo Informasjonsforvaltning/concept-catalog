@@ -213,7 +213,7 @@ class SkosApNoModelService(
             ?.takeIf { it.isNotEmpty() }
             ?.let {
                 val definitionResource = createResource()
-                    .addProperty(RDF.type, EUVOC.xlNote)
+                    .addProperty(RDF.type, EUVOC.XlNote)
 
                 it.forEach { (key, value) -> definitionResource.addProperty(RDF.value, value, key) }
 

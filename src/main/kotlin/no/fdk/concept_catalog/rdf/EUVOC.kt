@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.rdf
 
 import org.apache.jena.rdf.model.Property
+import org.apache.jena.rdf.model.Resource
 import org.apache.jena.rdf.model.ResourceFactory
 
 class EUVOC {
@@ -9,6 +10,6 @@ class EUVOC {
 
         val status: Property = ResourceFactory.createProperty( "${uri}status")
         val xlDefinition: Property = ResourceFactory.createProperty("${uri}xlDefinition")
-        val xlNote: Property = ResourceFactory.createProperty("${uri}XlNote")
+        val XlNote: Resource = ResourceFactory.createResource("${uri}XlNote")
     }
 }
