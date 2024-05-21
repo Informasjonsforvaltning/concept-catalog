@@ -18,7 +18,7 @@ class SKOSNO {
         val relationRole: Property = ResourceFactory.createProperty("${uri}relationRole")
         val alternativFormulering: Property = ResourceFactory.createProperty( "${uri}alternativFormulering")
         val bruksområde: Property = ResourceFactory.createProperty( "${uri}bruksområde")
-        val forholdTilKilde: Property = ResourceFactory.createProperty( "${uri}forholdTilKilde")
+        val relationshipWithSource: Property = ResourceFactory.createProperty( "${uri}relationshipWithSource")
         val valueRange: Property = ResourceFactory.createProperty( "${uri}valueRange")
         val datastrukturterm: Property = ResourceFactory.createProperty( "${uri}datastrukturterm")
         val assosiativRelasjon: Property = ResourceFactory.createProperty( "${uri}assosiativRelasjon")
@@ -28,9 +28,5 @@ class SKOSNO {
 
         val allmennheten: Property = ResourceFactory.createProperty( "${uri}allmennheten")
         val fagspesialist: Property = ResourceFactory.createProperty( "${uri}fagspesialist")
-
-        val sitatFraKilde: Property = ResourceFactory.createProperty( "${uri}sitatFraKilde")
-        val basertPåKilde: Property = ResourceFactory.createProperty( "${uri}basertPåKilde")
-        val egendefinert: Property = ResourceFactory.createProperty( "${uri}egendefinert")
     }
 }

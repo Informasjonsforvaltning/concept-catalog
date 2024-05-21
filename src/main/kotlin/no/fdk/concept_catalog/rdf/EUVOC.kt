@@ -8,5 +8,7 @@ class EUVOC {
         const val uri = "http://publications.europa.eu/ontology/euvoc#"
 
         val status: Property = ResourceFactory.createProperty( "${uri}status")
+        val xlDefinition: Property = ResourceFactory.createProperty("${uri}xlDefinition")
+        val xlNote: Property = ResourceFactory.createProperty("${uri}XlNote")
     }
 }

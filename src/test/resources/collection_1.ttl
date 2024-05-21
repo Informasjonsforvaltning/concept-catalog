@@ -17,6 +17,7 @@
 @prefix dcat:  <http://www.w3.org/ns/dcat#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
+@prefix relationship-with-source-type: <https://data.norge.no/vocabulary/relationship-with-source-type#> .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3>
         rdf:type          skos:Concept ;
@@ -39,15 +40,11 @@
                                      skosno:relationRole  "Beskrivelse"@nb;
                                      skos:related     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4>
                                    ];
-        skosno:definisjon  [ rdf:type                skosno:Definisjon ;
-                             rdfs:label              "definisjon"@nb ;
-                             dct:source              [ rdfs:label    "Festdirektoratet"@nb ;
-                                                       rdfs:seeAlso  <https://festdirektoratet.no>
-                                                     ] ;
-                             dct:source              [ rdfs:label    "Testdirektoratet"@nb ;
-                                                       rdfs:seeAlso  <https://testdirektoratet.no>
-                                                     ] ;
-                             skosno:forholdTilKilde  skosno:basertPåKilde ;
+        euvoc:xlDefinition  [ rdf:type                euvoc:XlNote ;
+                             rdf:value              "definisjon"@nb ;
+                             dct:source              "Testdirektoratet"@nb, "Festdirektoratet"@nb ;
+                             rdfs:seeAlso  <https://festdirektoratet.no>, <https://testdirektoratet.no> ;
+                             skosno:relationshipWithSource  relationship-with-source-type:derived-from-source ;
                            ] ;
 
         skosno:valueRange   <https://test.no> .
