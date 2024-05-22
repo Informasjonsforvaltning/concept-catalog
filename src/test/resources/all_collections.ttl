@@ -17,6 +17,8 @@
 @prefix dcat:  <http://www.w3.org/ns/dcat#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
+@prefix relationship-with-source-type: <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+@prefix audience-type: <https://data.norge.no/vocabulary/audience-type#> .
 
 <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
         dct:replaces  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old> .
@@ -62,19 +64,19 @@
                                   dct:description  "Inndelingskriterium"@nb ;
                                   dct:isPartOf     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
                                 ] ;
-        skosno:definisjon   [ rdf:type                skosno:Definisjon ;
-                              rdfs:label              "definisjon"@nb ;
-                              skosno:forholdTilKilde  skosno:egendefinert
+        euvoc:xlDefinition   [ rdf:type                       euvoc:XlNote ;
+                              rdf:value                       "definisjon"@nb ;
+                              skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
                             ] ;
-        skosno:definisjon   [ rdf:type                skosno:Definisjon ;
-                              rdfs:label              "Definisjon for spesialister"@nb ;
-                              dct:audience            skosno:fagspesialist ;
-                              skosno:forholdTilKilde  skosno:egendefinert
+        euvoc:xlDefinition   [ rdf:type               euvoc:XlNote ;
+                              rdf:value              "Definisjon for spesialister"@nb ;
+                              dct:audience            audience-type:specialist ;
+                              skosno:relationshipWithSource  relationship-with-source-type:self-composed
                             ] ;
-        skosno:definisjon   [ rdf:type                skosno:Definisjon ;
-                              rdfs:label              "definisjon for allmennheten"@nb ;
-                              dct:audience            skosno:allmennheten ;
-                              skosno:forholdTilKilde  skosno:egendefinert
+        euvoc:xlDefinition   [ rdf:type                      euvoc:XlNote ;
+                              rdf:value                      "definisjon for allmennheten"@nb ;
+                              dct:audience                   audience-type:public ;
+                              skosno:relationshipWithSource  relationship-with-source-type:self-composed ;
                             ] ;
         skos:scopeNote          "merknad"@nn ;
         dct:modified      "2020-01-02"^^xsd:date .
@@ -107,15 +109,10 @@
                                      skosno:relationRole  "Beskrivelse"@nb;
                                      skos:related     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4>
                                    ];
-        skosno:definisjon  [ rdf:type                skosno:Definisjon ;
-                             rdfs:label              "definisjon"@nb ;
-                             dct:source              [ rdfs:label    "Festdirektoratet"@nb ;
-                                                       rdfs:seeAlso  <https://festdirektoratet.no>
-                                                     ] ;
-                             dct:source              [ rdfs:label    "Testdirektoratet"@nb ;
-                                                       rdfs:seeAlso  <https://testdirektoratet.no>
-                                                     ] ;
-                             skosno:forholdTilKilde  skosno:basertPåKilde ;
+        euvoc:xlDefinition  [ rdf:type                euvoc:XlNote ;
+                             rdf:value              "definisjon"@nb ;
+                             dct:source              <https://festdirektoratet.no>, <https://testdirektoratet.no> ;
+                             skosno:relationshipWithSource  relationship-with-source-type:derived-from-source ;
                            ] ;
         skosno:valueRange   <https://test.no> .
 

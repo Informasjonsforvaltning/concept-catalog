@@ -6,10 +6,7 @@ import no.fdk.concept_catalog.model.BegrepsRelasjon
 import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.URITekst
-import no.fdk.concept_catalog.rdf.EUVOC
-import no.fdk.concept_catalog.rdf.SCHEMA
-import no.fdk.concept_catalog.rdf.SKOSNO
-import no.fdk.concept_catalog.rdf.XKOS
+import no.fdk.concept_catalog.rdf.*
 import org.apache.jena.datatypes.xsd.impl.XSDDateType
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
@@ -186,9 +183,9 @@ class SkosApNoModelService(
     private fun Resource.addPublicDefinitionToConcept(concept: Begrep) {
         val definitionResource = model.createDefinitionResource(concept.definisjonForAllmennheten)
         if (definitionResource != null) {
-            definitionResource.addProperty(DCTerms.audience, SKOSNO.allmennheten)
+            definitionResource.addProperty(DCTerms.audience, AUDIENCE_TYPE.public)
 
-            addProperty(SKOSNO.definisjon, definitionResource)
+            addProperty(EUVOC.xlDefinition, definitionResource)
         }
     }
 
@@ -196,9 +193,9 @@ class SkosApNoModelService(
     private fun Resource.addSpecialistDefinitionToConcept(concept: Begrep) {
         val definitionResource = model.createDefinitionResource(concept.definisjonForSpesialister)
         if (definitionResource != null) {
-            definitionResource.addProperty(DCTerms.audience, SKOSNO.fagspesialist)
+            definitionResource.addProperty(DCTerms.audience, AUDIENCE_TYPE.specialist)
 
-            addProperty(SKOSNO.definisjon, definitionResource)
+            addProperty(EUVOC.xlDefinition, definitionResource)
         }
     }
 
@@ -206,7 +203,7 @@ class SkosApNoModelService(
     private fun Resource.addDefinitionToConcept(concept: Begrep) {
         val definitionResource = model.createDefinitionResource(concept.definisjon)
         if (definitionResource != null) {
-            addProperty(SKOSNO.definisjon, definitionResource)
+            addProperty(EUVOC.xlDefinition, definitionResource)
         }
     }
 
@@ -216,9 +213,9 @@ class SkosApNoModelService(
             ?.takeIf { it.isNotEmpty() }
             ?.let {
                 val definitionResource = createResource()
-                    .addProperty(RDF.type, SKOSNO.Definisjon)
+                    .addProperty(RDF.type, EUVOC.XlNote)
 
-                it.forEach { (key, value) -> definitionResource.addProperty(RDFS.label, value, key) }
+                it.forEach { (key, value) -> definitionResource.addProperty(RDF.value, value, key) }
 
                 definitionResource.addSourceDescriptionToDefinition(definition)
                 definitionResource
@@ -247,16 +244,20 @@ class SkosApNoModelService(
             ?.takeIf { !it.kilde.isNullOrEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
             ?.let {
                 when (it.forholdTilKilde) {
-                    ForholdTilKildeEnum.EGENDEFINERT -> addProperty(SKOSNO.forholdTilKilde, SKOSNO.egendefinert)
-                    ForholdTilKildeEnum.BASERTPAAKILDE -> addProperty(SKOSNO.forholdTilKilde, SKOSNO.basertPåKilde)
-                    ForholdTilKildeEnum.SITATFRAKILDE -> addProperty(SKOSNO.forholdTilKilde, SKOSNO.sitatFraKilde)
+                    ForholdTilKildeEnum.EGENDEFINERT -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.selfComposed)
+                    ForholdTilKildeEnum.BASERTPAAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.derivedFromSource)
+                    ForholdTilKildeEnum.SITATFRAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.directFromSource)
                     else -> {}
                 }
 
                 if (!it.kilde.isNullOrEmpty()) {
-                    it.kilde
-                        .filter { sourceEntry -> !sourceEntry.tekst.isNullOrBlank() || sourceEntry.uri.isValidURI() }
-                        .forEach { sourceEntry -> addURIText(DCTerms.source, sourceEntry) }
+                    it.kilde.forEach { sourceEntry ->
+                        if (sourceEntry.uri.isValidURI()) {
+                            addProperty(DCTerms.source, model.safeCreateResource(sourceEntry.uri))
+                        } else if (!sourceEntry.tekst.isNullOrBlank()) {
+                            addProperty(DCTerms.source, sourceEntry.tekst, NB)
+                        }
+                    }
                 }
             }
     }
@@ -270,18 +271,6 @@ class SkosApNoModelService(
         }
     }
 
-    private fun Resource.addURIText(predicate: Property, uriText: URITekst) {
-        if (uriText.uri.isValidURI() || !uriText.tekst.isNullOrBlank()) {
-            val sourceResource = model.createResource()
-            if (!uriText.tekst.isNullOrBlank()) {
-                sourceResource.addProperty(RDFS.label, uriText.tekst, NB)
-            }
-            if (uriText.uri.isValidURI()) {
-                sourceResource.addProperty(RDFS.seeAlso, model.safeCreateResource(uriText.uri))
-            }
-            addProperty(predicate, sourceResource)
-        }
-    }
 
     private fun Resource.addSKOSXLLabel(predicate: Property, labelText: String, language: String) {
         val labelResource = model.createResource()

@@ -4,10 +4,12 @@ import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.Kildebeskrivelse
 import no.fdk.concept_catalog.model.URITekst
+import no.fdk.concept_catalog.rdf.EUVOC
 import no.fdk.concept_catalog.rdf.SKOSNO
 import no.fdk.concept_catalog.utils.*
 import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.RDFS
+import org.apache.jena.vocabulary.RDFSyntax.RDF
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -18,6 +20,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.server.ResponseStatusException
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 private val logger = LoggerFactory.getLogger(SkosApNo::class.java)
 
@@ -101,40 +104,6 @@ class SkosApNo {
     }
 
     @Test
-    fun `Handles null and blank URI in source`() {
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = null, kilde = listOf(URITekst(uri = "", tekst = "Testdirektoratet"))))))
-        val modelBlankURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val sourceBlankURI = modelBlankURI.listObjectsOfProperty(SKOSNO.definisjon).toList().first().asResource().getPropertyResourceValue(DCTerms.source)
-        assertFalse { sourceBlankURI.hasProperty(RDFS.seeAlso) }
-        assertTrue { sourceBlankURI.hasProperty(RDFS.label) }
-
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = null, kilde = listOf(URITekst(uri = null, tekst = "Testdirektoratet"))))))
-        val modelNullURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val sourceNullURI = modelNullURI.listObjectsOfProperty(SKOSNO.definisjon).toList().first().asResource().getPropertyResourceValue(DCTerms.source)
-        assertFalse { sourceNullURI.hasProperty(RDFS.seeAlso) }
-        assertTrue { sourceNullURI.hasProperty(RDFS.label) }
-    }
-
-    @Test
-    fun `Handles null and blank label in source`() {
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = null, kilde = listOf(URITekst(uri = "https://valid.uri.no", tekst = ""))))))
-        val modelBlankLabel = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val sourceBlankLabel = modelBlankLabel.listObjectsOfProperty(SKOSNO.definisjon).toList().first().asResource().getPropertyResourceValue(DCTerms.source)
-        assertFalse { sourceBlankLabel.hasProperty(RDFS.label) }
-        assertTrue { sourceBlankLabel.hasProperty(RDFS.seeAlso) }
-
-        whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = null, kilde = listOf(URITekst(uri = "https://valid.uri.no", tekst = null))))))
-        val modelNullLabel = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
-        val sourceNullLabel = modelNullLabel.listObjectsOfProperty(SKOSNO.definisjon).toList().first().asResource().getPropertyResourceValue(DCTerms.source)
-        assertFalse { sourceNullLabel.hasProperty(RDFS.label) }
-        assertTrue { sourceNullLabel.hasProperty(RDFS.seeAlso) }
-    }
-
-    @Test
     fun `Throws exception on nonexistent publisher id`() {
         val nonexistentPublisherId = "000000000"
         assertThrows<ResponseStatusException> { skosApNo.buildModelForConcept(nonexistentPublisherId, BEGREP_6.id!!) }
@@ -153,8 +122,8 @@ class SkosApNo {
             .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE, kilde = listOf(URITekst(uri = "https://an invalid uri", tekst = "Testdirektoratet"))))))
         val modelInvalidURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
 
-        val sourceNullURI = modelInvalidURI.listObjectsOfProperty(SKOSNO.definisjon).toList().first().asResource().getPropertyResourceValue(DCTerms.source)
-        assertFalse { sourceNullURI.hasProperty(RDFS.seeAlso) }
-        assertTrue { sourceNullURI.hasProperty(RDFS.label) }
+        val sourceNullURI = modelInvalidURI.listObjectsOfProperty(EUVOC.xlDefinition).toList().first().asResource().getProperty(DCTerms.source)
+        assertTrue { sourceNullURI.`object`.isLiteral }
+        assertEquals("Testdirektoratet", sourceNullURI.literal.string)
     }
 }
