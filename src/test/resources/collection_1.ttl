@@ -33,9 +33,7 @@
                             schema:startDate  "2020-10-10"^^xsd:date
                           ] ;
         skos:example      "example"@en ;
-        skosxl:prefLabel  [ rdf:type            skosxl:Label ;
-                            skosxl:literalForm  "Begrep 3"@nn
-                          ] ;
+        skos:prefLabel    "Begrep 3"@nn ;
         skosno:assosiativRelasjon  [ rdf:type         skosno:AssosiativRelasjon;
                                      skosno:relationRole  "Beskrivelse"@nb;
                                      skos:related     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4>
@@ -64,9 +62,7 @@
         dct:temporal        [ rdf:type        dct:PeriodOfTime ;
                               schema:endDate  "2030-10-10"^^xsd:date
                             ] ;
-        skosxl:prefLabel    [ rdf:type            skosxl:Label ;
-                              skosxl:literalForm  "Begrep 4"@en
-                            ] ;
+        skos:prefLabel      "Begrep 4"@en ;
         dcat:contactPoint   [ rdf:type            vcard:Organization ;
                               vcard:hasEmail      <mailto:test@test.no> ;
                               vcard:hasTelephone  <tel:99887766>

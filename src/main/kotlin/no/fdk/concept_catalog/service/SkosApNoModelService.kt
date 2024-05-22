@@ -174,9 +174,7 @@ class SkosApNoModelService(
             ?.filterValues { it.toString().isNotBlank() }
             ?.takeIf { it.isNotEmpty() }
             ?.let {
-                val prefLabelResource = model.createResource(SKOSXL.Label)
-                it.forEach { (key, value) -> prefLabelResource.addProperty(SKOSXL.literalForm, value.toString(), key) }
-                addProperty(SKOSXL.prefLabel, prefLabelResource)
+                it.forEach { (key, value) -> addProperty(SKOS.prefLabel, value.toString(), key) }
             }
     }
 
@@ -272,21 +270,13 @@ class SkosApNoModelService(
     }
 
 
-    private fun Resource.addSKOSXLLabel(predicate: Property, labelText: String, language: String) {
-        val labelResource = model.createResource()
-            .addProperty(RDF.type, SKOSXL.Label)
-            .addProperty(SKOSXL.literalForm, labelText, language)
-
-        addProperty(predicate, labelResource)
-    }
-
     private fun Resource.addAltLabelToConcept(concept: Begrep) {
         concept.tillattTerm
             ?.filterValues { it.isNotEmpty() }
             ?.takeIf { it.isNotEmpty() }
             ?.forEach { (key, entry) ->
                 entry.forEach { value ->
-                    addSKOSXLLabel(SKOSXL.altLabel, value, key)
+                    addProperty(SKOS.altLabel, value, key)
                 }
             }
     }
@@ -297,7 +287,7 @@ class SkosApNoModelService(
             ?.takeIf { it.isNotEmpty() }
             ?.forEach { (key, entry) ->
                 entry.forEach { value ->
-                    addSKOSXLLabel(SKOSXL.hiddenLabel, value, key)
+                    addProperty(SKOS.hiddenLabel, value, key)
                 }
             }
     }
