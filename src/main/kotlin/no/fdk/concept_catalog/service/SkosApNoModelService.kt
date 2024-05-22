@@ -244,19 +244,18 @@ class SkosApNoModelService(
             ?.takeIf { !it.kilde.isNullOrEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
             ?.let {
                 when (it.forholdTilKilde) {
-                    ForholdTilKildeEnum.EGENDEFINERT -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.egendefinert)
-                    ForholdTilKildeEnum.BASERTPAAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.basertPåKilde)
-                    ForholdTilKildeEnum.SITATFRAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.sitatFraKilde)
+                    ForholdTilKildeEnum.EGENDEFINERT -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.selfComposed)
+                    ForholdTilKildeEnum.BASERTPAAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.derivedFromSource)
+                    ForholdTilKildeEnum.SITATFRAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.directFromSource)
                     else -> {}
                 }
 
                 if (!it.kilde.isNullOrEmpty()) {
                     it.kilde.forEach { sourceEntry ->
-                        if (!sourceEntry.tekst.isNullOrBlank()) {
-                            addProperty(DCTerms.source, sourceEntry.tekst, NB)
-                        }
                         if (sourceEntry.uri.isValidURI()) {
-                            addProperty(RDFS.seeAlso, model.safeCreateResource(sourceEntry.uri))
+                            addProperty(DCTerms.source, model.safeCreateResource(sourceEntry.uri))
+                        } else if (!sourceEntry.tekst.isNullOrBlank()) {
+                            addProperty(DCTerms.source, sourceEntry.tekst, NB)
                         }
                     }
                 }
@@ -272,18 +271,6 @@ class SkosApNoModelService(
         }
     }
 
-    private fun Resource.addURIText(predicate: Property, uriText: URITekst) {
-        if (uriText.uri.isValidURI() || !uriText.tekst.isNullOrBlank()) {
-            val sourceResource = model.createResource()
-            if (!uriText.tekst.isNullOrBlank()) {
-                sourceResource.addProperty(RDFS.label, uriText.tekst, NB)
-            }
-            if (uriText.uri.isValidURI()) {
-                sourceResource.addProperty(RDFS.seeAlso, model.safeCreateResource(uriText.uri))
-            }
-            addProperty(predicate, sourceResource)
-        }
-    }
 
     private fun Resource.addSKOSXLLabel(predicate: Property, labelText: String, language: String) {
         val labelResource = model.createResource()

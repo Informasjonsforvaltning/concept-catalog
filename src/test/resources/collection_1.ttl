@@ -42,8 +42,7 @@
                                    ];
         euvoc:xlDefinition  [ rdf:type                euvoc:XlNote ;
                              rdf:value              "definisjon"@nb ;
-                             dct:source              "Testdirektoratet"@nb, "Festdirektoratet"@nb ;
-                             rdfs:seeAlso  <https://festdirektoratet.no>, <https://testdirektoratet.no> ;
+                             dct:source              <https://festdirektoratet.no>, <https://testdirektoratet.no> ;
                              skosno:relationshipWithSource  relationship-with-source-type:derived-from-source ;
                            ] ;
 
