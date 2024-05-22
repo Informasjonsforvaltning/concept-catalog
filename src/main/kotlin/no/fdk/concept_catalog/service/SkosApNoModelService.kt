@@ -173,8 +173,8 @@ class SkosApNoModelService(
         concept.anbefaltTerm?.navn
             ?.filterValues { it.toString().isNotBlank() }
             ?.takeIf { it.isNotEmpty() }
-            ?.let {
-                it.forEach { (key, value) -> addProperty(SKOS.prefLabel, value.toString(), key) }
+            ?.forEach { (key, value) ->
+                addProperty(SKOS.prefLabel, value.toString(), key)
             }
     }
 
