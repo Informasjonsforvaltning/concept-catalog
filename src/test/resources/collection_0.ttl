@@ -30,24 +30,9 @@
         dct:isReplacedBy    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
-        skosxl:altLabel     [ rdf:type            skosxl:Label ;
-                              skosxl:literalForm  "tillattTerm"@nn
-                            ] ;
-        skosxl:altLabel     [ rdf:type            skosxl:Label ;
-                              skosxl:literalForm  "tillattTerm2"@nn
-                            ] ;
-        skosxl:hiddenLabel  [ rdf:type            skosxl:Label ;
-                              skosxl:literalForm  "fraraadetTerm"@nb
-                            ] ;
-        skosxl:hiddenLabel  [ rdf:type            skosxl:Label ;
-                              skosxl:literalForm  "fraraadetTerm2"@nb
-                            ] ;
-        skosxl:hiddenLabel  [ rdf:type            skosxl:Label ;
-                              skosxl:literalForm  "Lorem ipsum"@nb
-                            ] ;
-        skosxl:prefLabel    [ rdf:type            skosxl:Label ;
-                              skosxl:literalForm  "anbefaltTerm"@nb
-                            ] ;
+        skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
+        skos:hiddenLabel    "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
+        skos:prefLabel      "anbefaltTerm"@nb ;
         skosno:generiskRelasjon [ rdf:type                    skosno:GeneriskRelasjon ;
                                   skosno:inndelingskriterium  "Inndelingskriterium"@nb ;
                                   xkos:generalizes    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
