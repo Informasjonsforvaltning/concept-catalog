@@ -44,13 +44,13 @@
                                   skosno:inndelingskriterium  "Inndelingskriterium"@nb ;
                                   xkos:specializes    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
                                 ] ;
-        skosno:partitivRelasjon [ rdf:type                    skosno:PartitivRelasjon ;
+        skosno:hasPartitiveConceptRelation [ rdf:type      skosno:PartitiveConceptRelation ;
                                   dct:description  "Inndelingskriterium"@nb ;
-                                  dct:hasPart     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+                                  skosno:hasPartitiveConcept     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
                                 ] ;
-        skosno:partitivRelasjon [ rdf:type                    skosno:PartitivRelasjon ;
+        skosno:hasPartitiveConceptRelation [ rdf:type                    skosno:PartitiveConceptRelation ;
                                   dct:description  "Inndelingskriterium"@nb ;
-                                  dct:isPartOf     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+                                  skosno:hasComprehensiveConcept     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
                                 ] ;
         euvoc:xlDefinition   [ rdf:type                       euvoc:XlNote ;
                               rdf:value                       "definisjon"@nb ;

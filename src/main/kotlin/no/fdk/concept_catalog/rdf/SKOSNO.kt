@@ -12,7 +12,7 @@ class SKOSNO {
         val AlternativFormulering: Resource = ResourceFactory.createResource("${uri}AlternativFormulering")
         val AssosiativRelasjon: Resource = ResourceFactory.createResource("${uri}AssosiativRelasjon")
         val GeneriskRelasjon: Resource = ResourceFactory.createResource("${uri}GeneriskRelasjon")
-        val PartitivRelasjon: Resource = ResourceFactory.createResource("${uri}PartitivRelasjon")
+        val PartitiveConceptRelation: Resource = ResourceFactory.createResource("${uri}PartitiveConceptRelation")
 
         val definisjon: Property = ResourceFactory.createProperty( "${uri}definisjon")
         val relationRole: Property = ResourceFactory.createProperty("${uri}relationRole")
@@ -22,9 +22,11 @@ class SKOSNO {
         val valueRange: Property = ResourceFactory.createProperty( "${uri}valueRange")
         val datastrukturterm: Property = ResourceFactory.createProperty( "${uri}datastrukturterm")
         val assosiativRelasjon: Property = ResourceFactory.createProperty( "${uri}assosiativRelasjon")
-        val partitivRelasjon: Property = ResourceFactory.createProperty( "${uri}partitivRelasjon")
+        val hasPartitiveConceptRelation: Property = ResourceFactory.createProperty( "${uri}hasPartitiveConceptRelation")
         val generiskRelasjon: Property = ResourceFactory.createProperty( "${uri}generiskRelasjon")
         val inndelingskriterium: Property = ResourceFactory.createProperty( "${uri}inndelingskriterium")
+        val hasPartitiveConcept: Property = ResourceFactory.createProperty("${uri}hasPartitiveConcept")
+        val hasComprehensiveConcept: Property = ResourceFactory.createProperty("${uri}hasComprehensiveConcept")
 
         val allmennheten: Property = ResourceFactory.createProperty( "${uri}allmennheten")
         val fagspesialist: Property = ResourceFactory.createProperty( "${uri}fagspesialist")
