@@ -434,27 +434,18 @@ class SkosApNoModelService(
 
         when {
             validFromIncluding != null && validToIncluding != null && validFromIncluding.isBefore(validToIncluding) -> {
-                val periodOfTimeResource = model.createResource(DCTerms.PeriodOfTime)
-                model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate)
-                    .let { start -> periodOfTimeResource.addProperty(SCHEMA.startDate, start) }
-                model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate)
-                    .let { end -> periodOfTimeResource.addProperty(SCHEMA.endDate, end) }
-                addProperty(DCTerms.temporal, periodOfTimeResource)
+                addProperty(EUVOC.startDate, model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate))
+                addProperty(EUVOC.endDate, model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate))
             }
             validFromIncluding != null -> {
-                val periodOfTimeResource = model.createResource(DCTerms.PeriodOfTime)
-                model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate)
-                    .let { start -> periodOfTimeResource.addProperty(SCHEMA.startDate, start) }
-                addProperty(DCTerms.temporal, periodOfTimeResource)
+                addProperty(EUVOC.startDate, model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate))
             }
             validToIncluding != null -> {
-                val periodOfTimeResource = model.createResource(DCTerms.PeriodOfTime)
-                model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate)
-                    .let { end -> periodOfTimeResource.addProperty(SCHEMA.endDate, end) }
-                addProperty(DCTerms.temporal, periodOfTimeResource)
+                addProperty(EUVOC.endDate, model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate))
             }
         }
     }
+
 
     private fun Model.addConceptNamespaces() {
         setNsPrefix("adms", "http://www.w3.org/ns/adms#")
