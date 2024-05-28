@@ -351,7 +351,7 @@ class SkosApNoModelService(
         val relationResource = model.createResource()
 
         if (relation.relasjon == ASSOCIATIVE) {
-            relationResource.addProperty(RDF.type, SKOSNO.AssosiativRelasjon)
+            relationResource.addProperty(RDF.type, SKOSNO.AssociativeConceptRelation)
 
             relation.beskrivelse
                 ?.filterValues { description -> description.isNotBlank() }
@@ -359,9 +359,9 @@ class SkosApNoModelService(
                 ?.forEach { (key, value) -> relationResource.addProperty(SKOSNO.relationRole, value, key) }
 
             if (relationURI?.isNotBlank() == true) {
-                relationResource.addProperty(SKOS.related, model.safeCreateResource(relationURI))
+                relationResource.addProperty(SKOSNO.hasToConcept, model.safeCreateResource(relationURI))
             }
-            addProperty(SKOSNO.assosiativRelasjon, relationResource)
+            addProperty(SKOSNO.isFromConceptIn, relationResource)
         }
         if (relation.relasjon == PARTITIVE) {
             relationResource.addProperty(RDF.type, SKOSNO.PartitiveConceptRelation)

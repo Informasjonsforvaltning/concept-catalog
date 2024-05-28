@@ -89,9 +89,9 @@
         euvoc:startDate     "2020-10-10"^^xsd:date ;
         skos:example      "example"@en ;
         skos:prefLabel    "Begrep 3"@nn ;
-        skosno:assosiativRelasjon  [ rdf:type         skosno:AssosiativRelasjon;
+        skosno:isFromConceptIn  [ rdf:type         skosno:AssociativeConceptRelation;
                                      skosno:relationRole  "Beskrivelse"@nb;
-                                     skos:related     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4>
+                                     skosno:hasToConcept     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id4>
                                    ];
         euvoc:xlDefinition  [ rdf:type                euvoc:XlNote ;
                              rdf:value              "definisjon"@nb ;
