@@ -86,9 +86,7 @@
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#5e6b2561-6157-4eb4-b396-d773cd00de12>,
                             <https://catalog-admin-service.fellesdatakatalog.digdir.no/111222333/concepts/subjects#fagomr2> ;
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
-        dct:temporal      [ rdf:type          dct:PeriodOfTime ;
-                            schema:startDate  "2020-10-10"^^xsd:date
-                          ] ;
+        euvoc:startDate     "2020-10-10"^^xsd:date ;
         skos:example      "example"@en ;
         skos:prefLabel    "Begrep 3"@nn ;
         skosno:assosiativRelasjon  [ rdf:type         skosno:AssosiativRelasjon;
@@ -116,9 +114,7 @@
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/111222333> ;
         dct:replaces        <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333/concepts/id3> ;
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
-        dct:temporal        [ rdf:type        dct:PeriodOfTime ;
-                              schema:endDate  "2030-10-10"^^xsd:date
-                            ] ;
+        euvoc:endDate       "2030-10-10"^^xsd:date;
         skos:prefLabel      "Begrep 4"@en ;
         dcat:contactPoint   [ rdf:type            vcard:Organization ;
                               vcard:hasEmail      <mailto:test@test.no> ;

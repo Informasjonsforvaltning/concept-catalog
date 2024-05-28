@@ -11,5 +11,7 @@ class EUVOC {
         val status: Property = ResourceFactory.createProperty( "${uri}status")
         val xlDefinition: Property = ResourceFactory.createProperty("${uri}xlDefinition")
         val XlNote: Resource = ResourceFactory.createResource("${uri}XlNote")
+        val startDate: Property = ResourceFactory.createProperty("${uri}startDate")
+        val endDate: Property = ResourceFactory.createProperty("${uri}endDate")
     }
 }
