@@ -34,13 +34,13 @@
         skos:hiddenLabel    "fraraadetTerm"@nb,"fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
 
         skos:prefLabel      "anbefaltTerm"@nb ;
-        skosno:generiskRelasjon [ rdf:type                    skosno:GeneriskRelasjon ;
-                                  skosno:inndelingskriterium  "Inndelingskriterium"@nb ;
-                                  xkos:generalizes    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+        skosno:hasGenericConceptRelation [ rdf:type                    skosno:GenericConceptRelation ;
+                                  dct:description  "Inndelingskriterium"@nb ;
+                                  skosno:hasSpecificConcept    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
                                 ] ;
-        skosno:generiskRelasjon [ rdf:type                    skosno:GeneriskRelasjon ;
-                                  skosno:inndelingskriterium  "Inndelingskriterium"@nb ;
-                                  xkos:specializes    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+        skosno:hasGenericConceptRelation [ rdf:type                    skosno:GenericConceptRelation ;
+                                  dct:description  "Inndelingskriterium"@nb ;
+                                  skosno:hasGenericConcept    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
                                 ] ;
         skosno:hasPartitiveConceptRelation [ rdf:type                    skosno:PartitiveConceptRelation ;
                                   dct:description  "Inndelingskriterium"@nb ;

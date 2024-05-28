@@ -382,22 +382,22 @@ class SkosApNoModelService(
             addProperty(SKOSNO.hasPartitiveConceptRelation, relationResource)
         }
         if (relation.relasjon == GENERIC) {
-            relationResource.addProperty(RDF.type, SKOSNO.GeneriskRelasjon)
+            relationResource.addProperty(RDF.type, SKOSNO.GenericConceptRelation)
 
             val relationType = relation.relasjonsType
 
             relation.inndelingskriterium
                 ?.filterValues { criteria -> criteria.isNotBlank() }
                 ?.takeIf { criteria -> criteria.isNotEmpty() }
-                ?.forEach { (key, value) -> relationResource.addProperty(SKOSNO.inndelingskriterium, value, key) }
+                ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
 
             if (relationType == OVERORDNET) {
-                relationResource.addProperty(XKOS.specializes, model.safeCreateResource(relationURI))
+                relationResource.addProperty(SKOSNO.hasGenericConcept, model.safeCreateResource(relationURI))
             }
             if (relationType == UNDERORDNET) {
-                relationResource.addProperty(XKOS.generalizes, model.safeCreateResource(relationURI))
+                relationResource.addProperty(SKOSNO.hasSpecificConcept, model.safeCreateResource(relationURI))
             }
-            addProperty(SKOSNO.generiskRelasjon, relationResource)
+            addProperty(SKOSNO.hasGenericConceptRelation, relationResource)
         }
     }
 
