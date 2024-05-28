@@ -68,7 +68,7 @@
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789>
         rdf:type        skos:Collection ;
-        rdfs:label      "Concept collection belonging to 123456789" ;
+        dct:title      "Concept collection belonging to 123456789" ;
         dct:identifier  "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789" ;
         dct:publisher   <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         skos:member     <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old> .

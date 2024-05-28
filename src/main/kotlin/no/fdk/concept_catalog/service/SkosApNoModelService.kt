@@ -85,7 +85,7 @@ class SkosApNoModelService(
         return createResource(uri)
             .addProperty(RDF.type, SKOS.Collection)
             .addProperty(DCTerms.identifier, createLiteral(uri))
-            .addProperty(RDFS.label, "Concept collection belonging to $publisherId")
+            .addProperty(DCTerms.title, "Concept collection belonging to $publisherId")
             .addProperty(DCTerms.publisher, safeCreateResource(enhetsregisteretUri(publisherId)))
     }
 
