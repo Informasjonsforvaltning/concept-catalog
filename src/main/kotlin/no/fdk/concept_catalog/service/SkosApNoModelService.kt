@@ -364,7 +364,7 @@ class SkosApNoModelService(
             addProperty(SKOSNO.assosiativRelasjon, relationResource)
         }
         if (relation.relasjon == PARTITIVE) {
-            relationResource.addProperty(RDF.type, SKOSNO.PartitivRelasjon)
+            relationResource.addProperty(RDF.type, SKOSNO.PartitiveConceptRelation)
 
             val relationType = relation.relasjonsType
 
@@ -374,12 +374,12 @@ class SkosApNoModelService(
                 ?.forEach { (key, value) -> relationResource.addProperty(DCTerms.description, value, key) }
 
             if (relationType == OMFATTER) {
-                relationResource.addProperty(DCTerms.hasPart, model.safeCreateResource(relationURI))
+                relationResource.addProperty(SKOSNO.hasPartitiveConcept, model.safeCreateResource(relationURI))
             }
             if (relationType == ERDELAV) {
-                relationResource.addProperty(DCTerms.isPartOf, model.safeCreateResource(relationURI))
+                relationResource.addProperty(SKOSNO.hasComprehensiveConcept, model.safeCreateResource(relationURI))
             }
-            addProperty(SKOSNO.partitivRelasjon, relationResource)
+            addProperty(SKOSNO.hasPartitiveConceptRelation, relationResource)
         }
         if (relation.relasjon == GENERIC) {
             relationResource.addProperty(RDF.type, SKOSNO.GeneriskRelasjon)
