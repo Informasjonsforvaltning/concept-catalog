@@ -17,7 +17,6 @@ import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.RDFS
 import org.apache.jena.vocabulary.SKOS
-import org.apache.jena.vocabulary.SKOSXL
 import org.apache.jena.vocabulary.VCARD4
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -463,10 +462,7 @@ class SkosApNoModelService(
         setNsPrefix("iso", "http://iso.org/25012/2008/dataquality/")
         setNsPrefix("oa", "http://www.w3.org/ns/prov#")
         setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-        setNsPrefix("skosxl", "http://www.w3.org/2008/05/skos-xl#")
-
         setNsPrefix("skosno", SKOSNO.uri)
-        setNsPrefix("xkos", XKOS.uri)
     }
 
     private fun Model.emailResource(email: String): Resource =
