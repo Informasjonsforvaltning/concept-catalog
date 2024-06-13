@@ -380,6 +380,7 @@ val BEGREP_HAS_REVISION = Begrep(
         id = "111111111"
     ),
     interneFelt = null,
+    internSeOgså = listOf("id-to-be-updated"),
     internErstattesAv = null
 )
 
@@ -395,7 +396,13 @@ val BEGREP_UNPUBLISHED_REVISION = Begrep(
         id = "111111111"
     ),
     interneFelt = null,
-    internErstattesAv = null
+    internErstattesAv = listOf("id-to-be-updated"),
+    internBegrepsRelasjon = listOf(
+        BegrepsRelasjon(
+            relasjon = "assosiativ",
+            relatertBegrep = "id-to-be-updated"
+        )
+    )
 )
 
 val BEGREP_HAS_MULTIPLE_REVISIONS = Begrep(

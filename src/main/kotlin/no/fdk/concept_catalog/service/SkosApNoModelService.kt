@@ -80,7 +80,7 @@ class SkosApNoModelService(
     }
 
     private fun Model.createCollectionResource(publisherId: String): Resource {
-        val uri = getCollectionUri(publisherId)
+        val uri = getCollectionUri(applicationProperties.collectionBaseUri, publisherId)
         return createResource(uri)
             .addProperty(RDF.type, SKOS.Collection)
             .addProperty(DCTerms.identifier, createLiteral(uri))
@@ -129,7 +129,7 @@ class SkosApNoModelService(
     private fun Model.addConceptToModel(concept: Begrep, publishedIds: List<String>) {
         if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
         else {
-            val collectionURI = getCollectionUri(concept.ansvarligVirksomhet.id)
+            val collectionURI = getCollectionUri(applicationProperties.collectionBaseUri, concept.ansvarligVirksomhet.id)
             val conceptURI = getConceptUri(collectionURI, concept.originaltBegrep)
             val conceptResource = createResource(conceptURI)
                 .addProperty(RDF.type, SKOS.Concept)
@@ -158,14 +158,6 @@ class SkosApNoModelService(
         addStatusToConcept(concept)
         addScopeNoteToConcept(concept)
         addScopeToConcept(concept)
-    }
-
-    private fun getCollectionUri(publisherId: String): String {
-        return "${applicationProperties.collectionBaseUri}/collections/$publisherId"
-    }
-
-    private fun getConceptUri(collectionUri: String, conceptId: String): String {
-        return "$collectionUri/concepts/$conceptId"
     }
 
     private fun Resource.addPrefLabelToConcept(concept: Begrep) {

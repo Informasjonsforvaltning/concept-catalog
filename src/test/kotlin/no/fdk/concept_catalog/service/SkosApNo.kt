@@ -90,6 +90,8 @@ class SkosApNo {
 
     @Test
     fun `Handles null and blank uri and label in omfang`() {
+        whenever(applicationProperties.collectionBaseUri)
+            .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptService.getLastPublished(BEGREP_6.id))
             .thenReturn(BEGREP_6.copy(omfang = URITekst(uri = "", tekst = "")))
         val modelBlankURIandLabel = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
@@ -111,6 +113,8 @@ class SkosApNo {
 
     @Test
     fun `Handles Concept with ForholdTilKildeEnum set to SITATFRAKILDE` () {
+        whenever(applicationProperties.collectionBaseUri)
+            .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptService.getLastPublished(BEGREP_6.id))
             .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE, kilde = listOf(URITekst(uri = "https://valid.uri.no", tekst = "Testdirektoratet"))))))
         assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
@@ -118,6 +122,8 @@ class SkosApNo {
 
     @Test
     fun `Handles Concept with invalid source URI` () {
+        whenever(applicationProperties.collectionBaseUri)
+            .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptService.getLastPublished(BEGREP_6.id))
             .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE, kilde = listOf(URITekst(uri = "https://an invalid uri", tekst = "Testdirektoratet"))))))
         val modelInvalidURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }

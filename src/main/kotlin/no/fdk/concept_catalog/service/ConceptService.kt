@@ -352,7 +352,53 @@ class ConceptService(
 
         currentConceptRepository.save(CurrentConcept(published))
         return conceptRepository.save(published)
+            .also { updateRelationsToNonInternal(it) }
             .withHighestVersionDTO()
+    }
+
+    private fun updateRelationsToNonInternal(concept: BegrepDBO) {
+        val collectionURI = getCollectionUri(applicationProperties.collectionBaseUri, concept.ansvarligVirksomhet.id)
+        val conceptURI = getConceptUri(collectionURI, concept.originaltBegrep)
+        conceptRepository.getBegrepByAnsvarligVirksomhetId(concept.ansvarligVirksomhet.id)
+            .filter {
+                it.internSeOgså?.contains(concept.id) == true ||
+                    it.internErstattesAv?.contains(concept.id) == true ||
+                    it.internBegrepsRelasjon?.map { relation -> relation.relasjon }?.contains(concept.id) == true }
+            .map {
+                if (it.internSeOgså?.contains(concept.id) == true) {
+                    it.copy(
+                        seOgså = it.seOgså?.plus(conceptURI) ?: listOf(conceptURI),
+                        internSeOgså = it.internSeOgså.minus(concept.id)
+                    )
+                } else {
+                    it
+                } }
+            .map {
+                if (it.internErstattesAv?.contains(concept.id) == true) {
+                    it.copy(
+                        erstattesAv = it.erstattesAv?.plus(conceptURI) ?: listOf(conceptURI),
+                        internErstattesAv = it.internErstattesAv.minus(concept.id)
+                    )
+                } else {
+                    it
+                } }
+            .map {
+                val external = mutableListOf<BegrepsRelasjon>()
+                val internal = mutableListOf<BegrepsRelasjon>()
+                it.internBegrepsRelasjon?.forEach { relation ->
+                    if (relation.relatertBegrep == concept.id) external.add(relation.copy(relatertBegrep = conceptURI))
+                    else internal.add(relation)
+                }
+
+                if (internal.size != (it.internBegrepsRelasjon ?: 0)) {
+                    it.copy(
+                        begrepsRelasjon = it.begrepsRelasjon?.plus(external) ?: external,
+                        internBegrepsRelasjon = internal
+                    )
+                } else {
+                    it
+                } }
+            .run { conceptRepository.saveAll(this) }
     }
 
     private fun getVersionOrMinimum(concept: BegrepDBO): SemVer {
