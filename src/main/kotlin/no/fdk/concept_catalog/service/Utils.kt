@@ -55,3 +55,11 @@ fun escapeURI(uri: String?): String? {
     }
     return sb.toString()
 }
+
+fun getCollectionUri(collectionBaseUri: String, publisherId: String): String {
+    return "$collectionBaseUri/collections/$publisherId"
+}
+
+fun getConceptUri(collectionUri: String, conceptId: String): String {
+    return "$collectionUri/concepts/$conceptId"
+}
