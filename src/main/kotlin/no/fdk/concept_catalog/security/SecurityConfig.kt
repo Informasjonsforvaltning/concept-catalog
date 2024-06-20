@@ -6,19 +6,34 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2Res
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
 import org.springframework.security.oauth2.jwt.*
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.header.writers.StaticHeadersWriter
 import org.springframework.security.web.util.matcher.RequestMatcher
+import org.springframework.web.cors.CorsConfiguration
 
 @Configuration
 open class SecurityConfig {
 
     @Bean
     open fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http.csrf().disable()
-            .cors().and()
+        http.csrf { csrf -> csrf.disable() }
+            .headers { headers ->
+                headers.addHeaderWriter(
+                    StaticHeadersWriter(
+                        "Content-Security-Policy-Report-Only", "default-src 'self' fellesdatakatalog.digdir.no *.fellesdatakatalog.digdir.no"
+                    )
+                )
+                headers.addHeaderWriter(
+                    StaticHeadersWriter(
+                        "Reporting-Endpoints", "europe-west1-digdir-cloud-functions.cloudfunctions.net"
+                    )
+                )
+            }
+            .cors { cors -> cors.configurationSource { CorsConfiguration().applyPermitDefaultValues() } }
             .authorizeHttpRequests{ authorize ->
                 authorize.requestMatchers(RDFMatcher()).permitAll()
                     .requestMatchers(HttpMethod.OPTIONS).permitAll()
@@ -26,7 +41,7 @@ open class SecurityConfig {
                     .requestMatchers(HttpMethod.GET,"/ready").permitAll()
                     .requestMatchers(HttpMethod.GET,"/actuator/**").permitAll()
                     .anyRequest().authenticated() }
-            .oauth2ResourceServer { resourceServer -> resourceServer.jwt() }
+            .oauth2ResourceServer { resourceServer -> resourceServer.jwt(Customizer.withDefaults()) }
         return http.build()
     }
 
