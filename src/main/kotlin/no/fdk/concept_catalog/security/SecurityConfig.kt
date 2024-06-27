@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
 import org.springframework.security.oauth2.jwt.*
 import org.springframework.security.web.SecurityFilterChain
@@ -17,16 +18,19 @@ open class SecurityConfig {
 
     @Bean
     open fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http.csrf().disable()
-            .cors().and()
-            .authorizeHttpRequests{ authorize ->
-                authorize.requestMatchers(RDFMatcher()).permitAll()
-                    .requestMatchers(HttpMethod.OPTIONS).permitAll()
-                    .requestMatchers(HttpMethod.GET,"/ping").permitAll()
-                    .requestMatchers(HttpMethod.GET,"/ready").permitAll()
-                    .requestMatchers(HttpMethod.GET,"/actuator/**").permitAll()
-                    .anyRequest().authenticated() }
-            .oauth2ResourceServer { resourceServer -> resourceServer.jwt() }
+        http {
+            csrf { disable() }
+            cors { }
+            oauth2ResourceServer { jwt { } }
+            authorizeHttpRequests {
+                authorize(RDFMatcher(), permitAll)
+                authorize(HttpMethod.OPTIONS, "/**", permitAll)
+                authorize(HttpMethod.GET, "/ping", permitAll)
+                authorize(HttpMethod.GET, "/ready", permitAll)
+                authorize(HttpMethod.GET, "/actuator/**", permitAll)
+                authorize(anyRequest, authenticated)
+            }
+        }
         return http.build()
     }
 
