@@ -210,11 +210,15 @@ class SkosApNoModelService(
                 definitionResource
             }
 
-    private fun Resource.addScopeToConcept(concept: Begrep) {
-        concept.omfang
-            ?.takeIf { !it.tekst.isNullOrBlank() || it.uri.isValidURI() }
-            ?.let { source -> addURIOrText(SKOSNO.valueRange, source) }
-    }
+    private fun Resource.addScopeToConcept(concept: Begrep) =
+        concept.omfang?.let { valueRange ->
+            if (valueRange.uri.isValidURI()) {
+                addProperty(SKOSNO.valueRange, model.safeCreateResource(valueRange.uri))
+            }
+            if (!valueRange.tekst.isNullOrBlank()) {
+                addProperty(SKOSNO.valueRange, valueRange.tekst, NB)
+            }
+        }
 
     private fun Resource.addStatusToConcept(concept: Begrep) {
         concept.statusURI
@@ -250,16 +254,6 @@ class SkosApNoModelService(
                 }
             }
     }
-
-    private fun Resource.addURIOrText(predicate: Property, uriText: URITekst) {
-        if (uriText.uri.isValidURI()) {
-            addProperty(predicate, model.safeCreateResource(uriText.uri))
-        }
-        else if (!uriText.tekst.isNullOrBlank()) {
-            addProperty(predicate, uriText.tekst, NB)
-        }
-    }
-
 
     private fun Resource.addAltLabelToConcept(concept: Begrep) {
         concept.tillattTerm
