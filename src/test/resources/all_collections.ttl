@@ -100,6 +100,13 @@
                            ] ;
         skosno:valueRange   <https://test.no> .
 
+<https://festdirektoratet.no>
+    a          rdfs:Resource ;
+    rdfs:label "Festdirektoratet"@nb .
+
+<https://testdirektoratet.no>
+    a          rdfs:Resource ;
+    rdfs:label "Testdirektoratet"@nb .
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/111222333>
         rdf:type        skos:Collection ;

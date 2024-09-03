@@ -246,9 +246,17 @@ class SkosApNoModelService(
                 if (!it.kilde.isNullOrEmpty()) {
                     it.kilde.forEach { sourceEntry ->
                         if (sourceEntry.uri.isValidURI()) {
-                            addProperty(DCTerms.source, model.safeCreateResource(sourceEntry.uri))
-                        } else if (!sourceEntry.tekst.isNullOrBlank()) {
-                            addProperty(DCTerms.source, sourceEntry.tekst, NB)
+                            val source = model.safeCreateResource(sourceEntry.uri)
+                            source.addProperty(RDF.type, RDFS.Resource)
+                            if (!sourceEntry.tekst.isNullOrBlank()) {
+                                source.addProperty(RDFS.label, sourceEntry.tekst, NB)
+                            }
+                            addProperty(DCTerms.source, source)
+                        } else if (!sourceEntry.tekst.isNullOrBlank()){
+                            val source = model.createResource()
+                            source.addProperty(RDF.type, RDFS.Resource)
+                            source.addProperty(RDFS.label, sourceEntry.tekst, NB)
+                            addProperty(DCTerms.source, source)
                         }
                     }
                 }
