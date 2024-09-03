@@ -128,8 +128,8 @@ class SkosApNo {
             .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE, kilde = listOf(URITekst(uri = "https://an invalid uri", tekst = "Testdirektoratet"))))))
         val modelInvalidURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
 
-        val sourceNullURI = modelInvalidURI.listObjectsOfProperty(EUVOC.xlDefinition).toList().first().asResource().getProperty(DCTerms.source)
-        assertTrue { sourceNullURI.`object`.isLiteral }
-        assertEquals("Testdirektoratet", sourceNullURI.literal.string)
+        val sourceNullURI = modelInvalidURI.listObjectsOfProperty(EUVOC.xlDefinition).toList().first().asResource().getProperty(DCTerms.source).`object`
+        assertTrue { sourceNullURI.isAnon }
+        assertEquals("Testdirektoratet", sourceNullURI.asResource().listProperties(RDFS.label).toList().first().string)
     }
 }
