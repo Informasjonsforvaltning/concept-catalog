@@ -21,12 +21,18 @@ class ElasticUpdater(
     fun reindexElastic() = runBlocking {
         launch {
             try {
+                logger.debug("deleting all current concepts")
                 currentConceptRepository.deleteAll()
             } catch (_: Exception) { }
 
             conceptRepository.findAll<BegrepDBO>()
                 .forEach {
-                    if (it.shouldBeCurrent(currentConceptRepository.findByIdOrNull(it.originaltBegrep))) currentConceptRepository.save(CurrentConcept(it))
+                    if (it.shouldBeCurrent(currentConceptRepository.findByIdOrNull(it.originaltBegrep))) {
+                        logger.debug("reindexing ${it.id}, ${it.ansvarligVirksomhet.id}")
+                        currentConceptRepository.save(CurrentConcept(it))
+                    } else {
+                        logger.debug("skipping not current ${it.id}, ${it.ansvarligVirksomhet.id}")
+                    }
                 }
 
             logger.info("finished reindexing elastic")

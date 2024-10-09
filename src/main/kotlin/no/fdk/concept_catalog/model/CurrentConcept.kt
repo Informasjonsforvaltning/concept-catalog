@@ -6,10 +6,14 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
+import org.springframework.data.elasticsearch.annotations.Mapping
+import org.springframework.data.elasticsearch.annotations.Setting
 import java.time.Instant
 import java.time.LocalDate
 
 @Document(indexName = "concepts-current")
+@Setting(settingPath = "/elasticsearch/current-concept-settings.json")
+@Mapping(mappingPath = "/elasticsearch/current-concept-mappings.json")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class CurrentConcept(
     val idOfThisVersion: String,

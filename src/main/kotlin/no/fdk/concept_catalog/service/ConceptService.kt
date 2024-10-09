@@ -266,7 +266,6 @@ class ConceptService(
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated {
         val hits = conceptSearchService.searchCurrentConcepts(orgNumber, search)
-
         return hits.map { it.content }
             .map { it.toDBO() }
             .map { it.withHighestVersionDTO() }
