@@ -67,12 +67,6 @@ class SuggestConcepts : ApiTestContext() {
 
         val expected = listOf(
             Suggestion(
-                id = BEGREP_2.id!!,
-                originaltBegrep = BEGREP_2.originaltBegrep!!,
-                erPublisert = BEGREP_2.erPublisert,
-                anbefaltTerm = BEGREP_2.anbefaltTerm,
-                definisjon = BEGREP_2.definisjon?.copy(kildebeskrivelse = null)),
-            Suggestion(
                 id = BEGREP_1.id!!,
                 originaltBegrep = BEGREP_1.originaltBegrep!!,
                 erPublisert = BEGREP_1.erPublisert,

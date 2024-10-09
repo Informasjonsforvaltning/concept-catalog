@@ -573,10 +573,10 @@ class SearchConcepts : ApiTestContext() {
     }
 
     @Test
-    fun `Query returns sorted results ordered by anbefaltTerm descending`() {
+    fun `Query returns sorted results ordered by anbefaltTerm ascending`() {
         val searchOp = SearchOperation(
             query = "",
-            sort = SortField(field = SortFieldEnum.ANBEFALT_TERM_NB, direction = SortDirection.DESC)
+            sort = SortField(field = SortFieldEnum.ANBEFALT_TERM, direction = SortDirection.ASC)
         )
         val rsp = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -586,7 +586,28 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0, BEGREP_2, BEGREP_1), result.hits)
+        assertEquals(BEGREP_0.id, result.hits[0].id)
+        assertEquals(BEGREP_1.id, result.hits[1].id)
+        assertEquals(BEGREP_2.id, result.hits[2].id)
+    }
+
+    @Test
+    fun `Query returns sorted results ordered by anbefaltTerm descending`() {
+        val searchOp = SearchOperation(
+            query = "",
+            sort = SortField(field = SortFieldEnum.ANBEFALT_TERM, direction = SortDirection.DESC)
+        )
+        val rsp = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+            port, mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+        assertEquals(HttpStatus.OK.value(), rsp["status"])
+
+        val result: Paginated = mapper.readValue(rsp["body"] as String)
+        assertEquals(BEGREP_2.id, result.hits[0].id)
+        assertEquals(BEGREP_1.id, result.hits[1].id)
+        assertEquals(BEGREP_0.id, result.hits[2].id)
     }
 
     @Test

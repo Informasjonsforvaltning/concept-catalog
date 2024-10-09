@@ -1,13 +1,13 @@
 package no.fdk.concept_catalog.model
 
-enum class SortFieldEnum(val label: String) {
-    SIST_ENDRET("sistEndret"),
-    ANBEFALT_TERM_NB("anbefaltTerm.nb"),
+enum class SortFieldEnum {
+    SIST_ENDRET,
+    ANBEFALT_TERM,
 }
 
-enum class SortDirection(val label: String) {
-    ASC("ASC"),
-    DESC("DESC"),
+enum class SortDirection {
+    ASC,
+    DESC,
 }
 
 class SortField(

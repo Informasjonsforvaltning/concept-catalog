@@ -160,7 +160,7 @@ val BEGREP_2 = Begrep(
     gjeldendeRevisjon = null,
     status = Status.HOERING,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE",
-    anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 2"))),
+    anbefaltTerm = Term(navn = mapOf(Pair("nb", ""), Pair("nn", "begrep 2"))),
     tillattTerm = mapOf(Pair("nb", listOf("Lorem ipsum"))),
     ansvarligVirksomhet = Virksomhet(
         id = "123456789"

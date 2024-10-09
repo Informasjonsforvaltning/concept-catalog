@@ -1,0 +1,68 @@
+{
+  "runtime": {
+    "anbefaltTerm_sort": {
+      "type": "keyword",
+      "script": {
+        "source": "if (doc.containsKey('anbefaltTerm.navn.nb.keyword_lower') && doc['anbefaltTerm.navn.nb.keyword_lower'].size() > 0 && doc['anbefaltTerm.navn.nb.keyword_lower'].value != null && !doc['anbefaltTerm.navn.nb.keyword_lower'].value.isEmpty()) {emit(doc['anbefaltTerm.navn.nb.keyword_lower'].value);} else if (doc.containsKey('anbefaltTerm.navn.nn.keyword_lower') && doc['anbefaltTerm.navn.nn.keyword_lower'].size() > 0 && doc['anbefaltTerm.navn.nn.keyword_lower'].value != null && !doc['anbefaltTerm.navn.nn.keyword_lower'].value.isEmpty()) {emit(doc['anbefaltTerm.navn.nn.keyword_lower'].value);} else if (doc.containsKey('anbefaltTerm.navn.en.keyword_lower') && doc['anbefaltTerm.navn.en.keyword_lower'].size() > 0 && doc['anbefaltTerm.navn.en.keyword_lower'].value != null && !doc['anbefaltTerm.navn.en.keyword_lower'].value.isEmpty()) {emit(doc['anbefaltTerm.navn.en.keyword_lower'].value);} else {emit(null);}"
+      }
+    }
+  },
+  "properties": {
+    "anbefaltTerm": {
+      "properties": {
+        "navn": {
+          "properties": {
+            "en": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "doc_values": true
+                },
+                "keyword_lower": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "lowercase_normalizer",
+                  "doc_values": true
+                }
+              }
+            },
+            "nb": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "doc_values": true
+                },
+                "keyword_lower": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "lowercase_normalizer",
+                  "doc_values": true
+                }
+              }
+            },
+            "nn": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "doc_values": true
+                },
+                "keyword_lower": {
+                  "type": "keyword",
+                  "ignore_above": 256,
+                  "normalizer": "lowercase_normalizer",
+                  "doc_values": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

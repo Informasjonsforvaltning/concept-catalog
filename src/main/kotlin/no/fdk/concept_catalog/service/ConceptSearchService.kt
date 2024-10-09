@@ -1,9 +1,11 @@
 package no.fdk.concept_catalog.service
 
+import co.elastic.clients.elasticsearch._types.ScriptSortType
 import co.elastic.clients.elasticsearch._types.SortOrder
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
 import no.fdk.concept_catalog.model.*
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.elasticsearch.client.elc.NativeQuery
 import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder
@@ -18,6 +20,8 @@ class ConceptSearchService(
     private val elasticsearchOperations: ElasticsearchOperations
 ) {
 
+    private val logger = LoggerFactory.getLogger(ConceptSearchService::class.java)
+
     fun suggestConcepts(orgNumber: String, published: Boolean?, query: String): SearchHits<CurrentConcept> =
         elasticsearchOperations.search(
             suggestionQuery(orgNumber, published, query),
@@ -25,12 +29,14 @@ class ConceptSearchService(
             IndexCoordinates.of("concepts-current")
         )
 
-    fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> =
-        elasticsearchOperations.search(
-            search.toElasticQuery(orgNumber),
+    fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> {
+        val query = search.toElasticQuery(orgNumber)
+        return elasticsearchOperations.search(
+            query,
             CurrentConcept::class.java,
             IndexCoordinates.of("concepts-current")
         )
+    }
 
     private fun suggestionQuery(orgNumber: String, published: Boolean?, query: String): Query {
         val builder = NativeQuery.builder()
@@ -48,6 +54,22 @@ class ConceptSearchService(
         return builder.build()
     }
 
+    private fun SortField.buildSort(builder: NativeQueryBuilder) {
+        if (field == SortFieldEnum.ANBEFALT_TERM) {
+            builder.withSort { sortBuilder ->
+                sortBuilder.field { fieldBuilder ->
+                    fieldBuilder.field("anbefaltTerm_sort").order(sortDirection())
+                }
+            }
+        } else {
+            builder.withSort { sortBuilder ->
+                sortBuilder.field { fieldBuilder ->
+                    fieldBuilder.field("endringslogelement.endringstidspunkt").order(sortDirection())
+                }
+            }
+        }
+    }
+
     private fun SearchOperation.toElasticQuery(orgNumber: String): Query {
         val builder = NativeQuery.builder()
         builder.withFilter { queryBuilder ->
@@ -59,13 +81,7 @@ class ConceptSearchService(
                 )
             }
         }
-        if (sort != null) {
-            builder.withSort { sortBuilder ->
-                sortBuilder.field { fieldBuilder ->
-                    fieldBuilder.field(sort.sortField()).order(sort.sortDirection())
-                }
-            }
-        }
+        sort?.buildSort(builder)
         if (!query.isNullOrBlank()) builder.addFieldsQuery(fields, query)
         builder.withPageable(Pageable.ofSize(pagination.getSize()).withPage(pagination.getPage()))
 
@@ -103,12 +119,6 @@ class ConceptSearchService(
         when (direction) {
             SortDirection.ASC -> SortOrder.Asc
             else -> SortOrder.Desc
-        }
-
-    private fun SortField.sortField(): String =
-        when (field) {
-            SortFieldEnum.ANBEFALT_TERM_NB -> "anbefaltTerm.navn.nb.keyword"
-            else -> "endringslogelement.endringstidspunkt"
         }
 
     private fun QueryFields.exactPaths(): List<String> =
@@ -153,3 +163,5 @@ class ConceptSearchService(
             "$basePath.en${if (boost != null) "^$boost" else ""}")
 
 }
+
+
