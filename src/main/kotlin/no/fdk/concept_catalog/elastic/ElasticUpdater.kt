@@ -26,13 +26,11 @@ class ElasticUpdater(
             } catch (_: Exception) { }
 
             conceptRepository.findAll<BegrepDBO>()
+                .groupBy { concept -> concept.originaltBegrep }
+                .mapNotNull { pair -> pair.value.maxByOrNull { concept -> concept.versjonsnr } }
                 .forEach {
-                    if (it.shouldBeCurrent(currentConceptRepository.findByIdOrNull(it.originaltBegrep))) {
-                        logger.debug("reindexing ${it.id}, ${it.ansvarligVirksomhet.id}")
-                        currentConceptRepository.save(CurrentConcept(it))
-                    } else {
-                        logger.debug("skipping not current ${it.id}, ${it.ansvarligVirksomhet.id}")
-                    }
+                    logger.debug("reindexing ${it.id}, ${it.ansvarligVirksomhet.id}")
+                    currentConceptRepository.save(CurrentConcept(it))
                 }
 
             logger.info("finished reindexing elastic")
@@ -40,11 +38,3 @@ class ElasticUpdater(
     }
 
 }
-
-fun BegrepDBO.shouldBeCurrent(current: CurrentConcept?): Boolean =
-    when {
-        current == null -> true
-        erPublisert && !current.erPublisert -> true
-        !erPublisert && current.erPublisert -> false
-        else -> versjonsnr > current.versjonsnr
-    }

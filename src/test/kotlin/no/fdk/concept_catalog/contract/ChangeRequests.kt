@@ -436,6 +436,7 @@ class ChangeRequests : ApiTestContext() {
                 versjonsnr = SemVer(1, 0, 2),
                 erPublisert = false,
                 erSistPublisert = false,
+                sistPublisertId = BEGREP_0.id,
                 publiseringsTidspunkt = null,
                 revisjonAv = BEGREP_0.id,
                 revisjonAvSistPublisert = true,

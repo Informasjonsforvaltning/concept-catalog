@@ -651,6 +651,6 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_HAS_MULTIPLE_REVISIONS), result.hits)
+        assertEquals(listOf(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND), result.hits)
     }
 }
