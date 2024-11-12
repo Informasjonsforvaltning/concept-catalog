@@ -1,6 +1,5 @@
 package no.fdk.concept_catalog.service
 
-import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.*
 import java.util.UUID
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
@@ -21,7 +20,6 @@ private val logger = LoggerFactory.getLogger(ChangeRequestService::class.java)
 class ChangeRequestService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val conceptRepository: ConceptRepository,
-    private val currentConceptRepository: CurrentConceptRepository,
     private val conceptService: ConceptService,
     private val mapper: ObjectMapper
 ) {
@@ -91,7 +89,6 @@ class ChangeRequestService(
         val conceptToUpdate = when {
             dbConcept == null -> createNewConcept(Virksomhet(id=catalogId), user)
                 .updateLastChangedAndByWhom(user)
-                .also { currentConceptRepository.save(CurrentConcept(it)) }
                 .let { conceptRepository.save(it) }
             dbConcept.erPublisert -> dbConcept.createNewRevision()
                 .updateLastChangedAndByWhom(user)
@@ -105,9 +102,6 @@ class ChangeRequestService(
             logger.error("update of concept failed when accepting ${changeRequest.id}, reverting acceptation", ex)
             changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
             if (conceptToUpdate.id != dbConcept?.id) {
-                if (conceptToUpdate.id == conceptToUpdate.originaltBegrep) {
-                    currentConceptRepository.delete(CurrentConcept(conceptToUpdate))
-                }
                 conceptRepository.delete(conceptToUpdate)
             }
             throw ex

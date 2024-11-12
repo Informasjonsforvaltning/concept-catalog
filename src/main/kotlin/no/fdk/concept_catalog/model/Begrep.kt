@@ -63,6 +63,7 @@ data class Begrep (
     val originaltBegrep: String? = null,
     val versjonsnr: SemVer? = null,
     val erSistPublisert: Boolean = false,
+    val sistPublisertId: String? = null,
     val revisjonAvSistPublisert: Boolean = false,
     val revisjonAv: String? = null,
     val status: Status? = null,

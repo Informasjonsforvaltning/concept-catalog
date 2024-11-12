@@ -210,7 +210,6 @@ class ConceptService(
         val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
         try {
             conceptsAndOperations.keys
-                .filter { it.id == it.originaltBegrep }
                 .map { CurrentConcept(it) }
                 .run { currentConceptRepository.saveAll(this) }
             return conceptRepository.saveAll(conceptsAndOperations.keys).map { it.withHighestVersionDTO() }

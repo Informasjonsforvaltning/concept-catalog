@@ -13,6 +13,7 @@ fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String
         originaltBegrep,
         versjonsnr,
         erSistPublisert = isHighestPublishedVersion(highestPublishedVersion),
+        sistPublisertId = highestPublishedId,
         revisjonAvSistPublisert = isRevisionOfHighestPublishedVersion(highestPublishedId),
         revisjonAv,
         status,

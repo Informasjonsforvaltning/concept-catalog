@@ -53,8 +53,8 @@ class LastPublished {
     @Test
     fun `Sets revision of last published for relevant concepts`() {
         val newPublished = BEGREP_3.copy(id = "id3-1", versjonsnr = SemVer(1, 9, 1), revisjonAv = "id3")
-        val invalid = BEGREP_3.copy(id = "id3-2", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3", status = Status.GODKJENT, erPublisert = false, revisjonAvSistPublisert = false)
-        val ok = BEGREP_3.copy(id = "id3-3", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1", status = Status.UTKAST, erPublisert = false, revisjonAvSistPublisert = true)
+        val invalid = BEGREP_3.copy(id = "id3-2", sistPublisertId = "id3-1", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3", status = Status.GODKJENT, erPublisert = false, revisjonAvSistPublisert = false)
+        val ok = BEGREP_3.copy(id = "id3-3", sistPublisertId = "id3-1", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1", status = Status.UTKAST, erPublisert = false, revisjonAvSistPublisert = true)
 
         whenever(conceptRepository.findById("id3-2"))
             .thenReturn(Optional.of(invalid.toDBO()))
