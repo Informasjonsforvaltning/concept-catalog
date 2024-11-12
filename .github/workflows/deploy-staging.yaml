@@ -41,5 +41,3 @@ jobs:
     uses: Informasjonsforvaltning/workflows/.github/workflows/build.yaml@main
     with:
       java_version: '17'
-    secrets:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
