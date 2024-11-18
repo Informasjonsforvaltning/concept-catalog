@@ -6,5 +6,5 @@ resources:
   - concept-catalog-service.yaml
 images:
   - name: concept-catalog
-    newName: eu.gcr.io/digdir-fdk-infra/concept-catalog
+    newName: ghcr.io/informasjonsforvaltning/concept-catalog
     newTag: $(GIT_COMMIT_SHA)
