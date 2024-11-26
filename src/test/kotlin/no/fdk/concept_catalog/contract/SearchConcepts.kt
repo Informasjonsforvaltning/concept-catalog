@@ -80,7 +80,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), result.hits)
 
     }
 
@@ -95,7 +95,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
 
     }
 
@@ -117,7 +117,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
     }
 
     @Test
@@ -139,7 +139,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0), result.hits)
+        assertEquals(listOf(BEGREP_0.fromSearch()), result.hits)
     }
 
     @Test
@@ -161,7 +161,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_0), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch()), result.hits)
     }
 
     @Test
@@ -185,10 +185,10 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), unPublishedResponse["status"])
 
         val unPublished: Paginated = mapper.readValue(unPublishedResponse["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_2), unPublished.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), unPublished.hits)
 
         val published: Paginated = mapper.readValue(publishedResponse["body"] as String)
-        assertEquals(listOf(BEGREP_0), published.hits)
+        assertEquals(listOf(BEGREP_0.fromSearch()), published.hits)
     }
 
     @Test
@@ -222,10 +222,10 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), withSubjectFagomr3Response["status"])
 
         val withSubjectFagomr1: Paginated = mapper.readValue(withSubjectFagomr1Response["body"] as String)
-        assertEquals(listOf(BEGREP_5), withSubjectFagomr1.hits)
+        assertEquals(listOf(BEGREP_5.fromSearch()), withSubjectFagomr1.hits)
 
         val withSubjectFagomr3: Paginated = mapper.readValue(withSubjectFagomr3Response["body"] as String)
-        assertEquals(listOf(BEGREP_4, BEGREP_5), withSubjectFagomr3.hits)
+        assertEquals(listOf(BEGREP_4.fromSearch(), BEGREP_5.fromSearch()), withSubjectFagomr3.hits)
     }
 
     @Test
@@ -259,7 +259,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), withoutInternalFieldsResponse["status"])
 
         val withInternalFields: Paginated = mapper.readValue(withInternalFieldsResponse["body"] as String)
-        assertEquals(listOf(BEGREP_4), withInternalFields.hits)
+        assertEquals(listOf(BEGREP_4.fromSearch()), withInternalFields.hits)
 
         val withoutInternalFields: Paginated = mapper.readValue(withoutInternalFieldsResponse["body"] as String)
         assertEquals(emptyList(), withoutInternalFields.hits)
@@ -296,7 +296,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), withoutLabelResponse["status"])
 
         val withInternalFields: Paginated = mapper.readValue(withLabelResponse["body"] as String)
-        assertEquals(listOf(BEGREP_0), withInternalFields.hits)
+        assertEquals(listOf(BEGREP_0.fromSearch()), withInternalFields.hits)
 
         val withoutInternalFields: Paginated = mapper.readValue(withoutLabelResponse["body"] as String)
         assertEquals(emptyList(), withoutInternalFields.hits)
@@ -327,7 +327,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), result.hits)
     }
 
     @Test
@@ -344,7 +344,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), titleResponse["status"])
 
         val titleResult: Paginated = mapper.readValue(titleResponse["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_2), titleResult.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), titleResult.hits)
 
         val descriptionResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -373,7 +373,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), statusResponse["status"])
 
         val statusResult: Paginated = mapper.readValue(statusResponse["body"] as String)
-        assertEquals(listOf(BEGREP_2), statusResult.hits)
+        assertEquals(listOf(BEGREP_2.fromSearch()), statusResult.hits)
     }
 
     @Test
@@ -391,7 +391,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), response["status"])
 
         val titleResult: Paginated = mapper.readValue(response["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), titleResult.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch(), BEGREP_2.fromSearch()), titleResult.hits)
     }
 
     @Test
@@ -408,7 +408,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_2), result.hits)
+        assertEquals(listOf(BEGREP_2.fromSearch()), result.hits)
 
     }
 
@@ -423,7 +423,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
 
     }
 
@@ -441,7 +441,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch(), BEGREP_2.fromSearch()), result.hits)
     }
 
     @Test
@@ -462,7 +462,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_2), result.hits)
+        assertEquals(listOf(BEGREP_2.fromSearch()), result.hits)
     }
 
     @Test
@@ -476,7 +476,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0), result.hits)
+        assertEquals(listOf(BEGREP_0.fromSearch()), result.hits)
     }
 
     @Test
@@ -508,7 +508,7 @@ class SearchConcepts : ApiTestContext() {
             assertEquals(HttpStatus.OK.value(), rsp["status"])
 
             val result: Paginated = mapper.readValue(rsp["body"] as String)
-            assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result.hits)
+            assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch(), BEGREP_2.fromSearch()), result.hits)
         }
 
         @Test
@@ -549,8 +549,8 @@ class SearchConcepts : ApiTestContext() {
 
             val result0: Paginated = mapper.readValue(rsp0["body"] as String)
             val result1: Paginated = mapper.readValue(rsp1["body"] as String)
-            assertEquals(listOf(BEGREP_1, BEGREP_0), result0.hits)
-            assertEquals(listOf(BEGREP_2), result1.hits)
+            assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch()), result0.hits)
+            assertEquals(listOf(BEGREP_2.fromSearch()), result1.hits)
         }
     }
 
@@ -569,7 +569,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_2, BEGREP_0, BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_2.fromSearch(), BEGREP_0.fromSearch(), BEGREP_1.fromSearch()), result.hits)
     }
 
     @Test
@@ -631,7 +631,7 @@ class SearchConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Paginated = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_1), result.hits)
+        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
     }
 
     @Test
