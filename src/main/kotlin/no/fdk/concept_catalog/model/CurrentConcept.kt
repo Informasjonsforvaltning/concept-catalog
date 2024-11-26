@@ -56,9 +56,10 @@ data class CurrentConcept(
     val begrepsRelasjon: List<BegrepsRelasjon>?,
     val internBegrepsRelasjon: List<BegrepsRelasjon>?,
     val interneFelt: Map<String, InterntFelt>?,
-    val internErstattesAv: List<String>?
+    val internErstattesAv: List<String>?,
+    val sistPublisertId: String?
 ) {
-    constructor(dbo: BegrepDBO) : this(
+    constructor(dbo: BegrepDBO, latestPublishedId: String?) : this(
         dbo.id, dbo.originaltBegrep, dbo.versjonsnr, dbo.revisjonAv,
         dbo.status, dbo.statusURI, dbo.erPublisert, dbo.publiseringsTidspunkt,
         dbo.anbefaltTerm, dbo.tillattTerm, dbo.frarådetTerm, dbo.definisjon,
@@ -68,19 +69,21 @@ data class CurrentConcept(
         dbo.gyldigFom, dbo.gyldigTom, dbo.endringslogelement, dbo.opprettet,
         dbo.opprettetAv, dbo.seOgså, dbo.internSeOgså, dbo.erstattesAv, dbo.assignedUser,
         dbo.abbreviatedLabel, dbo.begrepsRelasjon, dbo.internBegrepsRelasjon, dbo.interneFelt,
-        dbo.internErstattesAv
+        dbo.internErstattesAv, latestPublishedId
     )
 
-    fun toDBO(): BegrepDBO =
-        BegrepDBO(
-            idOfThisVersion, originaltBegrep, versjonsnr, revisjonAv,
-            status, statusURI, erPublisert, publiseringsTidspunkt,
-            anbefaltTerm, tillattTerm, frarådetTerm, definisjon,
-            definisjonForAllmennheten, definisjonForSpesialister,
-            merknad, merkelapp, ansvarligVirksomhet, eksempel,
-            fagområde, fagområdeKoder, omfang, kontaktpunkt,
-            gyldigFom, gyldigTom, endringslogelement, opprettet,
-            opprettetAv, seOgså, internSeOgså, erstattesAv, assignedUser,
-            abbreviatedLabel, begrepsRelasjon, internBegrepsRelasjon, interneFelt, internErstattesAv
+    fun toDTO(): Begrep =
+        Begrep(
+            id = idOfThisVersion, originaltBegrep = originaltBegrep, versjonsnr = versjonsnr, revisjonAv = revisjonAv,
+            status = status, statusURI = statusURI, erPublisert = erPublisert, publiseringsTidspunkt = publiseringsTidspunkt,
+            anbefaltTerm = anbefaltTerm, tillattTerm = tillattTerm, frarådetTerm = frarådetTerm, definisjon = definisjon,
+            definisjonForAllmennheten = definisjonForAllmennheten, definisjonForSpesialister = definisjonForSpesialister,
+            merknad = merknad, merkelapp = merkelapp, ansvarligVirksomhet = ansvarligVirksomhet, eksempel = eksempel,
+            fagområde = fagområde, fagområdeKoder = fagområdeKoder, omfang = omfang, kontaktpunkt = kontaktpunkt,
+            gyldigFom = gyldigFom, gyldigTom = gyldigTom, endringslogelement = endringslogelement, opprettet = opprettet,
+            opprettetAv = opprettetAv, seOgså = seOgså, internSeOgså = internSeOgså, erstattesAv = erstattesAv,
+            assignedUser = assignedUser, abbreviatedLabel = abbreviatedLabel, begrepsRelasjon = begrepsRelasjon,
+            internBegrepsRelasjon = internBegrepsRelasjon, interneFelt = interneFelt, internErstattesAv = internErstattesAv,
+            sistPublisertId = sistPublisertId
         )
 }
