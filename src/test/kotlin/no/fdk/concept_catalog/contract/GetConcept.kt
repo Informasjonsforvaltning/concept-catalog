@@ -7,6 +7,7 @@ import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
 import no.fdk.concept_catalog.utils.authorizedRequest
+import no.fdk.concept_catalog.utils.fromDBO
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.Tag
@@ -75,7 +76,7 @@ class GetConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_0, result)
+        assertEquals(BEGREP_0.fromDBO(), result)
     }
 
     @Test
@@ -91,7 +92,7 @@ class GetConcept : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: Begrep = mapper.readValue(rsp["body"] as String)
-        assertEquals(BEGREP_0, result)
+        assertEquals(BEGREP_0.fromDBO(), result)
     }
 
 }
