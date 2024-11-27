@@ -435,11 +435,9 @@ class ChangeRequests : ApiTestContext() {
                 id = result.id,
                 versjonsnr = SemVer(1, 0, 2),
                 erPublisert = false,
-                erSistPublisert = false,
-                sistPublisertId = BEGREP_0.id,
+                sistPublisertId = null,
                 publiseringsTidspunkt = null,
                 revisjonAv = BEGREP_0.id,
-                revisjonAvSistPublisert = true,
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
                 status = Status.UTKAST,
                 assignedUser = "newUserId",
@@ -462,7 +460,8 @@ class ChangeRequests : ApiTestContext() {
             val result: Begrep = mapper.readValue(getResponse["body"] as String)
             val expected = BEGREP_2.copy(
                 endringslogelement = Endringslogelement(endretAv = "TEST USER", endringstidspunkt = result.endringslogelement!!.endringstidspunkt),
-                assignedUser = "newUserId"
+                assignedUser = "newUserId",
+                sistPublisertId = null
              )
             assertEquals(expected, result)
         }
@@ -483,8 +482,6 @@ class ChangeRequests : ApiTestContext() {
                 id = result.id,
                 originaltBegrep = result.id,
                 erPublisert = false,
-                gjeldendeRevisjon = null,
-                revisjonAvSistPublisert = true,
                 versjonsnr = SemVer(0, 1, 0),
                 ansvarligVirksomhet = Virksomhet(
                     id = "123456789"

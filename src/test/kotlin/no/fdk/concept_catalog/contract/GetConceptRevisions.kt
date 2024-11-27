@@ -73,8 +73,8 @@ class GetConceptRevisions : ApiTestContext() {
 
         val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
         assertEquals(2, result.size)
-        assertEquals(BEGREP_0, result[0])
-        assertEquals(BEGREP_0_OLD, result[1])
+        assertEquals(BEGREP_0.fromDBO(), result[0])
+        assertEquals(BEGREP_0_OLD.fromDBO(), result[1])
     }
 
     @Test
@@ -91,8 +91,8 @@ class GetConceptRevisions : ApiTestContext() {
 
         val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
         assertEquals(2, result.size)
-        assertEquals(BEGREP_0, result[0])
-        assertEquals(BEGREP_0_OLD, result[1])
+        assertEquals(BEGREP_0.fromDBO(), result[0])
+        assertEquals(BEGREP_0_OLD.fromDBO(), result[1])
     }
 
 }
