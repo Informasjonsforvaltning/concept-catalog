@@ -56,7 +56,7 @@ class ConceptService(
     }
 
     fun getConceptById(id: String): Begrep? =
-        conceptRepository.findByIdOrNull(id)?.toDTO()
+        conceptRepository.findByIdOrNull(id)?.withHighestVersionDTO()
 
     fun getConceptDBO(id: String): BegrepDBO? =
         conceptRepository.findByIdOrNull(id)
@@ -196,7 +196,7 @@ class ConceptService(
                 logger.error("aborting update of ${concept.id}, update failed validation", badRequest)
                 throw badRequest
             }
-            isPublishedAndNotValid(patched.toDTO()) -> {
+            isPublishedAndNotValid(patched.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${patched.id} has not passed validation for published concepts and has not been saved.",
@@ -224,7 +224,7 @@ class ConceptService(
         try {
             return conceptRepository.saveAll(conceptsAndOperations.keys)
                 .onEach { updateCurrentConceptForOriginalId(it.originaltBegrep) }
-                .map { it.toDTO() }
+                .map { it.withHighestVersionDTO() }
         } catch (ex: Exception) {
             logger.error("save failed, removing history update", ex)
             locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
@@ -244,8 +244,8 @@ class ConceptService(
     }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
-        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.toDTO() }
-        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.toDTO() }
+        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.withHighestVersionDTO() }
+        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.withHighestVersionDTO() }
 
     fun getAllPublisherIds(): List<String> {
         return mongoOperations
@@ -261,7 +261,7 @@ class ConceptService(
             conceptRepository.getByOriginaltBegrep(originaltBegrep)
                 .filter { it.erPublisert }
                 .maxByOrNull { concept -> concept.versjonsnr }
-                ?.toDTO()
+                ?.let { it.toDTO(null, null, it.id) }
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
@@ -269,7 +269,7 @@ class ConceptService(
             .filter { it.erPublisert }
             .sortedByDescending {concept -> concept.versjonsnr }
             .distinctBy {concept -> concept.originaltBegrep }
-            .map { it.toDTO() }
+            .map { it.toDTO(null, null, it.id) }
 
     fun getLatestVersion(originalId: String): BegrepDBO? =
         conceptRepository.getByOriginaltBegrep(originalId)
@@ -325,9 +325,14 @@ class ConceptService(
         }
     }
 
+    private fun BegrepDBO.withHighestVersionDTO(): Begrep =
+        getLastPublished(originaltBegrep)
+            ?.let { toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(this)) }
+            ?: toDTO(null, null, findIdOfUnpublishedRevision(this))
+
     fun findRevisions(concept: BegrepDBO): List<Begrep> =
         conceptRepository.getByOriginaltBegrep(concept.originaltBegrep)
-            .map { it.toDTO() }
+            .map { it.withHighestVersionDTO() }
 
     fun publish(concept: BegrepDBO): Begrep {
         val published = concept.copy(
@@ -342,7 +347,7 @@ class ConceptService(
                 logger.error("aborting publish of ${concept.id}", badRequest)
                 throw badRequest
             }
-            isPublishedAndNotValid(published.toDTO()) -> {
+            isPublishedAndNotValid(published.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${concept.id} has not passed validation and has not been published.",
@@ -356,7 +361,7 @@ class ConceptService(
 
         return conceptRepository.save(published)
             .also { updateRelationsToNonInternal(it) }
-            .toDTO()
+            .withHighestVersionDTO()
     }
 
     private fun updateRelationsToNonInternal(concept: BegrepDBO) {

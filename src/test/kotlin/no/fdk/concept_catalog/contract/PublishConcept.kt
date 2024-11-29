@@ -111,7 +111,8 @@ class PublishConcept : ApiTestContext() {
         assertNotNull(result.publiseringsTidspunkt)
         assertEquals(BEGREP_TO_BE_UPDATED.copy(
             erPublisert = true,
-            sistPublisertId = null,
+            erSistPublisert = true,
+            sistPublisertId = "id-to-be-updated",
             publiseringsTidspunkt = result.publiseringsTidspunkt
         ), result)
     }

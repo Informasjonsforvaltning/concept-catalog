@@ -55,7 +55,7 @@ class GetConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()), result)
+        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_0_OLD), result)
     }
 
     @Test
@@ -69,7 +69,7 @@ class GetConcepts : ApiTestContext() {
         assertEquals(HttpStatus.OK.value(), rsp["status"])
 
         val result: List<Begrep> = mapper.readValue(rsp["body"] as String)
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()), result)
+        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_0_OLD), result)
 
     }
 
@@ -101,9 +101,9 @@ class GetConcepts : ApiTestContext() {
         val resultGodkjent: List<Begrep> = mapper.readValue(rspGodkjent["body"] as String)
         val resultPublisert: List<Begrep> = mapper.readValue(rspPublisert["body"] as String)
 
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_0_OLD.fromDBO()), resultPublisert)
-        assertEquals(listOf(BEGREP_1.fromDBO()), resultGodkjent)
-        assertEquals(listOf(BEGREP_2.fromDBO()), resultHøring)
+        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), resultPublisert)
+        assertEquals(listOf(BEGREP_1), resultGodkjent)
+        assertEquals(listOf(BEGREP_2), resultHøring)
     }
 
 }
