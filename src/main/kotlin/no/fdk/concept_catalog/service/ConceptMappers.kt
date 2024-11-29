@@ -7,17 +7,20 @@ import java.util.*
 
 val NEW_CONCEPT_VERSION = SemVer(0, 1, 0)
 
-fun BegrepDBO.toDTO(): Begrep =
+fun BegrepDBO.toDTO(highestPublishedVersion: SemVer?, highestPublishedId: String?, unpublishedRevision: String?): Begrep =
     Begrep(
         id,
         originaltBegrep,
         versjonsnr,
-        sistPublisertId = null,
+        erSistPublisert = isHighestPublishedVersion(highestPublishedVersion),
+        sistPublisertId = highestPublishedId,
+        revisjonAvSistPublisert = isRevisionOfHighestPublishedVersion(highestPublishedId),
         revisjonAv,
         status,
         statusURI,
         erPublisert,
         publiseringsTidspunkt,
+        gjeldendeRevisjon = unpublishedRevision,
         anbefaltTerm,
         tillattTerm,
         frarådetTerm,
@@ -47,6 +50,22 @@ fun BegrepDBO.toDTO(): Begrep =
         interneFelt,
         internErstattesAv
     )
+
+private fun BegrepDBO.isHighestPublishedVersion(highestPublishedVersion: SemVer?): Boolean =
+    when {
+        !erPublisert -> false
+        highestPublishedVersion == null -> false
+        versjonsnr == highestPublishedVersion -> true
+        else -> false
+    }
+
+private fun BegrepDBO.isRevisionOfHighestPublishedVersion(highestPublishedId: String?): Boolean =
+    when {
+        erPublisert -> false
+        highestPublishedId == null -> true
+        revisjonAv == highestPublishedId -> true
+        else -> false
+    }
 
 fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
     copy(
