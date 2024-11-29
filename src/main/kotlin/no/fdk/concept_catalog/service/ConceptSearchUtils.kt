@@ -24,16 +24,8 @@ fun SearchFilters.asQueryFilters(orgNumber: String): List<Query> {
 
     if (published != null) {
         queryFilters.add(Query.of { queryBuilder ->
-            queryBuilder.bool { boolBuilder ->
-                if (published.value) {
-                    boolBuilder.must { mustBuilder ->
-                        mustBuilder.exists { existsBuilder -> existsBuilder.field("sistPublisertId") }
-                    }
-                } else {
-                    boolBuilder.mustNot { mustNotBuilder ->
-                        mustNotBuilder.exists { existsBuilder -> existsBuilder.field("sistPublisertId") }
-                    }
-                }
+            queryBuilder.term { termBuilder ->
+                termBuilder.field("erPublisert").value(FieldValue.of(published.value))
             }
         })
     }

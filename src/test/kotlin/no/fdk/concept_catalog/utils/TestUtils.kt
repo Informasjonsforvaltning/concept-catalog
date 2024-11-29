@@ -310,9 +310,3 @@ fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, 
     }
     return isIsomorphic
 }
-
-fun Begrep.fromSearch() = copy(
-    erSistPublisert = false,
-    revisjonAvSistPublisert = false,
-    gjeldendeRevisjon = null
-)
