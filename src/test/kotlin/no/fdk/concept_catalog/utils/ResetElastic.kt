@@ -17,20 +17,11 @@ class ResetElastic {
     private lateinit var currentConceptRepository: CurrentConceptRepository
 
     fun elasticReindex() {
+        val concepts = conceptRepository.findAll<BegrepDBO>()
         currentConceptRepository.deleteAll()
-
-        val groupedByOriginalId = conceptRepository.findAll<BegrepDBO>()
+        concepts
             .groupBy { concept -> concept.originaltBegrep }
-
-        val idsOfHighestPublishedVersion: Map<String, String?> = groupedByOriginalId.mapValues {
-            it.value
-                .filter { concept -> concept.erPublisert }
-                .maxByOrNull { concept -> concept.versjonsnr }
-                ?.id
-        }
-
-        groupedByOriginalId
             .mapNotNull { pair -> pair.value.maxByOrNull { concept -> concept.versjonsnr } }
-            .forEach { currentConceptRepository.save(CurrentConcept(it, idsOfHighestPublishedVersion[it.originaltBegrep])) }
+            .forEach { currentConceptRepository.save(CurrentConcept(it)) }
     }
 }

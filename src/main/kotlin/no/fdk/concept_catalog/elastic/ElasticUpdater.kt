@@ -25,21 +25,12 @@ class ElasticUpdater(
                 currentConceptRepository.deleteAll()
             } catch (_: Exception) { }
 
-            val groupedByOriginalId = conceptRepository.findAll<BegrepDBO>()
+            conceptRepository.findAll<BegrepDBO>()
                 .groupBy { concept -> concept.originaltBegrep }
-
-            val idsOfHighestPublishedVersion: Map<String, String?> = groupedByOriginalId.mapValues {
-                it.value
-                    .filter { concept -> concept.erPublisert }
-                    .maxByOrNull { concept -> concept.versjonsnr }
-                    ?.id
-            }
-
-            groupedByOriginalId
                 .mapNotNull { pair -> pair.value.maxByOrNull { concept -> concept.versjonsnr } }
                 .forEach {
                     logger.debug("reindexing ${it.id}, ${it.ansvarligVirksomhet.id}")
-                    currentConceptRepository.save(CurrentConcept(it, idsOfHighestPublishedVersion[it.originaltBegrep]))
+                    currentConceptRepository.save(CurrentConcept(it))
                 }
 
             logger.info("finished reindexing elastic")
