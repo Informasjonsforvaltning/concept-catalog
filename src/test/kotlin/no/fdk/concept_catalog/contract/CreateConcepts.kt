@@ -7,6 +7,7 @@ import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_CREATED
 import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
+import no.fdk.concept_catalog.utils.fromDBO
 import no.fdk.concept_catalog.utils.authorizedRequest
 import no.fdk.concept_catalog.utils.jwk.Access
 import no.fdk.concept_catalog.utils.jwk.JwtToken
@@ -34,7 +35,7 @@ class CreateConcepts : ApiTestContext() {
     fun `Unauthorized when access token is not included`() {
         val rsp = authorizedRequest(
             "/begreper/import", port,
-            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED, BEGREP_TO_BE_CREATED)),
+            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED.fromDBO(), BEGREP_TO_BE_CREATED.fromDBO())),
             null, HttpMethod.POST
         )
 
@@ -45,7 +46,7 @@ class CreateConcepts : ApiTestContext() {
     fun `Forbidden for read access`() {
         val rsp = authorizedRequest(
             "/begreper/import", port,
-            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED, BEGREP_TO_BE_CREATED)),
+            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED.fromDBO(), BEGREP_TO_BE_CREATED.fromDBO())),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
 
@@ -56,7 +57,7 @@ class CreateConcepts : ApiTestContext() {
     fun `Forbidden when at least one concept has non write access orgId`() {
         val rsp = authorizedRequest(
             "/begreper/import", port,
-            mapper.writeValueAsString(listOf(BEGREP_WRONG_ORG, BEGREP_TO_BE_CREATED)),
+            mapper.writeValueAsString(listOf(BEGREP_WRONG_ORG.fromDBO(), BEGREP_TO_BE_CREATED.fromDBO())),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
@@ -66,19 +67,19 @@ class CreateConcepts : ApiTestContext() {
     @Test
     fun `Ok - Created - for write access`() {
         val before = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
+            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.fromDBO().ansvarligVirksomhet.id}",
             port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
         val rsp = authorizedRequest(
             "/begreper/import", port,
-            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED, BEGREP_TO_BE_CREATED)),
+            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED.fromDBO(), BEGREP_TO_BE_CREATED.fromDBO())),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
         assertEquals(HttpStatus.CREATED.value(), rsp["status"])
 
         val after = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
+            "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.fromDBO().ansvarligVirksomhet.id}",
             port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
@@ -91,7 +92,7 @@ class CreateConcepts : ApiTestContext() {
     fun `Bad request - Invalid version - for write access`() {
         val rsp = authorizedRequest(
             "/begreper/import", port,
-            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED.copy(versjonsnr = SemVer(0,0,0)), BEGREP_TO_BE_CREATED)),
+            mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED.fromDBO().copy(versjonsnr = SemVer(0,0,0)), BEGREP_TO_BE_CREATED.fromDBO())),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
         assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
