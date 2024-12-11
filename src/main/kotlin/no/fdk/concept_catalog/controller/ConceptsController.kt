@@ -208,6 +208,12 @@ class ConceptsController(
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
+            concept.erPublisert -> {
+                logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
+                conceptService.createRevisionOfConcept(patchOperations, concept, user, jwt).id
+                    ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
+                    ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
+            }
             else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, user, jwt), HttpStatus.OK)
         }
     }
