@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.ApiTestContext
 import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_0_OLD
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_DELETED
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
 import no.fdk.concept_catalog.utils.authorizedRequest
@@ -14,10 +15,12 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ContextConfiguration
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 private val mapper = JacksonConfigurer().objectMapper()
@@ -250,6 +253,42 @@ class UpdateConcept : ApiTestContext() {
         )
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), rsp["status"])
+    }
+
+    @Test
+    fun `Patch of published concept creates new revision`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_0.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.CREATED.value(), rsp["status"])
+
+        val responseHeaders: HttpHeaders = rsp["header"] as HttpHeaders
+        val location = responseHeaders.location
+        assertNotNull(location)
+
+        val getRsp = authorizedRequest(
+            location.toString(),
+            port, null,
+            JwtToken(Access.ORG_READ).toString(), HttpMethod.GET
+        )
+
+        assertEquals(HttpStatus.OK.value(), getRsp["status"])
+    }
+
+    @Test
+    fun `Bad request when patching old version`() {
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
+        val rsp = authorizedRequest(
+            "/begreper/${BEGREP_0_OLD.id}",
+            port, mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), rsp["status"])
     }
 
 }

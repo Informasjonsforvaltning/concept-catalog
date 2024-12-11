@@ -93,15 +93,28 @@ class ConceptService(
 
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
         val newRevision = concept.createNewRevision().updateLastChangedAndByWhom(user)
-        val newWithUpdatedValues = newRevision.addUpdatableFieldsFromDTO(revisionValues)
+        val operations = createPatchOperations(newRevision, newRevision.addUpdatableFieldsFromDTO(revisionValues), mapper)
+        return createRevisionOfConcept(operations, concept, user, jwt)
+    }
+
+    fun createRevisionOfConcept(operations: List<JsonPatchOperation>, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
+        if(!concept.isHighestVersion()) {
+            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid revision target, ${concept.id} is not highest version of the concept")
+            logger.error("revision of ${concept.id} aborted", badRequest)
+            throw badRequest
+        }
+
+        val newWithUpdatedValues = patchAndValidateConcept(
+            concept.createNewRevision().updateLastChangedAndByWhom(user),
+            operations,
+            user
+        )
 
         if(!newWithUpdatedValues.validateVersionUpgrade(concept.versjonsnr)) {
             val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid version ${newWithUpdatedValues.versjonsnr}. Version must be greater than ${concept.versjonsnr}")
             logger.error("revision of ${concept.id} aborted", badRequest)
             throw badRequest
         }
-
-        val operations = createPatchOperations(newRevision, newWithUpdatedValues, mapper)
 
         return saveConceptsAndUpdateHistory(mapOf(Pair(newWithUpdatedValues, operations)), user, jwt)
             .first()
@@ -157,6 +170,13 @@ class ConceptService(
     }
 
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
+        val patched = patchAndValidateConcept(concept, operations, user)
+        return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt)
+            .first()
+            .also { logger.debug("concept ${it.id} successfully updated") }
+    }
+
+    private fun patchAndValidateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User): BegrepDBO {
         val patched = try {
             patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
                 .copy(
@@ -197,9 +217,8 @@ class ConceptService(
                 throw badRequest
             }
         }
-        return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt)
-            .first()
-            .also { logger.debug("concept ${it.id} successfully updated") }
+
+        return patched
     }
 
     private fun saveConceptsAndUpdateHistory(
@@ -406,6 +425,12 @@ class ConceptService(
             concept.versjonsnr
         }
     }
+
+    private fun BegrepDBO.isHighestVersion(): Boolean =
+        conceptRepository.getByOriginaltBegrep(originaltBegrep)
+            .maxByOrNull { it.versjonsnr }
+            ?.let { it.id == id }
+            ?: true
 
     fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
         when {
