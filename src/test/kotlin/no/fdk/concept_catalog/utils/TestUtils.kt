@@ -310,3 +310,5 @@ fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, 
     }
     return isIsomorphic
 }
+
+fun Begrep.fromDBO() = copy(sistPublisertId = null)
