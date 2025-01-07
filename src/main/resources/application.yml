@@ -34,6 +34,7 @@ application:
   collectionBaseUri: ${COLLECTION_BASE_URI:https://concept-catalog.fellesdatakatalog.digdir.no}
   historyServiceUri: ${CATALOG_HISTORY_SERVICE_URI:http://localhost:9090}
   adminServiceUri: ${CATALOG_ADMIN_SERVICE_URI:https://catalog-admin-service.fellesdatakatalog.digdir.no}
+  cors.originPatterns: "${CORS_ORIGIN_PATTERNS}"
 
 ---
 spring:
@@ -45,6 +46,7 @@ spring:
     username: elastic
     password: elasticpwd
     uris: http://localhost:9200
+application.cors.originPatterns: "*"
 
 ---
 spring:
@@ -55,3 +57,4 @@ spring:
     password: elasticpwd
 application:
   historyServiceUri: http://localhost:6000
+  cors.originPatterns: "*"
