@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.security
 
 import jakarta.servlet.http.HttpServletRequest
 import org.apache.jena.riot.Lang
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -12,15 +13,30 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
 import org.springframework.security.oauth2.jwt.*
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.util.matcher.RequestMatcher
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
 
 @Configuration
-open class SecurityConfig {
+open class SecurityConfig(
+    @Value("\${application.cors.originPatterns}")
+    val corsOriginPatterns: Array<String>
+) {
 
     @Bean
     open fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http {
             csrf { disable() }
-            cors { }
+            cors {
+                configurationSource = CorsConfigurationSource {
+                    val config = CorsConfiguration()
+                    config.allowCredentials = false
+                    config.allowedHeaders = listOf("*")
+                    config.maxAge = 3600L
+                    config.allowedOriginPatterns = corsOriginPatterns.toList()
+                    config.allowedMethods = listOf("GET", "POST", "OPTIONS", "DELETE", "PATCH")
+                    config
+                }
+            }
             oauth2ResourceServer { jwt { } }
             authorizeHttpRequests {
                 authorize(RDFMatcher(), permitAll)
