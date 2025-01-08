@@ -12,10 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
-import org.springframework.data.elasticsearch.client.elc.NativeQuery
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.query.DeleteQuery
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.http.*
@@ -23,7 +21,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.client.HttpStatusCodeException
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
-
 
 @ActiveProfiles("contract-test")
 @Import(TestcontainersConfig::class)
