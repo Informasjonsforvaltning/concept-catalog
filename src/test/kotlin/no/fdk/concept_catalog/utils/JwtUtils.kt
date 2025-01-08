@@ -27,7 +27,7 @@ object JwkStore {
         return token.toString()
     }
 
-    fun jwtHeader() =
+    fun jwtHeader(): JWSHeader =
         JWSHeader.Builder(JWSAlgorithm.RS256)
             .keyID(jwk.keyID)
             .build()
