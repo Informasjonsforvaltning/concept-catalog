@@ -4,8 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.utils.*
-import no.fdk.concept_catalog.utils.jwk.Access
-import no.fdk.concept_catalog.utils.jwk.JwtToken
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -20,18 +20,18 @@ class PublishConcept : ContractTestsBase() {
     @Test
     fun `Unauthorized when access token is not included`() {
         val response =
-            authorizedRequest("/begreper/${BEGREP_TO_BE_UPDATED.id}/publish", port, null, null, HttpMethod.POST)
+            authorizedRequest("/begreper/${BEGREP_TO_BE_UPDATED.id}/publish", null, null, HttpMethod.POST)
 
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
     }
 
     @Test
     fun `Forbidden for wrong orgnr`() {
-        operations.insert(BEGREP_WRONG_ORG)
+        mongoOperations.insert(BEGREP_WRONG_ORG.toDBO())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_WRONG_ORG.id}/publish",
-            port,
+
             null,
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
@@ -44,7 +44,7 @@ class PublishConcept : ContractTestsBase() {
     fun `Not found`() {
         val response = authorizedRequest(
             "/begreper/not-found/publish",
-            port,
+
             null,
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
@@ -55,11 +55,11 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Forbidden for read access`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
-            port,
+
             null,
             JwtToken(Access.ORG_READ).toString(),
             HttpMethod.POST
@@ -70,11 +70,11 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when publishing Concept that does not validate`() {
-        operations.insert(BEGREP_TO_BE_DELETED)
+        mongoOperations.insert(BEGREP_TO_BE_DELETED.toDBO())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_DELETED.id}/publish",
-            port,
+
             null,
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
@@ -85,11 +85,11 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Ok for write access`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
-            port,
+
             null,
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
@@ -113,11 +113,17 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Internal relations are changed to non-internal on publish`() {
-        operations.insertAll(listOf(BEGREP_TO_BE_UPDATED, BEGREP_HAS_REVISION, BEGREP_UNPUBLISHED_REVISION))
+        mongoOperations.insertAll(
+            listOf(
+                BEGREP_TO_BE_UPDATED.toDBO(),
+                BEGREP_HAS_REVISION.toDBO(),
+                BEGREP_UNPUBLISHED_REVISION.toDBO()
+            )
+        )
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
-            port,
+
             null,
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
@@ -127,7 +133,7 @@ class PublishConcept : ContractTestsBase() {
 
         val get0 = authorizedRequest(
             "/begreper/${BEGREP_HAS_REVISION.id}",
-            port,
+
             null,
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
@@ -140,7 +146,7 @@ class PublishConcept : ContractTestsBase() {
 
         val get1 = authorizedRequest(
             "/begreper/${BEGREP_UNPUBLISHED_REVISION.id}",
-            port,
+
             null,
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET

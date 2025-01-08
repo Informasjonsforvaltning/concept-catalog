@@ -1,28 +1,29 @@
-package no.fdk.concept_catalog.utils.jwk
+package no.fdk.concept_catalog.utils
 
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.util.*
 
-
-class JwtToken (private val access: Access) {
+class JwtToken(private val access: Access) {
     private val exp = Date().time + 120 * 1000
-    private val aud = listOf("fdk-registration-api",
+    private val aud = listOf(
+        "fdk-registration-api",
         "concept-catalogue",
         "records-of-processing-activities",
-        "account")
+        "account"
+    )
 
-    private fun buildToken() : String{
+    private fun buildToken(): String {
         val claimset = JWTClaimsSet.Builder()
-                .audience(aud)
-                .expirationTime(Date(exp))
-                .claim("iss", "https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk")
-                .claim("user_name","1924782563")
-                .claim("name", "TEST USER")
-                .claim("given_name", "TEST")
-                .claim("family_name", "USER")
-                .claim("authorities", access.authorities)
-                .build()
+            .audience(aud)
+            .expirationTime(Date(exp))
+            .claim("iss", "https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk")
+            .claim("user_name", "1924782563")
+            .claim("name", "TEST USER")
+            .claim("given_name", "TEST")
+            .claim("family_name", "USER")
+            .claim("authorities", access.authorities)
+            .build()
 
         val signed = SignedJWT(JwkStore.jwtHeader(), claimset)
         signed.sign(JwkStore.signer())
@@ -33,7 +34,6 @@ class JwtToken (private val access: Access) {
     override fun toString(): String {
         return buildToken()
     }
-
 }
 
 enum class Access(val authorities: String) {

@@ -7,17 +7,17 @@ import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.elasticsearch.ElasticsearchContainer
 
 @TestConfiguration(proxyBeanMethods = false)
-open class TestcontainersConfig {
+class TestcontainersConfig {
 
     @Bean
     @ServiceConnection
-    open fun mongoDBContainer(): MongoDBContainer {
+    fun mongoDBContainer(): MongoDBContainer {
         return MongoDBContainer("mongo:latest")
     }
 
     @Bean
     @ServiceConnection
-    open fun elasticsearchContainer(): ElasticsearchContainer {
+    fun elasticsearchContainer(): ElasticsearchContainer {
         return ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.2")
             .withEnv("xpack.security.enabled", "false")
     }

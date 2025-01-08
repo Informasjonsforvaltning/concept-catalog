@@ -5,8 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.*
-import no.fdk.concept_catalog.utils.jwk.Access
-import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
@@ -25,25 +23,25 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun unauthorizedWhenMissingToken() {
-            val response = authorizedRequest(path, port, null, null, HttpMethod.GET)
+            val response = authorizedRequest(path, null, null, HttpMethod.GET)
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.GET)
+            val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.GET)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
 
         @Test
         fun ableToGetChangeRequestsForAllOrgRoles() {
-            operations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
+            mongoOperations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
 
-            val responseRead = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            val responseRead = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             val responseWrite =
-                authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
+                authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
 
             assertEquals(HttpStatus.OK.value(), responseRead["status"])
             assertEquals(HttpStatus.OK.value(), responseWrite["status"])
@@ -63,14 +61,13 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToGetChangeRequestsFilteredByStatus() {
-            operations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
+            mongoOperations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
 
             val responseOpen =
-                authorizedRequest("$path?status=OPEN", port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+                authorizedRequest("$path?status=OPEN", null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
 
             val responseRejected = authorizedRequest(
                 "$path?status=rejected",
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -78,7 +75,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val responseAccepted = authorizedRequest(
                 "$path?status=aCCepTed",
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -111,14 +107,14 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun unauthorizedWhenMissingToken() {
-            val response = authorizedRequest(path, port, null, null, HttpMethod.GET)
+            val response = authorizedRequest(path, null, null, HttpMethod.GET)
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.GET)
+            val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.GET)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
@@ -127,7 +123,6 @@ class ChangeRequests : ContractTestsBase() {
         fun notFoundForInvalidId() {
             val response = authorizedRequest(
                 "/111111111/endringsforslag/invalid",
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -138,11 +133,11 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToGetChangeRequestForAllOrgRoles() {
-            operations.insert(CHANGE_REQUEST_0)
+            mongoOperations.insert(CHANGE_REQUEST_0)
 
-            val responseRead = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
+            val responseRead = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             val responseWrite =
-                authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
+                authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
 
             assertEquals(HttpStatus.OK.value(), responseRead["status"])
             assertEquals(HttpStatus.OK.value(), responseWrite["status"])
@@ -157,11 +152,10 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun getChangeRequestByConceptId() {
-            operations.insertAll(listOf(BEGREP_2, CHANGE_REQUEST_4, CHANGE_REQUEST_6))
+            mongoOperations.insertAll(listOf(BEGREP_2, CHANGE_REQUEST_4, CHANGE_REQUEST_6))
 
             val responseWrite = authorizedRequest(
                 "/123456789/endringsforslag?concept=${BEGREP_2.id}",
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -177,11 +171,10 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun getChangeRequestByConceptIdAndStatus() {
-            operations.insertAll(listOf(BEGREP_2, CHANGE_REQUEST_4))
+            mongoOperations.insertAll(listOf(BEGREP_2, CHANGE_REQUEST_4))
 
             val responseWrite = authorizedRequest(
                 "/123456789/endringsforslag?concept=${BEGREP_2.id}&status=open",
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -202,21 +195,21 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun unauthorizedWhenMissingToken() {
-            val response = authorizedRequest(path, port, null, null, HttpMethod.DELETE)
+            val response = authorizedRequest(path, null, null, HttpMethod.DELETE)
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.DELETE)
+            val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.DELETE)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForReadAccess() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.DELETE)
+            val response = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.DELETE)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
@@ -225,7 +218,6 @@ class ChangeRequests : ContractTestsBase() {
         fun notFoundForInvalidId() {
             val response = authorizedRequest(
                 "/111111111/endringsforslag/invalid",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.DELETE
@@ -236,9 +228,9 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToDeleteChangeRequest() {
-            operations.insert(CHANGE_REQUEST_0)
+            mongoOperations.insert(CHANGE_REQUEST_0)
 
-            val response = authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE)
+            val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE)
 
             assertEquals(HttpStatus.NO_CONTENT.value(), response["status"])
         }
@@ -251,7 +243,7 @@ class ChangeRequests : ContractTestsBase() {
         @Test
         fun unauthorizedWhenMissingToken() {
             val response =
-                authorizedRequest(path + "?concept=${BEGREP_0.originaltBegrep}", port, null, null, HttpMethod.POST)
+                authorizedRequest(path + "?concept=${BEGREP_0.originaltBegrep}", null, null, HttpMethod.POST)
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
         }
@@ -260,7 +252,6 @@ class ChangeRequests : ContractTestsBase() {
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val response = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_NEW),
                 JwtToken(Access.WRONG_ORG).toString(),
                 HttpMethod.POST
@@ -273,7 +264,6 @@ class ChangeRequests : ContractTestsBase() {
         fun badRequestWhenAttemptingToRequestChangesOnNonOriginalId() {
             val response = authorizedRequest(
                 "/${BEGREP_0.ansvarligVirksomhet.id}/endringsforslag?concept=id0-old",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -286,7 +276,6 @@ class ChangeRequests : ContractTestsBase() {
         fun badRequestForNonValidCatalogId() {
             val response = authorizedRequest(
                 "/invalid/endringsforslag",
-                port,
                 null,
                 JwtToken(Access.WRONG_ORG).toString(),
                 HttpMethod.POST
@@ -297,49 +286,50 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToCreateSuggestionForNewConcept() {
-            val rsp0 = authorizedRequest(
+            val response = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_NEW),
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.POST
             )
-            assertEquals(HttpStatus.CREATED.value(), rsp0["status"])
 
-            val responseHeaders0: HttpHeaders = rsp0["header"] as HttpHeaders
-            val location0 = responseHeaders0.location
-            assertNotNull(location0)
+            assertEquals(HttpStatus.CREATED.value(), response["status"])
 
-            val getResponse0 = authorizedRequest(
-                location0!!.toString(),
-                port,
+            val responseHeaders: HttpHeaders = response["header"] as HttpHeaders
+            val locationHeader = responseHeaders.location
+            assertNotNull(locationHeader)
+
+            val locationResponse = authorizedRequest(
+                locationHeader!!.toString(),
                 mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_NEW),
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
             )
-            assertEquals(HttpStatus.OK.value(), getResponse0["status"])
-            val result0: ChangeRequest = mapper.readValue(getResponse0["body"] as String)
+
+            assertEquals(HttpStatus.OK.value(), locationResponse["status"])
+
+            val location: ChangeRequest = mapper.readValue(locationResponse["body"] as String)
 
             val expected0 = ChangeRequest(
-                id = result0.id,
+                id = location.id,
                 catalogId = "111111111",
                 conceptId = null,
                 status = ChangeRequestStatus.OPEN,
                 operations = CHANGE_REQUEST_UPDATE_BODY_NEW.operations,
                 proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
-                timeForProposal = result0.timeForProposal,
+                timeForProposal = location.timeForProposal,
                 title = "Forslag til nytt begrep"
             )
-            assertEquals(expected0, result0)
+
+            assertEquals(expected0, location)
         }
 
         @Test
         fun ableToCreateChangeRequest() {
-            operations.insertAll(listOf(BEGREP_TO_BE_UPDATED, CHANGE_REQUEST_UPDATE_BODY_0))
+            mongoOperations.insertAll(listOf(BEGREP_TO_BE_UPDATED.toDBO(), CHANGE_REQUEST_UPDATE_BODY_0))
 
             val response = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_0),
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.POST
@@ -354,7 +344,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val locationResponse = authorizedRequest(
                 locationHeader!!.toString(),
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -393,7 +382,7 @@ class ChangeRequests : ContractTestsBase() {
                 )
             )
 
-            val response = authorizedRequest(path, port, mapper.writeValueAsString(operations), null, HttpMethod.POST)
+            val response = authorizedRequest(path, mapper.writeValueAsString(operations), null, HttpMethod.POST)
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
         }
@@ -402,7 +391,6 @@ class ChangeRequests : ContractTestsBase() {
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val response = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_UPDATE),
                 JwtToken(Access.WRONG_ORG).toString(),
                 HttpMethod.POST
@@ -415,7 +403,6 @@ class ChangeRequests : ContractTestsBase() {
         fun notFoundForInvalidId() {
             val response = authorizedRequest(
                 "/111111111/endringsforslag/invalid",
-                port,
                 mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_UPDATE),
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -426,11 +413,10 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToUpdateChangeRequest() {
-            operations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_UPDATE_BODY_UPDATE))
+            mongoOperations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_UPDATE_BODY_UPDATE))
 
             val response = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(CHANGE_REQUEST_UPDATE_BODY_UPDATE),
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.POST
@@ -465,7 +451,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val illegalIdResponse = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(illegalIdReplace),
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -489,7 +474,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val illegalCatalogIdResponse = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(illegalCatalogIdReplace),
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -513,7 +497,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val illegalConceptIdResponse = authorizedRequest(
                 path,
-                port,
                 mapper.writeValueAsString(illegalConceptIdAdd),
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -533,21 +516,21 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun unauthorizedWhenMissingToken() {
-            val response = authorizedRequest(path, port, null, null, HttpMethod.POST)
+            val response = authorizedRequest(path, null, null, HttpMethod.POST)
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST)
+            val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForReadAccess() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST)
+            val response = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
@@ -556,7 +539,6 @@ class ChangeRequests : ContractTestsBase() {
         fun notFoundForInvalidId() {
             val response = authorizedRequest(
                 "/111111111/endringsforslag/invalid/reject",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -567,11 +549,10 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun badRequestWhenRejectingNonOpen() {
-            operations.insert(CHANGE_REQUEST_0)
+            mongoOperations.insert(CHANGE_REQUEST_0)
 
             val alreadyAccepted = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_0.id}/reject",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -579,11 +560,10 @@ class ChangeRequests : ContractTestsBase() {
 
             assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyAccepted["status"])
 
-            operations.insert(CHANGE_REQUEST_1)
+            mongoOperations.insert(CHANGE_REQUEST_1)
 
             val alreadyRejected = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_1.id}/reject",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -594,9 +574,9 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToRejectChangeRequest() {
-            operations.insert(CHANGE_REQUEST_2)
+            mongoOperations.insert(CHANGE_REQUEST_2)
 
-            val response = authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST)
+            val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST)
 
             assertEquals(HttpStatus.OK.value(), response["status"])
         }
@@ -608,21 +588,21 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun unauthorizedWhenMissingToken() {
-            val response = authorizedRequest(path, port, null, null, HttpMethod.POST)
+            val response = authorizedRequest(path, null, null, HttpMethod.POST)
 
             assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST)
+            val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
 
         @Test
         fun forbiddenWhenAuthorizedForReadAccess() {
-            val response = authorizedRequest(path, port, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST)
+            val response = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST)
 
             assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
         }
@@ -631,7 +611,6 @@ class ChangeRequests : ContractTestsBase() {
         fun notFoundForInvalidId() {
             val response = authorizedRequest(
                 "/111111111/endringsforslag/invalid/accept",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -642,11 +621,10 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun badRequestWhenAcceptingNonOpen() {
-            operations.insert(CHANGE_REQUEST_0)
+            mongoOperations.insert(CHANGE_REQUEST_0)
 
             val alreadyAccepted = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_0.id}/accept",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -654,11 +632,10 @@ class ChangeRequests : ContractTestsBase() {
 
             assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyAccepted["status"])
 
-            operations.insert(CHANGE_REQUEST_1)
+            mongoOperations.insert(CHANGE_REQUEST_1)
 
             val alreadyRejected = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_1.id}/accept",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -669,11 +646,11 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptOfChangeRequestToPublishedConceptCreatesNewRevision() {
-            operations.insertAll(listOf(BEGREP_0, CHANGE_REQUEST_3))
+            mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), CHANGE_REQUEST_3))
 
             stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
-            val response = authorizedRequest(path, port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST)
+            val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST)
 
             assertEquals(HttpStatus.OK.value(), response["status"])
 
@@ -684,7 +661,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val locationResponse = authorizedRequest(
                 locationHeader!!.toString(),
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -717,13 +693,12 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptOfChangeRequestToUnpublishedConceptUpdatesExistingConcept() {
-            operations.insertAll(listOf(BEGREP_2, CHANGE_REQUEST_4))
+            mongoOperations.insertAll(listOf(BEGREP_2.toDBO(), CHANGE_REQUEST_4))
 
             stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
             val response = authorizedRequest(
                 "/123456789/endringsforslag/${CHANGE_REQUEST_4.id}/accept",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -738,7 +713,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val locationResponse = authorizedRequest(
                 locationHeader!!.toString(),
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -761,13 +735,12 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptOfChangeRequestWithNoAssociatedConceptCreatesNewConcept() {
-            operations.insertAll(listOf(BEGREP_0, CHANGE_REQUEST_5))
+            mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), CHANGE_REQUEST_5))
 
             stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
             val response = authorizedRequest(
                 "/123456789/endringsforslag/${CHANGE_REQUEST_5.id}/accept",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -782,7 +755,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val locationResponse = authorizedRequest(
                 locationHeader!!.toString(),
-                port,
                 null,
                 JwtToken(Access.ORG_READ).toString(),
                 HttpMethod.GET
@@ -819,11 +791,10 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptIsRevertedWhenUpdateOfHistoryServiceFails() {
-            operations.insert(CHANGE_REQUEST_2)
+            mongoOperations.insert(CHANGE_REQUEST_2)
 
             val response = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_2.id}/accept",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.POST
@@ -833,7 +804,6 @@ class ChangeRequests : ContractTestsBase() {
 
             val changeRequest = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_2.id}",
-                port,
                 null,
                 JwtToken(Access.ORG_WRITE).toString(),
                 HttpMethod.GET

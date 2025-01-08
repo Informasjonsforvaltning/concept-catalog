@@ -1,10 +1,7 @@
 package no.fdk.concept_catalog.contract
 
 import no.fdk.concept_catalog.ContractTestsBase
-import no.fdk.concept_catalog.utils.BEGREP_0
-import no.fdk.concept_catalog.utils.BEGREP_1
-import no.fdk.concept_catalog.utils.BEGREP_2
-import no.fdk.concept_catalog.utils.TestResponseReader
+import no.fdk.concept_catalog.utils.*
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.junit.jupiter.api.Tag
@@ -21,7 +18,7 @@ class GetSkosApNoCollection : ContractTestsBase() {
 
     @Test
     fun `Get SKOS-AP-NO Collection`() {
-        operations.insertAll(listOf(BEGREP_0, BEGREP_1, BEGREP_2))
+        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO(), BEGREP_2.toDBO()))
 
         val expected = TestResponseReader().parseTurtleFile("collection_0.ttl")
 

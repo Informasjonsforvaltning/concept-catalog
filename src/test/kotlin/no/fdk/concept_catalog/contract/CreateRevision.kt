@@ -7,8 +7,8 @@ import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.utils.*
-import no.fdk.concept_catalog.utils.jwk.Access
-import no.fdk.concept_catalog.utils.jwk.JwtToken
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -21,7 +21,7 @@ class CreateRevision : ContractTestsBase() {
     @Test
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon", port,
+            "/begreper/${BEGREP_4.id}/revisjon",
             mapper.writeValueAsString(BEGREP_REVISION), null, HttpMethod.POST
         )
 
@@ -30,10 +30,10 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Forbidden for read access`() {
-        operations.insert(BEGREP_4)
+        mongoOperations.insert(BEGREP_4.toDBO())
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION),
+            "/begreper/${BEGREP_4.id}/revisjon", mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
 
@@ -42,10 +42,10 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Bad request when attempting to create revision of unpublished concept`() {
-        operations.insert(BEGREP_2)
+        mongoOperations.insert(BEGREP_2.toDBO())
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_2.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION),
+            "/begreper/${BEGREP_2.id}/revisjon", mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
@@ -54,11 +54,11 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Bad request when attempting to create revision of concept with existing unpublished revision`() {
-        operations.insert(BEGREP_HAS_REVISION)
+        mongoOperations.insert(BEGREP_HAS_REVISION.toDBO())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_HAS_REVISION.id}/revisjon",
-            port,
+
             mapper.writeValueAsString(BEGREP_UNPUBLISHED_REVISION),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
@@ -69,17 +69,17 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Ok - Created with version - for write access`() {
-        operations.insert(BEGREP_4)
+        mongoOperations.insert(BEGREP_4.toDBO())
 
         stubFor(post(urlMatching("/111222333/.*/updates")).willReturn(aResponse().withStatus(200)))
 
         val before = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon", port, mapper.writeValueAsString(BEGREP_REVISION),
+            "/begreper/${BEGREP_4.id}/revisjon", mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
@@ -87,7 +87,7 @@ class CreateRevision : ContractTestsBase() {
 
         val after = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
         val beforeList: List<Begrep> =
@@ -111,18 +111,18 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Ok - Created without version - for write access`() {
-        operations.insert(BEGREP_4)
+        mongoOperations.insert(BEGREP_4.toDBO())
 
         stubFor(post(urlMatching("/111222333/.*/updates")).willReturn(aResponse().withStatus(200)))
 
         val before = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_4.id}/revisjon",
-            port,
+
             mapper.writeValueAsString(BEGREP_REVISION.copy(versjonsnr = null)),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
@@ -131,7 +131,7 @@ class CreateRevision : ContractTestsBase() {
 
         val after = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
         val beforeList: List<Begrep> =
@@ -155,11 +155,11 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Bad request - Created with invalid version - for write access`() {
-        operations.insert(BEGREP_4)
+        mongoOperations.insert(BEGREP_4.toDBO())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_4.id}/revisjon",
-            port,
+
             mapper.writeValueAsString(BEGREP_REVISION.copy(versjonsnr = SemVer(1, 0, 0))),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST

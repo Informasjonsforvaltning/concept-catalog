@@ -1,28 +1,10 @@
 package no.fdk.concept_catalog.utils
 
 import no.fdk.concept_catalog.model.*
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap
-import java.time.*
-
-const val LOCAL_SERVER_PORT = 6000
-
-const val MONGO_USER = "testuser"
-const val MONGO_PASSWORD = "testpassword"
-const val MONGO_PORT = 27017
-const val MONGO_DB_NAME = "concept-catalogue"
-
-val MONGO_ENV_VALUES: Map<String, String> = ImmutableMap.of(
-    "MONGO_INITDB_ROOT_USERNAME", MONGO_USER,
-    "MONGO_INITDB_ROOT_PASSWORD", MONGO_PASSWORD
-)
-
-val ELASTIC_ENV_VALUES: Map<String, String> = ImmutableMap.of(
-    "cluster.name", "elasticsearch",
-    "discovery.type", "single-node",
-    "xpack.security.enabled", "true",
-    "ELASTIC_PASSWORD", "elasticpwd",
-    "ES_JAVA_OPTS", "-Xms2G -Xmx2G"
-)
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 val BEGREP_0_OLD = Begrep(
     id = "id0-old",
@@ -32,14 +14,15 @@ val BEGREP_0_OLD = Begrep(
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/DEPRECATED",
     erPublisert = true,
     sistPublisertId = "id0",
-    publiseringsTidspunkt = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nb", "old anbefaltTerm"))),
     tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
     frarådetTerm = mapOf(Pair("nb", listOf("old fraraadetTerm"))),
     definisjon = Definisjon(
         tekst = mapOf(Pair("nb", "old definisjon")),
-        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())
+    ),
     merknad = mapOf(Pair("nn", "old merknad")),
     merkelapp = listOf("old merkelapp1", "old merkelapp2"),
     ansvarligVirksomhet = Virksomhet(
@@ -49,8 +32,9 @@ val BEGREP_0_OLD = Begrep(
     endringslogelement = Endringslogelement(
         endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
-            2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant()),
+            2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")
+        ).toInstant()
+    ),
     interneFelt = emptyMap(),
     internErstattesAv = listOf("id1"),
 )
@@ -62,7 +46,7 @@ val BEGREP_0 = Begrep(
     status = Status.PUBLISERT,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
     erPublisert = true,
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     erSistPublisert = true,
     sistPublisertId = "id0",
@@ -71,13 +55,16 @@ val BEGREP_0 = Begrep(
     frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm", "fraraadetTerm2", "Lorem ipsum"))),
     definisjon = Definisjon(
         tekst = mapOf(Pair("nb", "definisjon")),
-        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())
+    ),
     definisjonForAllmennheten = Definisjon(
         tekst = mapOf(Pair("nb", "definisjon for allmennheten")),
-        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())
+    ),
     definisjonForSpesialister = Definisjon(
         tekst = mapOf(Pair("nb", "Definisjon for spesialister")),
-        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())
+    ),
     merknad = mapOf(Pair("nn", "merknad")),
     merkelapp = listOf("merkelapp1", "merkelapp2"),
     ansvarligVirksomhet = Virksomhet(
@@ -122,8 +109,9 @@ val BEGREP_0 = Begrep(
     endringslogelement = Endringslogelement(
         endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
-            2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant()),
+            2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")
+        ).toInstant()
+    ),
     interneFelt = mapOf(Pair("felt-id", InterntFelt("feltverdi"))),
     internErstattesAv = listOf("id1"),
 )
@@ -145,8 +133,9 @@ val BEGREP_1 = Begrep(
     endringslogelement = Endringslogelement(
         endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
-            2020, 12, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant()),
+            2020, 12, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")
+        ).toInstant()
+    ),
     interneFelt = null,
     internErstattesAv = null,
 )
@@ -156,7 +145,8 @@ val BEGREP_2 = Begrep(
     originaltBegrep = "id2",
     definisjon = Definisjon(
         tekst = mapOf(Pair("nb", "tekstnb")),
-        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())),
+        kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList())
+    ),
     versjonsnr = SemVer(1, 0, 1),
     revisjonAvSistPublisert = true,
     gjeldendeRevisjon = null,
@@ -170,8 +160,9 @@ val BEGREP_2 = Begrep(
     endringslogelement = Endringslogelement(
         endretAv = "bruker1",
         endringstidspunkt = ZonedDateTime.of(
-            2020, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")
-        ).toInstant()),
+            2020, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")
+        ).toInstant()
+    ),
     interneFelt = null,
     internErstattesAv = null,
 )
@@ -223,7 +214,7 @@ val BEGREP_TO_BE_UPDATED = Begrep(
     definisjon = Definisjon(tekst = mapOf(Pair("nb", "definisjon")), null),
     tillattTerm = mapOf(Pair("nn", listOf("To be removed")), Pair("en", listOf("To be moved"))),
     fagområde = mapOf(Pair("en", listOf("To be copied"))),
-    fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12","fagomr2"),
+    fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12", "fagomr2"),
     eksempel = mapOf(Pair("en", "Will be replaced by copy")),
     status = Status.UTKAST,
     ansvarligVirksomhet = Virksomhet(
@@ -241,7 +232,7 @@ val BEGREP_3 = Begrep(
     status = Status.PUBLISERT,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
     erPublisert = true,
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
     definisjon = Definisjon(
@@ -250,16 +241,22 @@ val BEGREP_3 = Begrep(
             forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
             kilde = listOf(
                 URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
-                URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet")))),
+                URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet")
+            )
+        )
+    ),
     eksempel = mapOf(Pair("en", "example")),
     fagområde = mapOf(Pair("nb", listOf("fagområde"))),
-    fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12","fagomr2"),
-    omfang = URITekst(uri="https://test.no"),
+    fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12", "fagomr2"),
+    omfang = URITekst(uri = "https://test.no"),
     internSeOgså = listOf("id4"),
-    internBegrepsRelasjon = listOf(BegrepsRelasjon(
-        relasjon = "assosiativ",
-        beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
-        relatertBegrep = "id4")),
+    internBegrepsRelasjon = listOf(
+        BegrepsRelasjon(
+            relasjon = "assosiativ",
+            beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
+            relatertBegrep = "id4"
+        )
+    ),
     gyldigFom = LocalDate.of(2020, 10, 10),
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
@@ -277,13 +274,15 @@ val BEGREP_4 = Begrep(
     erPublisert = true,
     erSistPublisert = true,
     sistPublisertId = "id4",
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
     definisjon = Definisjon(
         kildebeskrivelse = Kildebeskrivelse(
             forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
+            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))
+        )
+    ),
     fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
     fagområdeKoder = listOf("fagomr3"),
     gyldigTom = LocalDate.of(2030, 10, 10),
@@ -293,10 +292,11 @@ val BEGREP_4 = Begrep(
     ),
     interneFelt = mapOf(
         Pair("felt1", InterntFelt("true")),
-        Pair("felt2", InterntFelt("false"))),
+        Pair("felt2", InterntFelt("false"))
+    ),
     internErstattesAv = null,
     omfang = URITekst(tekst = "omfang")
-    )
+)
 
 val BEGREP_5 = Begrep(
     id = "id5",
@@ -307,18 +307,20 @@ val BEGREP_5 = Begrep(
     erPublisert = true,
     erSistPublisert = true,
     sistPublisertId = "id5",
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 5"))),
     fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
-    fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12","fagomr2"),
+    fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12", "fagomr2"),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
     definisjon = Definisjon(
         tekst = mapOf(Pair("nb", "definisjon")),
         kildebeskrivelse = Kildebeskrivelse(
             forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
+            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))
+        )
+    ),
     ansvarligVirksomhet = Virksomhet(
         id = "111222333"
     ),
@@ -331,13 +333,15 @@ val BEGREP_REVISION = Begrep(
     status = Status.UTKAST,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
     erPublisert = true,
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep revisjon"))),
     definisjon = Definisjon(
         kildebeskrivelse = Kildebeskrivelse(
             forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")))),
+            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))
+        )
+    ),
     fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
     gyldigTom = LocalDate.of(2030, 10, 10),
     kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
@@ -356,7 +360,7 @@ val BEGREP_6 = Begrep(
     status = Status.PUBLISERT,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
     erPublisert = true,
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     ansvarligVirksomhet = Virksomhet(
         id = "987654321"
@@ -365,8 +369,10 @@ val BEGREP_6 = Begrep(
         tekst = mapOf(Pair("nb", "definisjon")),
         kildebeskrivelse = Kildebeskrivelse(
             forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-            kilde = listOf(URITekst(uri = "", tekst = "hei")))),
-    omfang = URITekst(tekst="omfangtekst6"),
+            kilde = listOf(URITekst(uri = "", tekst = "hei"))
+        )
+    ),
+    omfang = URITekst(tekst = "omfangtekst6"),
     interneFelt = null,
     internErstattesAv = null
 )
@@ -377,7 +383,7 @@ val BEGREP_HAS_REVISION = Begrep(
     status = Status.PUBLISERT,
     statusURI = "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
     erPublisert = true,
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = null,
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
@@ -417,7 +423,7 @@ val BEGREP_HAS_MULTIPLE_REVISIONS = Begrep(
     erPublisert = true,
     erSistPublisert = true,
     sistPublisertId = "id-has-multiple-revisions",
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
+    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
     gjeldendeRevisjon = "id-unpublished-revision-multiple-first",
     versjonsnr = SemVer(0, 0, 1),
     ansvarligVirksomhet = Virksomhet(
@@ -464,9 +470,9 @@ val CHANGE_REQUEST_0 = ChangeRequest(
     conceptId = null,
     catalogId = "111111111",
     status = ChangeRequestStatus.ACCEPTED,
-    operations = listOf( JsonPatchOperation(op = OpEnum.REPLACE, path = "/baz", value = "boo") ),
+    operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/baz", value = "boo")),
     timeForProposal = Instant.now(),
-    proposedBy = User(id="1924782563", name="TEST USER", email=null),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
     title = "Endringsforslag 0"
 )
 
@@ -476,8 +482,8 @@ val CHANGE_REQUEST_1 = ChangeRequest(
     catalogId = "111111111",
     status = ChangeRequestStatus.REJECTED,
     operations = emptyList(),
-    timeForProposal =  ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    proposedBy = User(id="1924782563", name="TEST USER", email=null),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
     title = "Endringsforslag 1"
 )
 
@@ -487,8 +493,8 @@ val CHANGE_REQUEST_2 = ChangeRequest(
     catalogId = "111111111",
     status = ChangeRequestStatus.OPEN,
     operations = emptyList(),
-    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    proposedBy = User(id="1924782563", name="TEST USER", email=null),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
     title = "Endringsforslag 2"
 )
 
@@ -497,9 +503,9 @@ val CHANGE_REQUEST_3 = ChangeRequest(
     conceptId = "id0-old",
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
-    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
-    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    proposedBy = User(id="1924782563", name="TEST USER", email=null),
+    operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null)),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
     title = "Endringsforslag 3"
 )
 
@@ -509,10 +515,10 @@ val CHANGE_REQUEST_4 = ChangeRequest(
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
     operations = listOf(
-        JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null),
+        JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
     ),
-    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    proposedBy = User(id="1924782563", name="TEST USER", email=null),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
     title = "Endringsforslag 4"
 )
 
@@ -521,9 +527,9 @@ val CHANGE_REQUEST_5 = ChangeRequest(
     conceptId = null,
     catalogId = "123456789",
     status = ChangeRequestStatus.OPEN,
-    operations = listOf(JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
-    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    proposedBy = User(id="1924782563", name="TEST USER", email=null),
+    operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null)),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
     title = "Endringsforslag 5"
 )
 
@@ -533,15 +539,15 @@ val CHANGE_REQUEST_6 = ChangeRequest(
     catalogId = "123456789",
     status = ChangeRequestStatus.REJECTED,
     operations = listOf(),
-    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12,0,0,0, ZoneId.of("Europe/Oslo")).toInstant(),
-    proposedBy = User(id="1924782563", name="TEST USER", email=null),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
     title = "Endringsforslag 6"
 )
 
 val CHANGE_REQUEST_UPDATE_BODY_NEW = ChangeRequestUpdateBody(
     conceptId = null,
     operations = listOf(
-        JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null),
+        JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
     ),
     title = "Forslag til nytt begrep"
 )
@@ -549,12 +555,19 @@ val CHANGE_REQUEST_UPDATE_BODY_NEW = ChangeRequestUpdateBody(
 val CHANGE_REQUEST_UPDATE_BODY_UPDATE = ChangeRequestUpdateBody(
     conceptId = "123456789",
     operations = listOf(
-        JsonPatchOperation(op= OpEnum.ADD, path="/assignedUser", value="newUserId", from=null)),
+        JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null)
+    ),
     title = "Ny tittel endringsforslag"
 )
 
 val CHANGE_REQUEST_UPDATE_BODY_0 = ChangeRequestUpdateBody(
     conceptId = BEGREP_TO_BE_UPDATED.id,
-    operations = listOf( JsonPatchOperation(op = OpEnum.ADD, path = "/anbefaltTerm/navn/nb", value = "Enda en ny anbefalt term") ),
+    operations = listOf(
+        JsonPatchOperation(
+            op = OpEnum.ADD,
+            path = "/anbefaltTerm/navn/nb",
+            value = "Enda en ny anbefalt term"
+        )
+    ),
     title = "Endringsforslag 7"
 )

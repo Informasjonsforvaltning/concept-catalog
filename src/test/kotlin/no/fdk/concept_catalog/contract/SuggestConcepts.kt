@@ -2,12 +2,13 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
+import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.Suggestion
 import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_1
-import no.fdk.concept_catalog.utils.authorizedRequest
-import no.fdk.concept_catalog.utils.jwk.Access
-import no.fdk.concept_catalog.utils.jwk.JwtToken
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -21,7 +22,7 @@ class SuggestConcepts : ContractTestsBase() {
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=test",
-            port,
+
             null,
             null,
             HttpMethod.GET
@@ -34,7 +35,7 @@ class SuggestConcepts : ContractTestsBase() {
     fun `Forbidden for wrong orgnr`() {
         val response = authorizedRequest(
             "/begreper/suggestions?org=999888777&q=test",
-            port,
+
             null,
             JwtToken(Access.ORG_READ).toString(),
             HttpMethod.GET
@@ -45,9 +46,12 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for read access`() {
+        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
+        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+
         val response = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=begr",
-            port, null, JwtToken(Access.ORG_READ).toString(),
+            null, JwtToken(Access.ORG_READ).toString(),
             HttpMethod.GET
         )
 
@@ -70,13 +74,16 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for write access`() {
-        val rsp = authorizedRequest(
+        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
+        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+
+        val response = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=lorem",
-            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            null, JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), rsp["status"])
+        assertEquals(HttpStatus.OK.value(), response["status"])
 
         val expected = listOf(
             Suggestion(
@@ -88,30 +95,37 @@ class SuggestConcepts : ContractTestsBase() {
             )
         )
 
-        val result: List<Suggestion> = mapper.readValue(rsp["body"] as String)
+        val result: List<Suggestion> = mapper.readValue(response["body"] as String)
+
         assertEquals(expected, result)
     }
 
     @Test
     fun `Able to filter by published status`() {
+        elasticsearchOperations.save(listOf(CurrentConcept(BEGREP_0.toDBO()), CurrentConcept(BEGREP_1.toDBO())))
+        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+
         val hitsPublished = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=anb&published=true",
-            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            null, JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
+
         val noHitsPublished = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=anb&published=false",
-            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            null, JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
+
         val noHitsNotPublished = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=lorem&published=true",
-            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            null, JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
+
         val hitsNotPublished = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=lorem&published=false",
-            port, null, JwtToken(Access.ORG_WRITE).toString(),
+            null, JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
 
@@ -129,6 +143,7 @@ class SuggestConcepts : ContractTestsBase() {
                 definisjon = BEGREP_0.definisjon?.copy(kildebeskrivelse = null)
             )
         )
+
         val expectedNotPublished = listOf(
             Suggestion(
                 id = BEGREP_1.id!!,
@@ -149,5 +164,4 @@ class SuggestConcepts : ContractTestsBase() {
         assertEquals(emptyList(), noHitsNotPublishedResult)
         assertEquals(expectedNotPublished, hitsNotPublishedResult)
     }
-
 }

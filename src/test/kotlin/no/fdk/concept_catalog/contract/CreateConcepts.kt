@@ -7,9 +7,8 @@ import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_CREATED
 import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
-import no.fdk.concept_catalog.utils.authorizedRequest
-import no.fdk.concept_catalog.utils.jwk.Access
-import no.fdk.concept_catalog.utils.jwk.JwtToken
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -22,7 +21,7 @@ class CreateConcepts : ContractTestsBase() {
     @Test
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest(
-            "/begreper/import", port,
+            "/begreper/import",
             mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED, BEGREP_TO_BE_CREATED)),
             null, HttpMethod.POST
         )
@@ -33,7 +32,7 @@ class CreateConcepts : ContractTestsBase() {
     @Test
     fun `Forbidden for read access`() {
         val response = authorizedRequest(
-            "/begreper/import", port,
+            "/begreper/import",
             mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED, BEGREP_TO_BE_CREATED)),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
@@ -44,7 +43,7 @@ class CreateConcepts : ContractTestsBase() {
     @Test
     fun `Forbidden when at least one concept has non write access orgId`() {
         val response = authorizedRequest(
-            "/begreper/import", port,
+            "/begreper/import",
             mapper.writeValueAsString(listOf(BEGREP_WRONG_ORG, BEGREP_TO_BE_CREATED)),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
@@ -58,11 +57,11 @@ class CreateConcepts : ContractTestsBase() {
 
         val before = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
-            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
         val response = authorizedRequest(
-            "/begreper/import", port,
+            "/begreper/import",
             mapper.writeValueAsString(listOf(BEGREP_TO_BE_CREATED, BEGREP_TO_BE_CREATED)),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
@@ -71,7 +70,7 @@ class CreateConcepts : ContractTestsBase() {
 
         val after = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
-            port, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
+            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
         val beforeList: List<Begrep> = mapper.readValue(before["body"] as String)
@@ -83,7 +82,7 @@ class CreateConcepts : ContractTestsBase() {
     @Test
     fun `Bad request - Invalid version - for write access`() {
         val response = authorizedRequest(
-            "/begreper/import", port,
+            "/begreper/import",
             mapper.writeValueAsString(
                 listOf(
                     BEGREP_TO_BE_CREATED.copy(versjonsnr = SemVer(0, 0, 0)),

@@ -5,8 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.*
-import no.fdk.concept_catalog.utils.jwk.Access
-import no.fdk.concept_catalog.utils.jwk.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders
@@ -25,7 +23,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             null, HttpMethod.PATCH
         )
 
@@ -34,13 +32,13 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Forbidden for read access`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "req"))
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH
         )
 
@@ -49,7 +47,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Add new values`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -60,7 +58,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -74,7 +72,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Remove value`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -82,7 +80,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -95,7 +93,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Replace existing value`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -103,7 +101,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -116,7 +114,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Move value`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -125,7 +123,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -139,7 +137,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Copy value`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -148,7 +146,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -162,13 +160,13 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when patch path is wrong`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/nn"))
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -177,14 +175,14 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when patch value is invalid`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         val operations =
             listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/eksempel/en", value = listOf("invalid")))
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -193,7 +191,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when concept is published`() {
-        operations.insert(BEGREP_0)
+        mongoOperations.insert(BEGREP_0.toDBO())
 
         val operations = listOf(
             JsonPatchOperation(
@@ -205,7 +203,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_0.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -214,13 +212,13 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when trying to publish as part of normal update`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/erPublisert", value = true))
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -229,7 +227,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when trying to add published date`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         val operations = listOf(
             JsonPatchOperation(
@@ -241,7 +239,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -250,7 +248,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Able to add new Kildebeskrivelse`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -264,7 +262,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -273,7 +271,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Able to add new Bruker`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -281,7 +279,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -294,7 +292,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Replace tildeltBruker`() {
-        operations.insert(BEGREP_TO_BE_UPDATED)
+        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -302,7 +300,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -314,7 +312,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Patch fails when history-service fails`() {
-        operations.insert(BEGREP_TO_BE_DELETED)
+        mongoOperations.insert(BEGREP_TO_BE_DELETED.toDBO())
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -322,7 +320,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_DELETED.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -331,7 +329,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Patch of published concept creates new revision`() {
-        operations.insert(BEGREP_0)
+        mongoOperations.insert(BEGREP_0.toDBO())
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -339,7 +337,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_0.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
@@ -352,7 +350,7 @@ class UpdateConcept : ContractTestsBase() {
 
         val getRsp = authorizedRequest(
             location.toString(),
-            port, null,
+            null,
             JwtToken(Access.ORG_READ).toString(), HttpMethod.GET
         )
 
@@ -361,13 +359,13 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when patching old version`() {
-        operations.insertAll(listOf(BEGREP_0, BEGREP_0_OLD))
+        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_0_OLD.toDBO()))
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_0_OLD.id}",
-            port, mapper.writeValueAsString(operations),
+            mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 

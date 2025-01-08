@@ -4,6 +4,7 @@ import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_6
 import no.fdk.concept_catalog.utils.TestResponseReader
+import no.fdk.concept_catalog.utils.toDBO
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.junit.jupiter.api.Tag
@@ -20,7 +21,7 @@ class GetSkosApNoConcept : ContractTestsBase() {
 
     @Test
     fun `Get SKOS-AP-NO Concept`() {
-        operations.insert(BEGREP_0)
+        mongoOperations.insert(BEGREP_0.toDBO())
 
         val expected = TestResponseReader().parseTurtleFile("concept.ttl")
 
@@ -37,7 +38,7 @@ class GetSkosApNoConcept : ContractTestsBase() {
 
     @Test
     fun `Handles Blank URIs in Omfang and Kildebeskrivelse`() {
-        operations.insert(BEGREP_6)
+        mongoOperations.insert(BEGREP_6.toDBO())
 
         val rdfXml =
             request("/collections/987654321/concepts/id6", MediaType.valueOf("application/rdf+xml"), HttpMethod.GET)

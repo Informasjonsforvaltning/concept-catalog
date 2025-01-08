@@ -1,4 +1,4 @@
-package no.fdk.concept_catalog.utils.jwk
+package no.fdk.concept_catalog.utils
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -11,8 +11,7 @@ import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
 import java.util.*
 
-
-object JwkStore{
+object JwkStore {
     private val jwk = createJwk()
 
     private fun createJwk(): RSAKey =
@@ -23,8 +22,8 @@ object JwkStore{
             .generate()
 
     fun get(): String {
-        val token : JwkToken = jacksonObjectMapper()
-            .readValue(jwk.toJSONString())
+        val token: JwkToken = jacksonObjectMapper().readValue(jwk.toJSONString())
+
         return token.toString()
     }
 
@@ -35,18 +34,16 @@ object JwkStore{
 
     fun signer() =
         RSASSASigner(jwk)
-
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class JwkToken(
-    private val kid : String,
-    private val kty :String,
-    private val use : String,
-    private val n : String,
-    private val e : String
-){
-
+    private val kid: String,
+    private val kty: String,
+    private val use: String,
+    private val n: String,
+    private val e: String
+) {
     override fun toString(): String =
         """{
             "keys": [
@@ -60,5 +57,4 @@ class JwkToken(
                 }
             ]
         }""".trimIndent()
-
 }
