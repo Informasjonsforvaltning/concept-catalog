@@ -18,47 +18,10 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
-import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.Reader
 import java.io.StringReader
-import java.net.HttpURLConnection
-import java.net.URL
 import java.nio.charset.StandardCharsets
-
-fun apiGet(port: Int, endpoint: String, acceptHeader: MediaType): Map<String, Any> {
-
-    return try {
-        val connection = URL("http://localhost:$port$endpoint").openConnection() as HttpURLConnection
-        connection.setRequestProperty("Accept", acceptHeader.toString())
-        connection.connect()
-
-        if (isOK(connection.responseCode)) {
-            val responseBody = connection.inputStream.bufferedReader().use(BufferedReader::readText)
-            mapOf(
-                "body" to responseBody,
-                "header" to connection.headerFields.toString(),
-                "status" to connection.responseCode
-            )
-        } else {
-            mapOf(
-                "status" to connection.responseCode,
-                "header" to " ",
-                "body" to " "
-            )
-        }
-    } catch (e: Exception) {
-        mapOf(
-            "status" to e.toString(),
-            "header" to " ",
-            "body" to " "
-        )
-    }
-}
-
-private fun isOK(response: Int?): Boolean =
-    if (response == null) false
-    else HttpStatus.resolve(response)?.is2xxSuccessful == true
 
 fun authorizedRequest(
     path: String,
@@ -67,7 +30,7 @@ fun authorizedRequest(
     token: String? = null,
     httpMethod: HttpMethod,
     accept: MediaType = MediaType.APPLICATION_JSON
-): Map<String, Any> {
+): Map<String, Any?> {
     val request = RestTemplate()
     request.requestFactory = HttpComponentsClientHttpRequestFactory()
     val url = "http://localhost:$port$path"
@@ -79,6 +42,7 @@ fun authorizedRequest(
 
     return try {
         val response = request.exchange(url, httpMethod, entity, String::class.java)
+
         mapOf(
             "body" to response.body,
             "header" to response.headers,
@@ -160,10 +124,13 @@ class TestResponseReader {
 }
 
 fun resetDB() {
-    val connectionString = ConnectionString("mongodb://${MONGO_USER}:${MONGO_PASSWORD}@localhost:${mongoContainer.getMappedPort(MONGO_PORT)}/$MONGO_DB_NAME?authSource=admin&authMechanism=SCRAM-SHA-1")
+    val connectionString =
+        ConnectionString("mongodb://${MONGO_USER}:${MONGO_PASSWORD}@localhost:${mongoContainer.getMappedPort(MONGO_PORT)}/$MONGO_DB_NAME?authSource=admin&authMechanism=SCRAM-SHA-1")
     val pojoCodecRegistry = CodecRegistries.fromRegistries(
         MongoClientSettings.getDefaultCodecRegistry(), CodecRegistries.fromProviders(
-            PojoCodecProvider.builder().automatic(true).build()))
+            PojoCodecProvider.builder().automatic(true).build()
+        )
+    )
 
     val client: MongoClient = MongoClients.create(connectionString)
     val mongoDatabase = client.getDatabase(MONGO_DB_NAME).withCodecRegistry(pojoCodecRegistry)
@@ -179,13 +146,29 @@ fun resetDB() {
     client.close()
 }
 
-fun conceptDbPopulation() = listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_WRONG_ORG, BEGREP_TO_BE_DELETED,
-    BEGREP_TO_BE_UPDATED, BEGREP_4, BEGREP_5, BEGREP_0_OLD, BEGREP_6, BEGREP_HAS_REVISION, BEGREP_UNPUBLISHED_REVISION,
-    BEGREP_HAS_MULTIPLE_REVISIONS, BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST, BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND)
+fun conceptDbPopulation() = listOf(
+    BEGREP_0,
+    BEGREP_1,
+    BEGREP_2,
+    BEGREP_WRONG_ORG,
+    BEGREP_TO_BE_DELETED,
+    BEGREP_TO_BE_UPDATED,
+    BEGREP_4,
+    BEGREP_5,
+    BEGREP_0_OLD,
+    BEGREP_6,
+    BEGREP_HAS_REVISION,
+    BEGREP_UNPUBLISHED_REVISION,
+    BEGREP_HAS_MULTIPLE_REVISIONS,
+    BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST,
+    BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND
+)
     .map { it.mapDBO() }
 
-fun changeRequestPopulation() = listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2, CHANGE_REQUEST_3,
-    CHANGE_REQUEST_4, CHANGE_REQUEST_5, CHANGE_REQUEST_6)
+fun changeRequestPopulation() = listOf(
+    CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2, CHANGE_REQUEST_3,
+    CHANGE_REQUEST_4, CHANGE_REQUEST_5, CHANGE_REQUEST_6
+)
     .map { it.mapDBO() }
 
 private fun Begrep.mapDBO(): org.bson.Document =
@@ -276,7 +259,7 @@ private fun ChangeRequest.mapDBO(): org.bson.Document =
         .append("conceptId", conceptId)
         .append("catalogId", catalogId)
         .append("status", status)
-        .append("operations", operations.map{it.mapDBO()})
+        .append("operations", operations.map { it.mapDBO() })
         .append("timeForProposal", timeForProposal)
         .append("proposedBy", proposedBy)
         .append("title", title)
@@ -290,8 +273,10 @@ private fun JsonPatchOperation.mapDBO(): org.bson.Document =
 
 fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, logger: Logger): Boolean {
     // Its necessary to parse the created models from strings to have the same base, and ensure blank node validity
-    val parsedActual = ModelFactory.createDefaultModel().read(StringReader(actual.rdfResponse(Lang.TURTLE)), null, "TURTLE")
-    val parsedExpected = ModelFactory.createDefaultModel().read(StringReader(expected.rdfResponse(Lang.TURTLE)), null, "TURTLE")
+    val parsedActual =
+        ModelFactory.createDefaultModel().read(StringReader(actual.rdfResponse(Lang.TURTLE)), null, "TURTLE")
+    val parsedExpected =
+        ModelFactory.createDefaultModel().read(StringReader(expected.rdfResponse(Lang.TURTLE)), null, "TURTLE")
 
     val isIsomorphic = parsedActual.isIsomorphicWith(parsedExpected)
 
