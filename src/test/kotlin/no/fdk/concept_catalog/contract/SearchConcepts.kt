@@ -55,8 +55,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns correct results`() {
-        elasticsearchOperations.save(listOf(CurrentConcept(BEGREP_1.toDBO()), CurrentConcept(BEGREP_2.toDBO())))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_1.toDBO()), CurrentConcept(BEGREP_2.toDBO())))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -74,8 +73,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns correct results when searching in definisjon`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -92,8 +90,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with status filter returns correct results`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -119,8 +116,7 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with assignedUser filter returns correct results`() {
         mongoOperations.insert(BEGREP_0.toDBO())
 
-        elasticsearchOperations.save(CurrentConcept(BEGREP_0.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_0.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -147,8 +143,7 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with originalId filter returns correct results`() {
         mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO()))
 
-        elasticsearchOperations.save(listOf(CurrentConcept(BEGREP_0.toDBO()), CurrentConcept(BEGREP_1.toDBO())))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_0.toDBO()), CurrentConcept(BEGREP_1.toDBO())))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -175,14 +170,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with published filter returns correct results`() {
         mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO(), BEGREP_2.toDBO()))
 
-        elasticsearchOperations.save(
+        addToElasticsearchIndex(
             listOf(
                 CurrentConcept(BEGREP_0.toDBO()),
                 CurrentConcept(BEGREP_1.toDBO()),
                 CurrentConcept(BEGREP_2.toDBO())
             )
         )
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
         val unPublishedResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -226,8 +220,7 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with subjects filter returns correct results`() {
         mongoOperations.insertAll(listOf(BEGREP_4.toDBO(), BEGREP_5.toDBO()))
 
-        elasticsearchOperations.save(listOf(CurrentConcept(BEGREP_4.toDBO()), CurrentConcept(BEGREP_5.toDBO())))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_4.toDBO()), CurrentConcept(BEGREP_5.toDBO())))
 
         val withSubjectFagomr1Response = authorizedRequest(
             "/begreper/search?orgNummer=111222333",
@@ -276,8 +269,7 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with internalFields filter returns correct results`() {
         mongoOperations.insert(BEGREP_4.toDBO())
 
-        elasticsearchOperations.save(CurrentConcept(BEGREP_4.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_4.toDBO()))
 
         val withInternalFieldsResponse = authorizedRequest(
             "/begreper/search?orgNummer=111222333",
@@ -319,8 +311,7 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with label filter returns correct results`() {
         mongoOperations.insert(BEGREP_0.toDBO())
 
-        elasticsearchOperations.save(CurrentConcept(BEGREP_0.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_0.toDBO()))
 
         val withLabelResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -359,8 +350,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query filter with several values returns correct results`() {
-        elasticsearchOperations.save(listOf(CurrentConcept(BEGREP_1.toDBO()), CurrentConcept(BEGREP_2.toDBO())))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_1.toDBO()), CurrentConcept(BEGREP_2.toDBO())))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -391,8 +381,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns correct results when only title is active`() {
-        elasticsearchOperations.save(listOf(CurrentConcept(BEGREP_1.toDBO()), CurrentConcept(BEGREP_2.toDBO())))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_1.toDBO()), CurrentConcept(BEGREP_2.toDBO())))
 
         val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, tillattTerm = false)
 
@@ -444,14 +433,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Empty query returns all current versions`() {
         mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-        elasticsearchOperations.save(
+        addToElasticsearchIndex(
             listOf(
                 CurrentConcept(BEGREP_0.toDBO()),
                 CurrentConcept(BEGREP_1.toDBO()),
                 CurrentConcept(BEGREP_2.toDBO())
             )
         )
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
         val queryFields =
             QueryFields(definisjon = false, anbefaltTerm = false, frarådetTerm = false, tillattTerm = false)
@@ -471,8 +459,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns correct results when searching in tillattTerm`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_2.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_2.toDBO()))
 
         val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, anbefaltTerm = false)
 
@@ -493,8 +480,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns correct results when searching in merknad`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -513,14 +499,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query returns correct results when searching in terms`() {
         mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-        elasticsearchOperations.save(
+        addToElasticsearchIndex(
             listOf(
                 CurrentConcept(BEGREP_0.toDBO()),
                 CurrentConcept(BEGREP_1.toDBO()),
                 CurrentConcept(BEGREP_2.toDBO())
             )
         )
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
         val queryFields = QueryFields(definisjon = false, merknad = false)
 
@@ -540,8 +525,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Status filter returns correct results`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_2.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_2.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -567,8 +551,7 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with current version filter returns correct results`() {
         mongoOperations.insert(BEGREP_0.toDBO())
 
-        elasticsearchOperations.save(CurrentConcept(BEGREP_0.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_0.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -605,14 +588,13 @@ class SearchConcepts : ContractTestsBase() {
         fun `Paginate handles invalid values`() {
             mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-            elasticsearchOperations.save(
+            addToElasticsearchIndex(
                 listOf(
                     CurrentConcept(BEGREP_0.toDBO()),
                     CurrentConcept(BEGREP_1.toDBO()),
                     CurrentConcept(BEGREP_2.toDBO())
                 )
             )
-            elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
             val response = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
@@ -656,14 +638,13 @@ class SearchConcepts : ContractTestsBase() {
         fun `Pages handled correctly`() {
             mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-            elasticsearchOperations.save(
+            addToElasticsearchIndex(
                 listOf(
                     CurrentConcept(BEGREP_0.toDBO()),
                     CurrentConcept(BEGREP_1.toDBO()),
                     CurrentConcept(BEGREP_2.toDBO())
                 )
             )
-            elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
             val firstResponse = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
@@ -708,14 +689,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query returns sorted results ordered by sistEndret ascending`() {
         mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-        elasticsearchOperations.save(
+        addToElasticsearchIndex(
             listOf(
                 CurrentConcept(BEGREP_0.toDBO()),
                 CurrentConcept(BEGREP_1.toDBO()),
                 CurrentConcept(BEGREP_2.toDBO())
             )
         )
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
         val searchOp = SearchOperation(
             query = "",
@@ -737,14 +717,13 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns sorted results ordered by anbefaltTerm ascending`() {
-        elasticsearchOperations.save(
+        addToElasticsearchIndex(
             listOf(
                 CurrentConcept(BEGREP_0.toDBO()),
                 CurrentConcept(BEGREP_1.toDBO()),
                 CurrentConcept(BEGREP_2.toDBO())
             )
         )
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
         val searchOp = SearchOperation(
             query = "",
@@ -768,14 +747,13 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns sorted results ordered by anbefaltTerm descending`() {
-        elasticsearchOperations.save(
+        addToElasticsearchIndex(
             listOf(
                 CurrentConcept(BEGREP_0.toDBO()),
                 CurrentConcept(BEGREP_1.toDBO()),
                 CurrentConcept(BEGREP_2.toDBO())
             )
         )
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
 
         val searchOp = SearchOperation(
             query = "",
@@ -798,8 +776,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Combination of status and published filter returns correct results`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -828,8 +805,7 @@ class SearchConcepts : ContractTestsBase() {
     fun `Handle concepts with multiple unpublished revisions`() {
         mongoOperations.insert(BEGREP_HAS_MULTIPLE_REVISIONS.toDBO())
 
-        elasticsearchOperations.save(CurrentConcept(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/search?orgNummer=222222222",

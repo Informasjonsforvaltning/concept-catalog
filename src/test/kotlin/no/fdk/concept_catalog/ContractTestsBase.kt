@@ -57,6 +57,16 @@ class ContractTestsBase {
         elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
     }
 
+    fun addToElasticsearchIndex(concept: CurrentConcept) {
+        elasticsearchOperations.save(concept)
+        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+    }
+
+    fun addToElasticsearchIndex(concepts: List<CurrentConcept>) {
+        elasticsearchOperations.save(concepts)
+        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+    }
+
     fun request(path: String, mediaType: MediaType, httpMethod: HttpMethod): ResponseEntity<String> {
         val url = "http://localhost:$port$path"
 

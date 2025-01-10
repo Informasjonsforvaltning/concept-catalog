@@ -46,8 +46,7 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for read access`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=begr",
@@ -74,8 +73,7 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for write access`() {
-        elasticsearchOperations.save(CurrentConcept(BEGREP_1.toDBO()))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
 
         val response = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=lorem",
@@ -102,8 +100,7 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Able to filter by published status`() {
-        elasticsearchOperations.save(listOf(CurrentConcept(BEGREP_0.toDBO()), CurrentConcept(BEGREP_1.toDBO())))
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_0.toDBO()), CurrentConcept(BEGREP_1.toDBO())))
 
         val hitsPublished = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=anb&published=true",
