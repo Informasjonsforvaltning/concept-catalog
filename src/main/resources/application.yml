@@ -52,9 +52,6 @@ application.cors.originPatterns: "*"
 spring:
   config.activate.on-profile: contract-test
   security.oauth2.resourceserver.jwt.jwk-set-uri: http://localhost:6000/auth/realms/fdk/protocol/openid-connect/certs
-  elasticsearch:
-    username: elastic
-    password: elasticpwd
 application:
   historyServiceUri: http://localhost:6000
   cors.originPatterns: "*"
