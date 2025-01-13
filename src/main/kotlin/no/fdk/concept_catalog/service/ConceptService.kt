@@ -193,7 +193,9 @@ class ConceptService(
         val responseModel = ModelFactory.createDefaultModel()
         responseModel.read(StringReader(concepts), "http://placeholder.com", lang.name)
 
-        val resources = responseModel.listResourcesWithProperty(RDF.type, SKOS.Concept)
+        /*
+        TODO: Convert and process begreper
+         */
     }
 
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {

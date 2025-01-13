@@ -13,7 +13,7 @@ fun Model.rdfResponse(lang: Lang): String =
     }
 
 fun jenaLangFromContentTypeHeader(contentType: String?): Lang =
-    jenaLangFromContentTypeHeader(contentType)
+    jenaLangFromAcceptHeader(contentType)
 
 fun jenaLangFromAcceptHeader(accept: String?): Lang =
     when {
