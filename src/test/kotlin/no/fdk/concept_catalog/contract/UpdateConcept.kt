@@ -27,7 +27,7 @@ class UpdateConcept : ContractTestsBase() {
             null, HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -42,7 +42,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -62,9 +62,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
 
         assertEquals("Oppdatert", result.anbefaltTerm?.navn?.get("nb"))
         assertEquals("Ny merknad", result.merknad?.get("nb"))
@@ -84,9 +84,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
 
         assertNull(result.tillattTerm?.get("nn"))
     }
@@ -105,9 +105,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
 
         assertEquals("Updated", result.anbefaltTerm?.navn?.get("en"))
     }
@@ -127,9 +127,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
 
         assertEquals(BEGREP_TO_BE_UPDATED.tillattTerm?.get("en"), result.frarådetTerm?.get("en"))
         assertNull(result.tillattTerm?.get("en"))
@@ -150,9 +150,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
 
         assertEquals(BEGREP_TO_BE_UPDATED.anbefaltTerm?.navn?.get("en"), result.anbefaltTerm?.navn?.get("en"))
         assertEquals(BEGREP_TO_BE_UPDATED.anbefaltTerm?.navn?.get("en"), result.eksempel?.get("en"))
@@ -170,7 +170,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -186,7 +186,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -207,7 +207,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -222,7 +222,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -243,7 +243,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -266,7 +266,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
     }
 
     @Test
@@ -283,9 +283,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
 
         assertEquals("user-id", result.assignedUser)
     }
@@ -304,9 +304,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
         assertEquals("new user", result.assignedUser)
     }
 
@@ -324,7 +324,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response["status"])
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode)
     }
 
     @Test
@@ -341,9 +341,9 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.CREATED.value(), response["status"])
+        assertEquals(HttpStatus.CREATED, response.statusCode)
 
-        val responseHeaders: HttpHeaders = response["header"] as HttpHeaders
+        val responseHeaders: HttpHeaders = response.headers
         val location = responseHeaders.location
 
         assertNotNull(location)
@@ -354,7 +354,7 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_READ).toString(), HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), getRsp["status"])
+        assertEquals(HttpStatus.OK, getRsp.statusCode)
     }
 
     @Test
@@ -369,6 +369,6 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 }

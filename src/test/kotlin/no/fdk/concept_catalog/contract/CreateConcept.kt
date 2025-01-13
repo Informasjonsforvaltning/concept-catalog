@@ -25,7 +25,7 @@ class CreateConcept : ContractTestsBase() {
             "/begreper", mapper.writeValueAsString(BEGREP_0), null, HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -35,7 +35,7 @@ class CreateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -45,7 +45,7 @@ class CreateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -62,15 +62,15 @@ class CreateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.CREATED.value(), response["status"])
+        assertEquals(HttpStatus.CREATED, response.statusCode)
 
         val after = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
             null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
-        val beforeList: List<Begrep> = mapper.readValue(before["body"] as String)
-        val afterList: List<Begrep> = mapper.readValue(after["body"] as String)
+        val beforeList: List<Begrep> = mapper.readValue(before.body as String)
+        val afterList: List<Begrep> = mapper.readValue(after.body as String)
 
         assertEquals(beforeList.size + 1, afterList.size)
     }
@@ -82,9 +82,9 @@ class CreateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
 
-        val error: Map<String, Any> = mapper.readValue(response["body"] as String)
+        val error: Map<String, Any> = mapper.readValue(response.body as String)
 
         assertEquals("Invalid version 0.0.0. Version must be minimum 0.1.0", error["message"])
     }

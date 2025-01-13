@@ -7,6 +7,10 @@ import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isValid
 import no.fdk.concept_catalog.validation.validateSchema
+import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.riot.Lang
+import org.apache.jena.vocabulary.RDF
+import org.apache.jena.vocabulary.SKOS
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
@@ -16,6 +20,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
+import java.io.StringReader
 import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.roundToLong
@@ -55,8 +60,11 @@ class ConceptService(
 
         val newConcept: BegrepDBO = newDefaultConcept.addUpdatableFieldsFromDTO(concept)
 
-        if(!newConcept.validateMinimumVersion()) {
-            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid version ${newConcept.versjonsnr}. Version must be minimum 0.1.0")
+        if (!newConcept.validateMinimumVersion()) {
+            val badRequest = ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid version ${newConcept.versjonsnr}. Version must be minimum 0.1.0"
+            )
             logger.error("aborting create", badRequest)
             throw badRequest
         }
@@ -93,13 +101,22 @@ class ConceptService(
 
     fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
         val newRevision = concept.createNewRevision().updateLastChangedAndByWhom(user)
-        val operations = createPatchOperations(newRevision, newRevision.addUpdatableFieldsFromDTO(revisionValues), mapper)
+        val operations =
+            createPatchOperations(newRevision, newRevision.addUpdatableFieldsFromDTO(revisionValues), mapper)
         return createRevisionOfConcept(operations, concept, user, jwt)
     }
 
-    fun createRevisionOfConcept(operations: List<JsonPatchOperation>, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
-        if(!concept.isHighestVersion()) {
-            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid revision target, ${concept.id} is not highest version of the concept")
+    fun createRevisionOfConcept(
+        operations: List<JsonPatchOperation>,
+        concept: BegrepDBO,
+        user: User,
+        jwt: Jwt
+    ): Begrep {
+        if (!concept.isHighestVersion()) {
+            val badRequest = ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid revision target, ${concept.id} is not highest version of the concept"
+            )
             logger.error("revision of ${concept.id} aborted", badRequest)
             throw badRequest
         }
@@ -110,8 +127,11 @@ class ConceptService(
             user
         )
 
-        if(!newWithUpdatedValues.validateVersionUpgrade(concept.versjonsnr)) {
-            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid version ${newWithUpdatedValues.versjonsnr}. Version must be greater than ${concept.versjonsnr}")
+        if (!newWithUpdatedValues.validateVersionUpgrade(concept.versjonsnr)) {
+            val badRequest = ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid version ${newWithUpdatedValues.versjonsnr}. Version must be greater than ${concept.versjonsnr}"
+            )
             logger.error("revision of ${concept.id} aborted", badRequest)
             throw badRequest
         }
@@ -133,7 +153,7 @@ class ConceptService(
             .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
             .mapValues { createPatchOperations(it.key, it.value, mapper) }
             .onEach {
-                if(!it.key.validateMinimumVersion()) {
+                if (!it.key.validateMinimumVersion()) {
                     invalidVersionsList.add(it.key)
                 }
 
@@ -153,13 +173,13 @@ class ConceptService(
                         .plus(entry.value.toString())
                         .plus("\n\n")
                 }.joinToString("\n") +
-                invalidVersionsList.mapIndexed { index, entry ->
-                    "Concept ${index}"
-                        .plus(entry.anbefaltTerm?.navn?.let { " - $it" } ?: "")
-                        .plus("\n")
-                        .plus("Invalid version ${entry.versjonsnr}. Version must be minimum 0.1.0")
-                        .plus("\n\n")
-                }.joinToString("\n")
+                        invalidVersionsList.mapIndexed { index, entry ->
+                            "Concept ${index}"
+                                .plus(entry.anbefaltTerm?.navn?.let { " - $it" } ?: "")
+                                .plus("\n")
+                                .plus("Invalid version ${entry.versjonsnr}. Version must be minimum 0.1.0")
+                                .plus("\n\n")
+                        }.joinToString("\n")
             )
             logger.error("validation of some concepts failed, aborting create", badRequest)
             throw badRequest
@@ -169,6 +189,13 @@ class ConceptService(
             .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
     }
 
+    fun createConcepts(concepts: String, lang: Lang, user: User, jwt: Jwt) {
+        val responseModel = ModelFactory.createDefaultModel()
+        responseModel.read(StringReader(concepts), "http://placeholder.com", lang.name)
+
+        val resources = responseModel.listResourcesWithProperty(RDF.type, SKOS.Concept)
+    }
+
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
         val patched = patchAndValidateConcept(concept, operations, user)
         return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt)
@@ -176,7 +203,11 @@ class ConceptService(
             .also { logger.debug("concept ${it.id} successfully updated") }
     }
 
-    private fun patchAndValidateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User): BegrepDBO {
+    private fun patchAndValidateConcept(
+        concept: BegrepDBO,
+        operations: List<JsonPatchOperation>,
+        user: User
+    ): BegrepDBO {
         val patched = try {
             patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
                 .copy(
@@ -198,11 +229,13 @@ class ConceptService(
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
             }
+
             !validation.isValid -> {
                 val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
                 logger.error("aborting update of ${concept.id}, update failed validation", badRequest)
                 throw badRequest
             }
+
             isPublishedAndNotValid(patched.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
@@ -211,8 +244,12 @@ class ConceptService(
                 )
                 throw badRequestException
             }
+
             patched.erPublisert || patched.publiseringsTidspunkt != null -> {
-                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to publish concepts as part of normal update")
+                val badRequest = ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Unable to publish concepts as part of normal update"
+                )
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
             }
@@ -252,7 +289,8 @@ class ConceptService(
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
         if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.withHighestVersionDTO() }
-        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.withHighestVersionDTO() }
+        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status)
+            .map { it.withHighestVersionDTO() }
 
     fun getAllPublisherIds(): List<String> {
         return mongoOperations
@@ -274,8 +312,8 @@ class ConceptService(
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
         conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
             .filter { it.erPublisert }
-            .sortedByDescending {concept -> concept.versjonsnr }
-            .distinctBy {concept -> concept.originaltBegrep }
+            .sortedByDescending { concept -> concept.versjonsnr }
+            .distinctBy { concept -> concept.originaltBegrep }
             .map { it.toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(it)) }
 
     fun getLatestVersion(originalId: String): BegrepDBO? =
@@ -293,9 +331,9 @@ class ConceptService(
 
     fun suggestConcepts(orgNumber: String, published: Boolean?, query: String): List<Suggestion> =
         conceptSearchService.suggestConcepts(orgNumber, published, query)
-                .map { it.content }
-                .map { it.toSuggestion() }
-                .toList()
+            .map { it.content }
+            .map { it.toSuggestion() }
+            .toList()
 
     private fun CurrentConcept.toSuggestion(): Suggestion =
         Suggestion(
@@ -351,10 +389,12 @@ class ConceptService(
 
         when {
             concept.erPublisert -> {
-                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to publish already published concepts")
+                val badRequest =
+                    ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to publish already published concepts")
                 logger.error("aborting publish of ${concept.id}", badRequest)
                 throw badRequest
             }
+
             isPublishedAndNotValid(published.withHighestVersionDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
@@ -379,8 +419,9 @@ class ConceptService(
         conceptRepository.getBegrepByAnsvarligVirksomhetId(concept.ansvarligVirksomhet.id)
             .filter {
                 it.internSeOgså?.contains(concept.id) == true ||
-                    it.internErstattesAv?.contains(concept.id) == true ||
-                    it.internBegrepsRelasjon?.map { relation -> relation.relasjon }?.contains(concept.id) == true }
+                        it.internErstattesAv?.contains(concept.id) == true ||
+                        it.internBegrepsRelasjon?.map { relation -> relation.relasjon }?.contains(concept.id) == true
+            }
             .map {
                 if (it.internSeOgså?.contains(concept.id) == true) {
                     it.copy(
@@ -389,7 +430,8 @@ class ConceptService(
                     )
                 } else {
                     it
-                } }
+                }
+            }
             .map {
                 if (it.internErstattesAv?.contains(concept.id) == true) {
                     it.copy(
@@ -398,7 +440,8 @@ class ConceptService(
                     )
                 } else {
                     it
-                } }
+                }
+            }
             .map {
                 val external = mutableListOf<BegrepsRelasjon>()
                 val internal = mutableListOf<BegrepsRelasjon>()
@@ -414,7 +457,8 @@ class ConceptService(
                     )
                 } else {
                     it
-                } }
+                }
+            }
             .run { conceptRepository.saveAll(this) }
     }
 
@@ -443,9 +487,10 @@ class ConceptService(
 
     fun BegrepDBO.validateMinimumVersion(): Boolean =
         when {
-            versjonsnr < SemVer(0,1,0) -> false
+            versjonsnr < SemVer(0, 1, 0) -> false
             else -> true
         }
+
     fun BegrepDBO.validateVersionUpgrade(currentVersion: SemVer?): Boolean =
         when {
             currentVersion != null && versjonsnr <= currentVersion -> false

@@ -18,7 +18,6 @@ import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.http.*
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.web.client.HttpStatusCodeException
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
 
@@ -75,14 +74,7 @@ class ContractTestsBase {
 
         val httpEntity: HttpEntity<String> = HttpEntity(httpHeaders)
 
-        val response = testRestTemplate.exchange(
-            url,
-            httpMethod,
-            httpEntity,
-            String::class.java
-        )
-
-        return response
+        return testRestTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
     }
 
     fun authorizedRequest(
@@ -90,37 +82,19 @@ class ContractTestsBase {
         body: String? = null,
         token: String? = null,
         httpMethod: HttpMethod,
-        accept: MediaType = MediaType.APPLICATION_JSON
-    ): Map<String, Any?> {
+        accept: MediaType = MediaType.APPLICATION_JSON,
+        contentType: MediaType = MediaType.APPLICATION_JSON,
+    ): ResponseEntity<String> {
+        val url = "http://localhost:$port$path"
+
         val headers = HttpHeaders()
         headers.accept = listOf(accept)
-        headers.contentType = MediaType.APPLICATION_JSON
+        headers.contentType = contentType
 
         token?.let { headers.setBearerAuth(it) }
 
         val httpEntity: HttpEntity<String> = HttpEntity(body, headers)
 
-        return try {
-            val response =
-                testRestTemplate.exchange("http://localhost:$port$path", httpMethod, httpEntity, String::class.java)
-
-            mapOf(
-                "body" to response.body,
-                "header" to response.headers,
-                "status" to response.statusCode.value()
-            )
-        } catch (e: HttpStatusCodeException) {
-            mapOf(
-                "status" to e.statusCode.value(),
-                "header" to " ",
-                "body" to e.responseBodyAsString
-            )
-        } catch (e: Exception) {
-            mapOf(
-                "status" to e.toString(),
-                "header" to " ",
-                "body" to " "
-            )
-        }
+        return testRestTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
     }
 }

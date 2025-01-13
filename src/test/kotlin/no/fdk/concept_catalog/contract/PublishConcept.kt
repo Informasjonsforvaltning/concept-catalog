@@ -22,7 +22,7 @@ class PublishConcept : ContractTestsBase() {
         val response =
             authorizedRequest("/begreper/${BEGREP_TO_BE_UPDATED.id}/publish", null, null, HttpMethod.POST)
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -37,7 +37,7 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -50,7 +50,7 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.NOT_FOUND.value(), response["status"])
+        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
     }
 
     @Test
@@ -65,7 +65,7 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -80,7 +80,7 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -95,9 +95,9 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Begrep = mapper.readValue(response["body"] as String)
+        val result: Begrep = mapper.readValue(response.body as String)
 
         assertNotNull(result.publiseringsTidspunkt)
 
@@ -129,7 +129,7 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
         val get0 = authorizedRequest(
             "/begreper/${BEGREP_HAS_REVISION.id}",
@@ -139,7 +139,7 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        val result0: Begrep = mapper.readValue(get0["body"] as String)
+        val result0: Begrep = mapper.readValue(get0.body as String)
 
         assertTrue(result0.internSeOgså?.none { it.contains(BEGREP_TO_BE_UPDATED.id!!) } ?: true)
         assertTrue(result0.seOgså!!.any { it.contains(BEGREP_TO_BE_UPDATED.id!!) })
@@ -152,7 +152,7 @@ class PublishConcept : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        val result1: Begrep = mapper.readValue(get1["body"] as String)
+        val result1: Begrep = mapper.readValue(get1.body as String)
 
         assertTrue(result1.internErstattesAv?.none { it.contains(BEGREP_TO_BE_UPDATED.id!!) } ?: true)
         assertTrue(result1.erstattesAv!!.any { it.contains(BEGREP_TO_BE_UPDATED.id!!) })

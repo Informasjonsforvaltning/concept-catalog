@@ -1,11 +1,8 @@
 package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.elastic.ElasticUpdater
-import no.fdk.concept_catalog.model.Begrep
-import no.fdk.concept_catalog.model.JsonPatchOperation
-import no.fdk.concept_catalog.model.Paginated
-import no.fdk.concept_catalog.model.SearchOperation
-import no.fdk.concept_catalog.model.Suggestion
+import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.rdf.jenaLangFromAcceptHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.statusFromString
@@ -28,7 +25,6 @@ class ConceptsController(
     private val conceptService: ConceptService,
     private val elasticUpdater: ElasticUpdater
 ) {
-
     @PostMapping(
         value = [""],
         consumes = [MediaType.APPLICATION_JSON_VALUE]
@@ -42,6 +38,7 @@ class ConceptsController(
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
+
             else -> {
                 logger.info("creating concept for ${concept.ansvarligVirksomhet.id}")
                 conceptService.createConcept(concept, user, jwt).id
@@ -65,10 +62,38 @@ class ConceptsController(
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, it.ansvarligVirksomhet.id) } ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
+
             else -> {
                 logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
                 conceptService.createConcepts(concepts, user, jwt)
                 return ResponseEntity<Unit>(HttpStatus.CREATED)
+            }
+        }
+    }
+
+    @PostMapping(
+        value = ["/{catalogId}/import"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
+            "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
+    )
+    fun createBegreperFromRDF(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestHeader(HttpHeaders.CONTENT_TYPE) accept: String,
+        @PathVariable catalogId: String,
+        @RequestBody concepts: String
+    ): ResponseEntity<Void> {
+        val user = endpointPermissions.getUser(jwt)
+
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                logger.info("Importing RDF concepts for $catalogId")
+                conceptService.createConcepts(concepts, jenaLangFromAcceptHeader(accept), user, jwt)
+
+                return ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED)
             }
         }
     }
@@ -86,6 +111,7 @@ class ConceptsController(
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
+
             !concept.erPublisert -> ResponseEntity(HttpStatus.BAD_REQUEST)
             conceptService.findIdOfUnpublishedRevision(concept) != null -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
@@ -119,6 +145,7 @@ class ConceptsController(
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
+
             concept.erPublisert -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("deleting concept $id")
@@ -158,6 +185,7 @@ class ConceptsController(
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(concept, HttpStatus.OK)
+
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
         }
     }
@@ -172,6 +200,7 @@ class ConceptsController(
             concept == null -> ResponseEntity(HttpStatus.NOT_FOUND)
             endpointPermissions.hasOrgReadPermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(conceptService.findRevisions(concept), HttpStatus.OK)
+
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
         }
     }
@@ -187,6 +216,7 @@ class ConceptsController(
             endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) -> {
                 ResponseEntity(conceptService.publish(concept), HttpStatus.OK)
             }
+
             else -> ResponseEntity(HttpStatus.FORBIDDEN)
         }
     }
@@ -208,12 +238,14 @@ class ConceptsController(
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
+
             concept.erPublisert -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
                 conceptService.createRevisionOfConcept(patchOperations, concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             }
+
             else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, user, jwt), HttpStatus.OK)
         }
     }

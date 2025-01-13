@@ -25,7 +25,7 @@ class CreateRevision : ContractTestsBase() {
             mapper.writeValueAsString(BEGREP_REVISION), null, HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -37,7 +37,7 @@ class CreateRevision : ContractTestsBase() {
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -49,7 +49,7 @@ class CreateRevision : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -64,7 +64,7 @@ class CreateRevision : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -83,7 +83,7 @@ class CreateRevision : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.CREATED.value(), response["status"])
+        assertEquals(HttpStatus.CREATED, response.statusCode)
 
         val after = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
@@ -91,9 +91,9 @@ class CreateRevision : ContractTestsBase() {
         )
 
         val beforeList: List<Begrep> =
-            mapper.readValue<List<Begrep>>(before["body"] as String).filter { it.id != "id5" }
+            mapper.readValue<List<Begrep>>(before.body as String).filter { it.id != "id5" }
         val afterList: List<Begrep> =
-            mapper.readValue<List<Begrep>>(after["body"] as String).filter { it.id != "id5" }
+            mapper.readValue<List<Begrep>>(after.body as String).filter { it.id != "id5" }
 
         assertEquals(beforeList.size + 1, afterList.size)
 
@@ -127,7 +127,7 @@ class CreateRevision : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
-        assertEquals(HttpStatus.CREATED.value(), response["status"])
+        assertEquals(HttpStatus.CREATED, response.statusCode)
 
         val after = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
@@ -135,9 +135,9 @@ class CreateRevision : ContractTestsBase() {
         )
 
         val beforeList: List<Begrep> =
-            mapper.readValue<List<Begrep>>(before["body"] as String).filter { it -> it.id != "id5" }
+            mapper.readValue<List<Begrep>>(before.body as String).filter { it -> it.id != "id5" }
         val afterList: List<Begrep> =
-            mapper.readValue<List<Begrep>>(after["body"] as String).filter { it -> it.id != "id5" }
+            mapper.readValue<List<Begrep>>(after.body as String).filter { it -> it.id != "id5" }
 
         assertEquals(beforeList.size + 1, afterList.size)
 
@@ -164,9 +164,9 @@ class CreateRevision : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
 
-        val error: Map<String, Any> = mapper.readValue(response["body"] as String)
+        val error: Map<String, Any> = mapper.readValue(response.body as String)
 
         assertEquals("Invalid version 1.0.0. Version must be greater than 1.0.0", error["message"])
     }

@@ -17,7 +17,7 @@ class GetConceptRevisions : ContractTestsBase() {
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begreper/${BEGREP_0.id}/revisions", null, null, HttpMethod.GET)
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -32,7 +32,7 @@ class GetConceptRevisions : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -45,7 +45,7 @@ class GetConceptRevisions : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.NOT_FOUND.value(), response["status"])
+        assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
     }
 
     @Test
@@ -60,9 +60,9 @@ class GetConceptRevisions : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: List<Begrep> = mapper.readValue(response["body"] as String)
+        val result: List<Begrep> = mapper.readValue(response.body as String)
 
         assertEquals(2, result.size)
         assertEquals(BEGREP_0, result[0])
@@ -81,9 +81,9 @@ class GetConceptRevisions : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: List<Begrep> = mapper.readValue(response["body"] as String)
+        val result: List<Begrep> = mapper.readValue(response.body as String)
 
         assertEquals(2, result.size)
         assertEquals(BEGREP_0, result[0])
