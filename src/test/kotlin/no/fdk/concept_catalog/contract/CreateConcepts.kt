@@ -106,7 +106,6 @@ class CreateConcepts : ContractTestsBase() {
         )
     }
 
-
     @Test
     fun `Import RDF responds with unauthorized on missing access token`() {
         val response = authorizedRequest(
