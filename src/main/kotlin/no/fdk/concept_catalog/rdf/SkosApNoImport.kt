@@ -3,8 +3,11 @@ package no.fdk.concept_catalog.rdf
 import no.fdk.concept_catalog.model.*
 import org.apache.jena.rdf.model.*
 import org.apache.jena.vocabulary.DCTerms
+import org.apache.jena.vocabulary.OWL
 import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.SKOS
+
+private val SEM_VAR_REGEX = Regex("""^(\d+)\.(\d+)\.(\d+)$""")
 
 fun Model.extractBegreper(catalogId: String): List<Begrep> {
     val begreper = this.listResourcesWithProperty(RDF.type, SKOS.Concept)
@@ -13,24 +16,36 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
         .map {
             Begrep(
                 ansvarligVirksomhet = Virksomhet(id = catalogId),
+                versjonsnr = it.extractVersjonr(),
                 statusURI = it.extractStatusUri(),
                 anbefaltTerm = it.extractAnbefaltTerm(),
                 tillattTerm = it.extractTillattTerm(),
                 frarådetTerm = it.extractFrarådetTerm(),
                 definisjon = it.extractDefinisjon(),
                 definisjonForAllmennheten = it.extractDefinisjonForAllmennheten(),
-                definisjonForSpesialister = it.extractDefinisjonForSpesialister()
+                definisjonForSpesialister = it.extractDefinisjonForSpesialister(),
+                merknad = it.extractMerknad(),
+                eksempel = it.extractEksempel()
             )
         }
 
     return begreper
 }
 
+fun Resource.extractVersjonr(): SemVer? {
+    return this.getProperty(OWL.versionInfo)
+        ?.let { it.`object`.asLiteralOrNull()?.string }
+        ?.takeIf { it.isNotBlank() and SEM_VAR_REGEX.matches(it) }
+        ?.let {
+            SEM_VAR_REGEX.matchEntire(it)?.destructured?.let { (major, minor, patch) ->
+                SemVer(major.toInt(), minor.toInt(), patch.toInt())
+            }
+        }
+}
+
 fun Resource.extractStatusUri(): String? {
     return this.getProperty(EUVOC.status)
-        ?.let { statement ->
-            statement.`object`.asResourceOrNull()?.uri
-        }
+        ?.let { it.`object`.asResourceOrNull()?.uri }
 }
 
 fun Resource.extractAnbefaltTerm(): Term? {
@@ -133,6 +148,24 @@ private fun extractDefinition(resource: Resource): Definisjon? {
         .takeIf { it.isNotEmpty() }
 
     return value?.let { Definisjon(tekst = it, kildebeskrivelse = sourceDescription) }
+}
+
+fun Resource.extractMerknad(): Map<String, String>? {
+    return this.listProperties(SKOS.scopeNote)
+        .toList()
+        .mapNotNull { it.`object`.asLiteralOrNull() }
+        .filter { it.language.isNotBlank() and it.string.isNotBlank() }
+        .associate { it.language to it.string }
+        .takeIf { it.isNotEmpty() }
+}
+
+fun Resource.extractEksempel(): Map<String, String>?{
+    return this.listProperties(SKOS.example)
+        .toList()
+        .mapNotNull { it.`object`.asLiteralOrNull() }
+        .filter { it.language.isNotBlank() and it.string.isNotBlank() }
+        .associate { it.language to it.string }
+        .takeIf { it.isNotEmpty() }
 }
 
 private fun RDFNode.asLiteralOrNull(): Literal? {

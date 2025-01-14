@@ -1,13 +1,14 @@
 package no.fdk.concept_catalog.rdf
 
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
+import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.URITekst
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
+import org.apache.jena.vocabulary.OWL
 import org.apache.jena.vocabulary.SKOS
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.io.StringReader
@@ -23,6 +24,34 @@ class SkosApNoImportTests {
         val concepts = model.extractBegreper("catalogId")
 
         assertEquals(1, concepts.size)
+
+        concepts.first().let { concept ->
+            assertNotNull(concept.versjonsnr)
+            assertNotNull(concept.statusURI)
+
+            assertNotNull(concept.anbefaltTerm)
+            concept.tillattTerm?.let { assertFalse(it.isEmpty()) }
+            concept.frarådetTerm?.let { assertFalse(it.isEmpty()) }
+
+            assertNotNull(concept.definisjon)
+            assertNotNull(concept.definisjonForAllmennheten)
+            assertNotNull(concept.definisjonForSpesialister)
+
+            concept.merknad?.let { assertFalse(it.isEmpty()) }
+            concept.eksempel?.let { assertFalse(it.isEmpty()) }
+        }
+    }
+
+    @Test
+    fun `should extract versjonsnr`() {
+        val model = readModel("import_concept.ttl")
+
+        model.listResourcesWithProperty(OWL.versionInfo)
+            .toList()
+            .map { it.extractVersjonr() }
+            .firstNotNullOf {
+                assertEquals(SemVer(1, 0, 0), it)
+            }
     }
 
     @Test
@@ -165,6 +194,44 @@ class SkosApNoImportTests {
             it.kildebeskrivelse?.let { sourceDescription ->
                 assertEquals(ForholdTilKildeEnum.BASERTPAAKILDE, sourceDescription.forholdTilKilde)
             }
+        }
+    }
+
+    @Test
+    fun `should extract merknad`() {
+        val model = readModel("import_concept.ttl")
+
+        val notes = model.listResourcesWithProperty(SKOS.scopeNote)
+            .toList()
+            .map { it.extractMerknad() }
+
+        assertEquals(1, notes.size)
+
+        notes.first()?.let { localizedNote ->
+            assertEquals(2, localizedNote.size)
+            assertTrue(localizedNote.containsKey("nb"))
+            assertEquals("merknad", localizedNote["nb"])
+            assertTrue(localizedNote.containsKey("nn"))
+            assertEquals("merknad", localizedNote["nn"])
+        }
+    }
+
+    @Test
+    fun `should extract eksempel`() {
+        val model = readModel("import_concept.ttl")
+
+        val notes = model.listResourcesWithProperty(SKOS.example)
+            .toList()
+            .map { it.extractEksempel() }
+
+        assertEquals(1, notes.size)
+
+        notes.first()?.let { localizedNote ->
+            assertEquals(2, localizedNote.size)
+            assertTrue(localizedNote.containsKey("nb"))
+            assertEquals("eksempel", localizedNote["nb"])
+            assertTrue(localizedNote.containsKey("nn"))
+            assertEquals("eksempel", localizedNote["nn"])
         }
     }
 

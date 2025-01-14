@@ -20,8 +20,7 @@
 @prefix relationship-with-source-type: <https://data.norge.no/vocabulary/relationship-with-source-type#> .
 @prefix audience-type: <https://data.norge.no/vocabulary/audience-type#> .
 
-<http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-        dct:replaces  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old> .
+
 
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old>
         rdf:type            skos:Concept ;
@@ -32,6 +31,7 @@
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
         skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
         skos:hiddenLabel    "fraraadetTerm"@nb,"fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
+        owl:versionInfo     "1.0.0" ;
 
         skos:prefLabel      "anbefaltTerm"@nb, "recommendedTerm"@en ;
         skosno:hasGenericConceptRelation [ rdf:type                    skosno:GenericConceptRelation ;
@@ -66,5 +66,6 @@
                               dct:audience                   audience-type:public ;
                               skosno:relationshipWithSource  relationship-with-source-type:derived-from-source ;
                             ] ;
-        skos:scopeNote          "merknad"@nn ;
+        skos:scopeNote          "merknad"@nn, "merknad"@nb ;
+        skos:example          "eksempel"@nn, "eksempel"@nb ;
         dct:modified        "2020-01-02"^^xsd:date .
