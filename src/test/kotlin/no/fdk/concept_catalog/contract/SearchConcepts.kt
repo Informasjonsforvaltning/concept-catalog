@@ -24,7 +24,7 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -35,7 +35,7 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -46,9 +46,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(), result.hits)
     }
@@ -64,9 +64,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
     }
@@ -81,9 +81,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1), result.hits)
     }
@@ -105,9 +105,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1), result.hits)
     }
@@ -132,9 +132,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_0), result.hits)
     }
@@ -159,9 +159,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1, BEGREP_0), result.hits)
     }
@@ -206,13 +206,13 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), publishedResponse["status"])
-        assertEquals(HttpStatus.OK.value(), unPublishedResponse["status"])
+        assertEquals(HttpStatus.OK, publishedResponse.statusCode)
+        assertEquals(HttpStatus.OK, unPublishedResponse.statusCode)
 
-        val unPublished: Paginated = mapper.readValue(unPublishedResponse["body"] as String)
+        val unPublished: Paginated = mapper.readValue(unPublishedResponse.body as String)
         assertEquals(listOf(BEGREP_1, BEGREP_2), unPublished.hits)
 
-        val published: Paginated = mapper.readValue(publishedResponse["body"] as String)
+        val published: Paginated = mapper.readValue(publishedResponse.body as String)
         assertEquals(listOf(BEGREP_0), published.hits)
     }
 
@@ -255,13 +255,13 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), withSubjectFagomr1Response["status"])
-        assertEquals(HttpStatus.OK.value(), withSubjectFagomr3Response["status"])
+        assertEquals(HttpStatus.OK, withSubjectFagomr1Response.statusCode)
+        assertEquals(HttpStatus.OK, withSubjectFagomr3Response.statusCode)
 
-        val withSubjectFagomr1: Paginated = mapper.readValue(withSubjectFagomr1Response["body"] as String)
+        val withSubjectFagomr1: Paginated = mapper.readValue(withSubjectFagomr1Response.body as String)
         assertEquals(listOf(BEGREP_5), withSubjectFagomr1.hits)
 
-        val withSubjectFagomr3: Paginated = mapper.readValue(withSubjectFagomr3Response["body"] as String)
+        val withSubjectFagomr3: Paginated = mapper.readValue(withSubjectFagomr3Response.body as String)
         assertEquals(listOf(BEGREP_4, BEGREP_5), withSubjectFagomr3.hits)
     }
 
@@ -297,13 +297,13 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), withInternalFieldsResponse["status"])
-        assertEquals(HttpStatus.OK.value(), withoutInternalFieldsResponse["status"])
+        assertEquals(HttpStatus.OK, withInternalFieldsResponse.statusCode)
+        assertEquals(HttpStatus.OK, withoutInternalFieldsResponse.statusCode)
 
-        val withInternalFields: Paginated = mapper.readValue(withInternalFieldsResponse["body"] as String)
+        val withInternalFields: Paginated = mapper.readValue(withInternalFieldsResponse.body as String)
         assertEquals(listOf(BEGREP_4), withInternalFields.hits)
 
-        val withoutInternalFields: Paginated = mapper.readValue(withoutInternalFieldsResponse["body"] as String)
+        val withoutInternalFields: Paginated = mapper.readValue(withoutInternalFieldsResponse.body as String)
         assertEquals(emptyList(), withoutInternalFields.hits)
     }
 
@@ -338,13 +338,13 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), withLabelResponse["status"])
-        assertEquals(HttpStatus.OK.value(), withoutLabelResponse["status"])
+        assertEquals(HttpStatus.OK, withLabelResponse.statusCode)
+        assertEquals(HttpStatus.OK, withoutLabelResponse.statusCode)
 
-        val withInternalFields: Paginated = mapper.readValue(withLabelResponse["body"] as String)
+        val withInternalFields: Paginated = mapper.readValue(withLabelResponse.body as String)
         assertEquals(listOf(BEGREP_0), withInternalFields.hits)
 
-        val withoutInternalFields: Paginated = mapper.readValue(withoutLabelResponse["body"] as String)
+        val withoutInternalFields: Paginated = mapper.readValue(withoutLabelResponse.body as String)
         assertEquals(emptyList(), withoutInternalFields.hits)
     }
 
@@ -372,9 +372,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
     }
@@ -393,9 +393,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), titleResponse["status"])
+        assertEquals(HttpStatus.OK, titleResponse.statusCode)
 
-        val titleResult: Paginated = mapper.readValue(titleResponse["body"] as String)
+        val titleResult: Paginated = mapper.readValue(titleResponse.body as String)
         assertEquals(listOf(BEGREP_1, BEGREP_2), titleResult.hits)
 
         val descriptionResponse = authorizedRequest(
@@ -406,9 +406,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), descriptionResponse["status"])
+        assertEquals(HttpStatus.OK, descriptionResponse.statusCode)
 
-        val descriptionResult: Paginated = mapper.readValue(descriptionResponse["body"] as String)
+        val descriptionResult: Paginated = mapper.readValue(descriptionResponse.body as String)
         assertEquals(emptyList(), descriptionResult.hits)
 
         val statusResponse = authorizedRequest(
@@ -422,9 +422,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), statusResponse["status"])
+        assertEquals(HttpStatus.OK, statusResponse.statusCode)
 
-        val statusResult: Paginated = mapper.readValue(statusResponse["body"] as String)
+        val statusResult: Paginated = mapper.readValue(statusResponse.body as String)
 
         assertEquals(listOf(BEGREP_2), statusResult.hits)
     }
@@ -451,9 +451,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val titleResult: Paginated = mapper.readValue(response["body"] as String)
+        val titleResult: Paginated = mapper.readValue(response.body as String)
         assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), titleResult.hits)
     }
 
@@ -471,9 +471,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_2), result.hits)
     }
@@ -488,9 +488,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1), result.hits)
     }
@@ -516,9 +516,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2).sortedBy { it.id }, result.hits.sortedBy { it.id })
     }
@@ -540,9 +540,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_2), result.hits)
     }
@@ -559,9 +559,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_0), result.hits)
     }
@@ -574,9 +574,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(), result.hits)
     }
@@ -610,9 +610,9 @@ class SearchConcepts : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.OK.value(), response["status"])
+            assertEquals(HttpStatus.OK, response.statusCode)
 
-            val result: Paginated = mapper.readValue(response["body"] as String)
+            val result: Paginated = mapper.readValue(response.body as String)
 
             assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result.hits)
         }
@@ -627,9 +627,9 @@ class SearchConcepts : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.OK.value(), response["status"])
+            assertEquals(HttpStatus.OK, response.statusCode)
 
-            val result: Paginated = mapper.readValue(response["body"] as String)
+            val result: Paginated = mapper.readValue(response.body as String)
 
             assertEquals(emptyList(), result.hits)
         }
@@ -674,11 +674,11 @@ class SearchConcepts : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.OK.value(), firstResponse["status"])
-            assertEquals(HttpStatus.OK.value(), secondResponse["status"])
+            assertEquals(HttpStatus.OK, firstResponse.statusCode)
+            assertEquals(HttpStatus.OK, secondResponse.statusCode)
 
-            val result0: Paginated = mapper.readValue(firstResponse["body"] as String)
-            val result1: Paginated = mapper.readValue(secondResponse["body"] as String)
+            val result0: Paginated = mapper.readValue(firstResponse.body as String)
+            val result1: Paginated = mapper.readValue(secondResponse.body as String)
 
             assertEquals(listOf(BEGREP_1, BEGREP_0), result0.hits)
             assertEquals(listOf(BEGREP_2), result1.hits)
@@ -708,9 +708,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_2, BEGREP_0, BEGREP_1), result.hits)
     }
@@ -736,9 +736,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(BEGREP_0.id, result.hits[0].id)
         assertEquals(BEGREP_1.id, result.hits[1].id)
@@ -765,9 +765,9 @@ class SearchConcepts : ContractTestsBase() {
             mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(BEGREP_2.id, result.hits[0].id)
         assertEquals(BEGREP_1.id, result.hits[1].id)
@@ -794,9 +794,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_1), result.hits)
     }
@@ -819,9 +819,9 @@ class SearchConcepts : ContractTestsBase() {
             HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: Paginated = mapper.readValue(response["body"] as String)
+        val result: Paginated = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND), result.hits)
     }

@@ -28,7 +28,7 @@ class SuggestConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -41,7 +41,7 @@ class SuggestConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -54,7 +54,7 @@ class SuggestConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
         val expected = listOf(
             Suggestion(
@@ -66,7 +66,7 @@ class SuggestConcepts : ContractTestsBase() {
             )
         )
 
-        val result: List<Suggestion> = mapper.readValue(response["body"] as String)
+        val result: List<Suggestion> = mapper.readValue(response.body as String)
 
         assertEquals(expected, result)
     }
@@ -81,7 +81,7 @@ class SuggestConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
         val expected = listOf(
             Suggestion(
@@ -93,7 +93,7 @@ class SuggestConcepts : ContractTestsBase() {
             )
         )
 
-        val result: List<Suggestion> = mapper.readValue(response["body"] as String)
+        val result: List<Suggestion> = mapper.readValue(response.body as String)
 
         assertEquals(expected, result)
     }
@@ -126,10 +126,10 @@ class SuggestConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), hitsPublished["status"])
-        assertEquals(HttpStatus.OK.value(), noHitsPublished["status"])
-        assertEquals(HttpStatus.OK.value(), noHitsNotPublished["status"])
-        assertEquals(HttpStatus.OK.value(), hitsNotPublished["status"])
+        assertEquals(HttpStatus.OK, hitsPublished.statusCode)
+        assertEquals(HttpStatus.OK, noHitsPublished.statusCode)
+        assertEquals(HttpStatus.OK, noHitsNotPublished.statusCode)
+        assertEquals(HttpStatus.OK, hitsNotPublished.statusCode)
 
         val expectedPublished = listOf(
             Suggestion(
@@ -151,10 +151,10 @@ class SuggestConcepts : ContractTestsBase() {
             )
         )
 
-        val hitsPublishedResult: List<Suggestion> = mapper.readValue(hitsPublished["body"] as String)
-        val noHitsPublishedResult: List<Suggestion> = mapper.readValue(noHitsPublished["body"] as String)
-        val noHitsNotPublishedResult: List<Suggestion> = mapper.readValue(noHitsNotPublished["body"] as String)
-        val hitsNotPublishedResult: List<Suggestion> = mapper.readValue(hitsNotPublished["body"] as String)
+        val hitsPublishedResult: List<Suggestion> = mapper.readValue(hitsPublished.body as String)
+        val noHitsPublishedResult: List<Suggestion> = mapper.readValue(noHitsPublished.body as String)
+        val noHitsNotPublishedResult: List<Suggestion> = mapper.readValue(noHitsNotPublished.body as String)
+        val hitsNotPublishedResult: List<Suggestion> = mapper.readValue(hitsNotPublished.body as String)
 
         assertEquals(expectedPublished, hitsPublishedResult)
         assertEquals(emptyList(), noHitsPublishedResult)

@@ -17,7 +17,7 @@ class GetConcepts : ContractTestsBase() {
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begreper?orgNummer=123456789", null, null, HttpMethod.GET)
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -28,7 +28,7 @@ class GetConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -41,9 +41,9 @@ class GetConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: List<Begrep> = mapper.readValue(response["body"] as String)
+        val result: List<Begrep> = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_0_OLD), result)
     }
@@ -58,9 +58,9 @@ class GetConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: List<Begrep> = mapper.readValue(response["body"] as String)
+        val result: List<Begrep> = mapper.readValue(response.body as String)
 
         assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_0_OLD), result)
     }
@@ -87,17 +87,17 @@ class GetConcepts : ContractTestsBase() {
             HttpMethod.GET
         )
 
-        assertEquals(HttpStatus.OK.value(), hearing["status"])
-        assertEquals(HttpStatus.OK.value(), accepted["status"])
-        assertEquals(HttpStatus.OK.value(), published["status"])
+        assertEquals(HttpStatus.OK, hearing.statusCode)
+        assertEquals(HttpStatus.OK, accepted.statusCode)
+        assertEquals(HttpStatus.OK, published.statusCode)
 
-        val resultHearing: List<Begrep> = mapper.readValue(hearing["body"] as String)
+        val resultHearing: List<Begrep> = mapper.readValue(hearing.body as String)
         assertEquals(listOf(BEGREP_2), resultHearing)
 
-        val resultAccepted: List<Begrep> = mapper.readValue(accepted["body"] as String)
+        val resultAccepted: List<Begrep> = mapper.readValue(accepted.body as String)
         assertEquals(listOf(BEGREP_1), resultAccepted)
 
-        val resultPublished: List<Begrep> = mapper.readValue(published["body"] as String)
+        val resultPublished: List<Begrep> = mapper.readValue(published.body as String)
         assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), resultPublished)
     }
 }

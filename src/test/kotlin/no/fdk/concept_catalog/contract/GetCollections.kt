@@ -19,7 +19,7 @@ class GetCollections : ContractTestsBase() {
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begrepssamlinger", null, null, HttpMethod.GET)
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -47,9 +47,9 @@ class GetCollections : ContractTestsBase() {
         val response =
             authorizedRequest("/begrepssamlinger", null, JwtToken(Access.ROOT).toString(), HttpMethod.GET)
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: List<Begrepssamling> = mapper.readValue(response["body"] as String)
+        val result: List<Begrepssamling> = mapper.readValue(response.body as String)
 
         assertEquals(
             listOf(
@@ -87,9 +87,9 @@ class GetCollections : ContractTestsBase() {
         val response =
             authorizedRequest("/begrepssamlinger", null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: List<Begrepssamling> = mapper.readValue(response["body"] as String)
+        val result: List<Begrepssamling> = mapper.readValue(response.body as String)
 
         assertEquals(
             listOf(
@@ -125,9 +125,9 @@ class GetCollections : ContractTestsBase() {
         val response =
             authorizedRequest("/begrepssamlinger", null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
 
-        assertEquals(HttpStatus.OK.value(), response["status"])
+        assertEquals(HttpStatus.OK, response.statusCode)
 
-        val result: List<Begrepssamling> = mapper.readValue(response["body"] as String)
+        val result: List<Begrepssamling> = mapper.readValue(response.body as String)
 
         assertEquals(
             listOf(

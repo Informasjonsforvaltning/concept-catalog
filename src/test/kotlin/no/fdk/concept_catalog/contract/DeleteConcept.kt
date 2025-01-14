@@ -15,7 +15,7 @@ class DeleteConcept : ContractTestsBase() {
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begreper/${BEGREP_0.id}", null, null, HttpMethod.DELETE)
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -25,7 +25,7 @@ class DeleteConcept : ContractTestsBase() {
         val response =
             authorizedRequest("/begreper/${BEGREP_0.id}", null, JwtToken(Access.ORG_READ).toString(), HttpMethod.DELETE)
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -39,7 +39,7 @@ class DeleteConcept : ContractTestsBase() {
             HttpMethod.DELETE
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
@@ -52,7 +52,7 @@ class DeleteConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
-        assertEquals(HttpStatus.OK.value(), before["status"])
+        assertEquals(HttpStatus.OK, before.statusCode)
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_DELETED.id}",
@@ -60,7 +60,7 @@ class DeleteConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.DELETE
         )
-        assertEquals(HttpStatus.NO_CONTENT.value(), response["status"])
+        assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
 
         val after = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_DELETED.id}",
@@ -68,7 +68,7 @@ class DeleteConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.GET
         )
-        assertEquals(HttpStatus.NOT_FOUND.value(), after["status"])
+        assertEquals(HttpStatus.NOT_FOUND, after.statusCode)
     }
 
 }

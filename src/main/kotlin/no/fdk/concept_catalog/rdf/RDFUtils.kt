@@ -7,10 +7,13 @@ import org.springframework.web.client.HttpServerErrorException
 import java.io.StringWriter
 
 fun Model.rdfResponse(lang: Lang): String =
-    StringWriter().use{ out ->
+    StringWriter().use { out ->
         write(out, lang.name)
         out.toString()
     }
+
+fun jenaLangFromContentTypeHeader(contentType: String?): Lang =
+    jenaLangFromAcceptHeader(contentType)
 
 fun jenaLangFromAcceptHeader(accept: String?): Lang =
     when {

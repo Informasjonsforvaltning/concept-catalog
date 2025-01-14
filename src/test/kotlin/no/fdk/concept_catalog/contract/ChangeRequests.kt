@@ -25,14 +25,14 @@ class ChangeRequests : ContractTestsBase() {
         fun unauthorizedWhenMissingToken() {
             val response = authorizedRequest(path, null, null, HttpMethod.GET)
 
-            assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+            assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.GET)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
@@ -43,11 +43,11 @@ class ChangeRequests : ContractTestsBase() {
             val responseWrite =
                 authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
 
-            assertEquals(HttpStatus.OK.value(), responseRead["status"])
-            assertEquals(HttpStatus.OK.value(), responseWrite["status"])
+            assertEquals(HttpStatus.OK, responseRead.statusCode)
+            assertEquals(HttpStatus.OK, responseWrite.statusCode)
 
-            val resultRead: List<ChangeRequest> = mapper.readValue(responseRead["body"] as String)
-            val resultWrite: List<ChangeRequest> = mapper.readValue(responseWrite["body"] as String)
+            val resultRead: List<ChangeRequest> = mapper.readValue(responseRead.body as String)
+            val resultWrite: List<ChangeRequest> = mapper.readValue(responseWrite.body as String)
 
             val expected = listOf(
                 CHANGE_REQUEST_0.copy(timeForProposal = resultRead[0].timeForProposal),
@@ -80,20 +80,20 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), responseOpen["status"])
-            assertEquals(HttpStatus.OK.value(), responseRejected["status"])
-            assertEquals(HttpStatus.OK.value(), responseAccepted["status"])
+            assertEquals(HttpStatus.OK, responseOpen.statusCode)
+            assertEquals(HttpStatus.OK, responseRejected.statusCode)
+            assertEquals(HttpStatus.OK, responseAccepted.statusCode)
 
-            val resultOpen: List<ChangeRequest> = mapper.readValue(responseOpen["body"] as String)
+            val resultOpen: List<ChangeRequest> = mapper.readValue(responseOpen.body as String)
             assertEquals(listOf(CHANGE_REQUEST_2.copy(timeForProposal = resultOpen[0].timeForProposal)), resultOpen)
 
-            val resultRejected: List<ChangeRequest> = mapper.readValue(responseRejected["body"] as String)
+            val resultRejected: List<ChangeRequest> = mapper.readValue(responseRejected.body as String)
             assertEquals(
                 listOf(CHANGE_REQUEST_1.copy(timeForProposal = resultRejected[0].timeForProposal)),
                 resultRejected
             )
 
-            val resultAccepted: List<ChangeRequest> = mapper.readValue(responseAccepted["body"] as String)
+            val resultAccepted: List<ChangeRequest> = mapper.readValue(responseAccepted.body as String)
             assertEquals(
                 listOf(CHANGE_REQUEST_0.copy(timeForProposal = resultAccepted[0].timeForProposal)),
                 resultAccepted
@@ -109,14 +109,14 @@ class ChangeRequests : ContractTestsBase() {
         fun unauthorizedWhenMissingToken() {
             val response = authorizedRequest(path, null, null, HttpMethod.GET)
 
-            assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+            assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.GET)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
@@ -128,7 +128,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.NOT_FOUND.value(), response["status"])
+            assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
         }
 
         @Test
@@ -139,11 +139,11 @@ class ChangeRequests : ContractTestsBase() {
             val responseWrite =
                 authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET)
 
-            assertEquals(HttpStatus.OK.value(), responseRead["status"])
-            assertEquals(HttpStatus.OK.value(), responseWrite["status"])
+            assertEquals(HttpStatus.OK, responseRead.statusCode)
+            assertEquals(HttpStatus.OK, responseWrite.statusCode)
 
-            val resultRead: ChangeRequest = mapper.readValue(responseRead["body"] as String)
-            val resultWrite: ChangeRequest = mapper.readValue(responseWrite["body"] as String)
+            val resultRead: ChangeRequest = mapper.readValue(responseRead.body as String)
+            val resultWrite: ChangeRequest = mapper.readValue(responseWrite.body as String)
 
             val expected = CHANGE_REQUEST_0.copy(timeForProposal = resultRead.timeForProposal)
             assertEquals(expected, resultRead)
@@ -161,9 +161,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), responseWrite["status"])
+            assertEquals(HttpStatus.OK, responseWrite.statusCode)
 
-            val result: List<ChangeRequest> = mapper.readValue(responseWrite["body"] as String)
+            val result: List<ChangeRequest> = mapper.readValue(responseWrite.body as String)
             val expected = listOf(CHANGE_REQUEST_4, CHANGE_REQUEST_6)
 
             assertEquals(expected, result)
@@ -180,9 +180,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), responseWrite["status"])
+            assertEquals(HttpStatus.OK, responseWrite.statusCode)
 
-            val result: List<ChangeRequest> = mapper.readValue(responseWrite["body"] as String)
+            val result: List<ChangeRequest> = mapper.readValue(responseWrite.body as String)
             val expected = listOf(CHANGE_REQUEST_4)
 
             assertEquals(expected, result)
@@ -197,21 +197,21 @@ class ChangeRequests : ContractTestsBase() {
         fun unauthorizedWhenMissingToken() {
             val response = authorizedRequest(path, null, null, HttpMethod.DELETE)
 
-            assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+            assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.DELETE)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForReadAccess() {
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.DELETE)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
@@ -223,7 +223,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.DELETE
             )
 
-            assertEquals(HttpStatus.NOT_FOUND.value(), response["status"])
+            assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
         }
 
         @Test
@@ -232,7 +232,7 @@ class ChangeRequests : ContractTestsBase() {
 
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE)
 
-            assertEquals(HttpStatus.NO_CONTENT.value(), response["status"])
+            assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
         }
     }
 
@@ -245,7 +245,7 @@ class ChangeRequests : ContractTestsBase() {
             val response =
                 authorizedRequest(path + "?concept=${BEGREP_0.originaltBegrep}", null, null, HttpMethod.POST)
 
-            assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+            assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         }
 
         @Test
@@ -257,7 +257,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
@@ -269,7 +269,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
         }
 
         @Test
@@ -281,7 +281,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
         }
 
         @Test
@@ -293,9 +293,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.CREATED.value(), response["status"])
+            assertEquals(HttpStatus.CREATED, response.statusCode)
 
-            val responseHeaders: HttpHeaders = response["header"] as HttpHeaders
+            val responseHeaders: HttpHeaders = response.headers
             val locationHeader = responseHeaders.location
             assertNotNull(locationHeader)
 
@@ -306,9 +306,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), locationResponse["status"])
+            assertEquals(HttpStatus.OK, locationResponse.statusCode)
 
-            val location: ChangeRequest = mapper.readValue(locationResponse["body"] as String)
+            val location: ChangeRequest = mapper.readValue(locationResponse.body as String)
 
             val expected0 = ChangeRequest(
                 id = location.id,
@@ -335,9 +335,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.CREATED.value(), response["status"])
+            assertEquals(HttpStatus.CREATED, response.statusCode)
 
-            val responseHeaders: HttpHeaders = response["header"] as HttpHeaders
+            val responseHeaders: HttpHeaders = response.headers
             val locationHeader = responseHeaders.location
 
             assertNotNull(locationHeader)
@@ -349,9 +349,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), locationResponse["status"])
+            assertEquals(HttpStatus.OK, locationResponse.statusCode)
 
-            val location: ChangeRequest = mapper.readValue(locationResponse["body"] as String)
+            val location: ChangeRequest = mapper.readValue(locationResponse.body as String)
 
             val expected = ChangeRequest(
                 id = location.id,
@@ -384,7 +384,7 @@ class ChangeRequests : ContractTestsBase() {
 
             val response = authorizedRequest(path, mapper.writeValueAsString(operations), null, HttpMethod.POST)
 
-            assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+            assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         }
 
         @Test
@@ -396,7 +396,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
@@ -408,7 +408,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.NOT_FOUND.value(), response["status"])
+            assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
         }
 
         @Test
@@ -422,9 +422,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.OK.value(), response["status"])
+            assertEquals(HttpStatus.OK, response.statusCode)
 
-            val result: ChangeRequest = mapper.readValue(response["body"] as String)
+            val result: ChangeRequest = mapper.readValue(response.body as String)
 
             val expected = CHANGE_REQUEST_0.copy(
                 operations = CHANGE_REQUEST_UPDATE_BODY_UPDATE.operations,
@@ -456,9 +456,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), illegalIdResponse["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, illegalIdResponse.statusCode)
             assertEquals(
-                mapper.readValue<HashMap<String, Any>>(illegalIdResponse["body"] as String)["message"] as String,
+                mapper.readValue<HashMap<String, Any>>(illegalIdResponse.body as String)["message"] as String,
                 errMsg
             )
 
@@ -479,9 +479,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), illegalCatalogIdResponse["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, illegalCatalogIdResponse.statusCode)
             assertEquals(
-                mapper.readValue<HashMap<String, Any>>(illegalCatalogIdResponse["body"] as String)["message"] as String,
+                mapper.readValue<HashMap<String, Any>>(illegalCatalogIdResponse.body as String)["message"] as String,
                 errMsg
             )
 
@@ -502,9 +502,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), illegalConceptIdResponse["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, illegalConceptIdResponse.statusCode)
             assertEquals(
-                mapper.readValue<HashMap<String, Any>>(illegalConceptIdResponse["body"] as String)["message"] as String,
+                mapper.readValue<HashMap<String, Any>>(illegalConceptIdResponse.body as String)["message"] as String,
                 errMsg
             )
         }
@@ -518,21 +518,21 @@ class ChangeRequests : ContractTestsBase() {
         fun unauthorizedWhenMissingToken() {
             val response = authorizedRequest(path, null, null, HttpMethod.POST)
 
-            assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+            assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForReadAccess() {
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
@@ -544,7 +544,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.NOT_FOUND.value(), response["status"])
+            assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
         }
 
         @Test
@@ -558,7 +558,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyAccepted["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, alreadyAccepted.statusCode)
 
             mongoOperations.insert(CHANGE_REQUEST_1)
 
@@ -569,7 +569,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyRejected["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, alreadyRejected.statusCode)
         }
 
         @Test
@@ -578,7 +578,7 @@ class ChangeRequests : ContractTestsBase() {
 
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST)
 
-            assertEquals(HttpStatus.OK.value(), response["status"])
+            assertEquals(HttpStatus.OK, response.statusCode)
         }
     }
 
@@ -590,21 +590,21 @@ class ChangeRequests : ContractTestsBase() {
         fun unauthorizedWhenMissingToken() {
             val response = authorizedRequest(path, null, null, HttpMethod.POST)
 
-            assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+            assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForOtherCatalog() {
             val response = authorizedRequest(path, null, JwtToken(Access.WRONG_ORG).toString(), HttpMethod.POST)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
         fun forbiddenWhenAuthorizedForReadAccess() {
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.POST)
 
-            assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+            assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
         }
 
         @Test
@@ -616,7 +616,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.NOT_FOUND.value(), response["status"])
+            assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
         }
 
         @Test
@@ -630,7 +630,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyAccepted["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, alreadyAccepted.statusCode)
 
             mongoOperations.insert(CHANGE_REQUEST_1)
 
@@ -641,7 +641,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.BAD_REQUEST.value(), alreadyRejected["status"])
+            assertEquals(HttpStatus.BAD_REQUEST, alreadyRejected.statusCode)
         }
 
         @Test
@@ -652,9 +652,9 @@ class ChangeRequests : ContractTestsBase() {
 
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST)
 
-            assertEquals(HttpStatus.OK.value(), response["status"])
+            assertEquals(HttpStatus.OK, response.statusCode)
 
-            val responseHeaders: HttpHeaders = response["header"] as HttpHeaders
+            val responseHeaders: HttpHeaders = response.headers as HttpHeaders
             val locationHeader = responseHeaders.location
 
             assertNotNull(locationHeader)
@@ -666,9 +666,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), locationResponse["status"])
+            assertEquals(HttpStatus.OK, locationResponse.statusCode)
 
-            val location: Begrep = mapper.readValue(locationResponse["body"] as String)
+            val location: Begrep = mapper.readValue(locationResponse.body as String)
 
             val expected = BEGREP_0.copy(
                 id = location.id,
@@ -704,9 +704,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.OK.value(), response["status"])
+            assertEquals(HttpStatus.OK, response.statusCode)
 
-            val responseHeaders: HttpHeaders = response["header"] as HttpHeaders
+            val responseHeaders: HttpHeaders = response.headers as HttpHeaders
             val locationHeader = responseHeaders.location
 
             assertNotNull(locationHeader)
@@ -718,9 +718,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), locationResponse["status"])
+            assertEquals(HttpStatus.OK, locationResponse.statusCode)
 
-            val location: Begrep = mapper.readValue(locationResponse["body"] as String)
+            val location: Begrep = mapper.readValue(locationResponse.body as String)
 
             val expected = BEGREP_2.copy(
                 endringslogelement = Endringslogelement(
@@ -746,9 +746,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.OK.value(), response["status"])
+            assertEquals(HttpStatus.OK, response.statusCode)
 
-            val responseHeaders: HttpHeaders = response["header"] as HttpHeaders
+            val responseHeaders: HttpHeaders = response.headers as HttpHeaders
             val locationHeader = responseHeaders.location
 
             assertNotNull(locationHeader)
@@ -760,9 +760,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), locationResponse["status"])
+            assertEquals(HttpStatus.OK, locationResponse.statusCode)
 
-            val location: Begrep = mapper.readValue(locationResponse["body"] as String)
+            val location: Begrep = mapper.readValue(locationResponse.body as String)
 
             val expected = Begrep(
                 id = location.id,
@@ -800,7 +800,7 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.POST
             )
 
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response["status"])
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode)
 
             val changeRequest = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_2.id}",
@@ -809,9 +809,9 @@ class ChangeRequests : ContractTestsBase() {
                 HttpMethod.GET
             )
 
-            assertEquals(HttpStatus.OK.value(), changeRequest["status"])
+            assertEquals(HttpStatus.OK, changeRequest.statusCode)
 
-            val changeRequestBody: ChangeRequest = mapper.readValue(changeRequest["body"] as String)
+            val changeRequestBody: ChangeRequest = mapper.readValue(changeRequest.body as String)
 
             assertEquals(CHANGE_REQUEST_2, changeRequestBody)
         }

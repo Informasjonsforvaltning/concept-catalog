@@ -11,8 +11,12 @@ import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import java.nio.charset.StandardCharsets
 import kotlin.test.assertEquals
 
 @Tag("contract")
@@ -26,7 +30,7 @@ class CreateConcepts : ContractTestsBase() {
             null, HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response["status"])
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
@@ -37,7 +41,7 @@ class CreateConcepts : ContractTestsBase() {
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -48,7 +52,7 @@ class CreateConcepts : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response["status"])
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
@@ -66,15 +70,15 @@ class CreateConcepts : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.CREATED.value(), response["status"])
+        assertEquals(HttpStatus.CREATED, response.statusCode)
 
         val after = authorizedRequest(
             "/begreper?orgNummer=${BEGREP_TO_BE_CREATED.ansvarligVirksomhet.id}",
             null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
         )
 
-        val beforeList: List<Begrep> = mapper.readValue(before["body"] as String)
-        val afterList: List<Begrep> = mapper.readValue(after["body"] as String)
+        val beforeList: List<Begrep> = mapper.readValue(before.body as String)
+        val afterList: List<Begrep> = mapper.readValue(after.body as String)
 
         assertEquals(beforeList.size + 2, afterList.size)
     }
@@ -92,13 +96,67 @@ class CreateConcepts : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response["status"])
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
 
-        val error: Map<String, Any> = mapper.readValue(response["body"] as String)
+        val error: Map<String, Any> = mapper.readValue(response.body as String)
 
         assertEquals(
             "Concept 0 - {}\n" +
                     "Invalid version 0.0.0. Version must be minimum 0.1.0\n\n", error["message"]
         )
+    }
+
+    @Test
+    fun `Import RDF responds with unauthorized on missing access token`() {
+        val response = authorizedRequest(
+            "/begreper/123456789/import",
+            "PREFIX",
+            null,
+            HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
+    }
+
+    @Test
+    fun `Import RDF responds with forbidden on invalid authority`() {
+        val response = authorizedRequest(
+            "/begreper/123456789/import",
+            "PREFIX",
+            JwtToken(Access.ORG_READ).toString(),
+            HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+    }
+
+    @Test
+    fun `Import RDF responds with forbidden on invalid catalog identifier`() {
+        val response = authorizedRequest(
+            "/begreper/invalid/import",
+            "PREFIX",
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+    }
+
+    @Test
+    fun `Import RDF responds with not implemented on valid authority`(@Value("classpath:concept.ttl") resource: Resource) {
+        val concept = String(resource.inputStream.readAllBytes(), StandardCharsets.UTF_8)
+
+        val response = authorizedRequest(
+            "/begreper/123456789/import",
+            concept,
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, response.statusCode)
     }
 }
