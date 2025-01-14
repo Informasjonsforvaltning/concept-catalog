@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import java.nio.charset.StandardCharsets
+import java.time.LocalDate
 
 @Tag("unit")
 class SkosApNoImportTests {
@@ -43,6 +44,8 @@ class SkosApNoImportTests {
             assertFalse(concept.fagområde!!.isEmpty())
             assertFalse(concept.fagområdeKoder!!.isEmpty())
             assertNotNull(concept.omfang)
+            assertNotNull(concept.gyldigFom)
+            assertNotNull(concept.gyldigTom)
         }
     }
 
@@ -145,10 +148,12 @@ class SkosApNoImportTests {
 
                 sourceDescription.kilde.let { source ->
                     assertEquals(2, source!!.size)
-                    assertEquals(URITekst(tekst = "kap14"), source.first())
                     assertEquals(
-                        URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14"),
-                        source.last()
+                        setOf(
+                            URITekst(tekst = "kap14"),
+                            URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14")
+                        ),
+                        source.toSet()
                     )
                 }
             }
@@ -275,6 +280,32 @@ class SkosApNoImportTests {
         assertEquals(1, scope.size)
 
         assertEquals(URITekst("https://example.com/omfang", "omfang"), scope.first())
+    }
+
+    @Test
+    fun `should extract gyldigFom`() {
+        val model = readModel("import_concept.ttl")
+
+        val date = model.listResourcesWithProperty(EUVOC.startDate)
+            .toList()
+            .map { it.extractGyldigFom() }
+
+        assertEquals(1, date.size)
+
+        assertEquals(LocalDate.of(2020, 12, 31), date.first())
+    }
+
+    @Test
+    fun `should extract gyldigTom`() {
+        val model = readModel("import_concept.ttl")
+
+        val date = model.listResourcesWithProperty(EUVOC.endDate)
+            .toList()
+            .map { it.extractGyldigTom() }
+
+        assertEquals(1, date.size)
+
+        assertEquals(LocalDate.of(2030, 12, 31), date.first())
     }
 
     private fun readModel(file: String): Model {

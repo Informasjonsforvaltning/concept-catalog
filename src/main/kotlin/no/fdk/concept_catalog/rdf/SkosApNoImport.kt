@@ -7,6 +7,8 @@ import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.OWL
 import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.SKOS
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 private val SEM_VAR_REGEX = Regex("""^(\d+)\.(\d+)\.(\d+)$""")
 
@@ -30,6 +32,8 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 fagområde = it.extractFagområde(),
                 fagområdeKoder = it.extractFagområdeKoder(),
                 omfang = it.extractOmfang(),
+                gyldigFom = it.extractGyldigFom(),
+                gyldigTom = it.extractGyldigTom(),
             )
         }
 
@@ -137,6 +141,21 @@ fun Resource.extractOmfang(): URITekst? {
     }
 }
 
+fun Resource.extractGyldigFom(): LocalDate? {
+    return extractDate(EUVOC.startDate)
+}
+
+fun Resource.extractGyldigTom(): LocalDate? {
+    return extractDate(EUVOC.endDate)
+}
+
+private fun Resource.extractDate(property: Property): LocalDate? {
+    return this.getProperty(property)
+        ?.let { it.`object`.asLiteralOrNull()?.string }
+        ?.takeIf { isValidDate(it) }
+        ?.let { LocalDate.parse(it) }
+}
+
 private fun Resource.extractDefinition(): Definisjon? {
     val relationshipWithSource: ForholdTilKildeEnum? = this.getProperty(SKOSNO.relationshipWithSource)
         ?.let { statement ->
@@ -189,6 +208,16 @@ private fun Resource.extractLocalizedStrings(property: Property): Map<String, St
         .filter { it.language.isNotBlank() && it.string.isNotBlank() }
         .associate { it.language to it.string }
         .takeIf { it.isNotEmpty() }
+}
+
+private fun isValidDate(dateString: String): Boolean {
+    return try {
+        LocalDate.parse(dateString)
+
+        true
+    } catch (e: DateTimeParseException) {
+        false
+    }
 }
 
 private fun RDFNode.asLiteralOrNull(): Literal? {

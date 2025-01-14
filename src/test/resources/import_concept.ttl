@@ -35,37 +35,42 @@
         skos:example        "eksempel"@nn, "eksempel"@nb ;
         dct:subject         "fagområde"@nb, <https://example.com/fagområde> ;
         skosno:valueRange   "omfang"@nb, <https://example.com/omfang> ;
-        dct:modified        "2020-01-02"^^xsd:date ;
-        skosno:hasGenericConceptRelation [ rdf:type                    skosno:GenericConceptRelation ;
-                                  dct:description  "Inndelingskriterium"@nb ;
-                                  skosno:hasSpecificConcept    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-                                ] ;
-        skosno:hasGenericConceptRelation [ rdf:type                    skosno:GenericConceptRelation ;
-                                  dct:description  "Inndelingskriterium"@nb ;
-                                  skosno:hasGenericConcept    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-                                ] ;
-        skosno:hasPartitiveConceptRelation [ rdf:type                    skosno:PartitiveConceptRelation ;
-                                  dct:description  "Inndelingskriterium"@nb ;
-                                  skosno:hasPartitiveConcept     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-                                ] ;
-        skosno:hasPartitiveConceptRelation [ rdf:type                    skosno:PartitiveConceptRelation ;
-                                  dct:description  "Inndelingskriterium"@nb ;
-                                  skosno:hasComprehensiveConcept     <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-                                ] ;
-        euvoc:xlDefinition   [ rdf:type                       euvoc:XlNote ;
-                              rdf:value                      "definisjon"@nb, "definition"@en ;
-                              skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
-                              dct:source <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
-                              dct:source "kap14" ;
-                            ] ;
-        euvoc:xlDefinition   [ rdf:type                      euvoc:XlNote ;
-                              rdf:value                     "definisjon for spesialister"@nb ;
-                              dct:audience                   audience-type:specialist ;
-                              skosno:relationshipWithSource  relationship-with-source-type:direct-from-source ;
-                            ] ;
-        euvoc:xlDefinition   [ rdf:type                      euvoc:XlNote ;
-                              rdf:value                      "definisjon for allmennheten"@nb ;
-                              dct:audience                   audience-type:public ;
-                              skosno:relationshipWithSource  relationship-with-source-type:derived-from-source ;
-                            ] .
-
+        euvoc:startDate     "2020-12-31"^^xsd:date ;
+        euvoc:endDate       "2030-12-31"^^xsd:date ;
+        dct:modified        "2025-01-02"^^xsd:date ;
+        skosno:hasGenericConceptRelation      [ 
+                                                rdf:type                        skosno:GenericConceptRelation ;
+                                                dct:description                 "Inndelingskriterium"@nb ;
+                                                skosno:hasSpecificConcept       <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+                                              ] ;
+        skosno:hasGenericConceptRelation      [ 
+                                                rdf:type                        skosno:GenericConceptRelation ;
+                                                dct:description                 "Inndelingskriterium"@nb ;
+                                                skosno:hasGenericConcept        <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+                                              ] ;
+        skosno:hasPartitiveConceptRelation    [ 
+                                                rdf:type                        skosno:PartitiveConceptRelation ;
+                                                dct:description                 "Inndelingskriterium"@nb ;
+                                                skosno:hasPartitiveConcept      <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+                                              ] ;
+        skosno:hasPartitiveConceptRelation    [ 
+                                                rdf:type                        skosno:PartitiveConceptRelation ;
+                                                dct:description                 "Inndelingskriterium"@nb ;
+                                                skosno:hasComprehensiveConcept  <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+                                              ] ;
+        euvoc:xlDefinition                    [ rdf:type                        euvoc:XlNote ;
+                                                rdf:value                       "definisjon"@nb, "definition"@en ;
+                                                skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
+                                                dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
+                                              ] ;
+        euvoc:xlDefinition                    [ rdf:type                        euvoc:XlNote ;
+                                                rdf:value                       "definisjon for spesialister"@nb ;
+                                                dct:audience                    audience-type:specialist ;
+                                                skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
+                                              ] ;
+        euvoc:xlDefinition                    [ 
+                                                rdf:type                        euvoc:XlNote ;
+                                                rdf:value                       "definisjon for allmennheten"@nb ;
+                                                dct:audience                    audience-type:public ;
+                                                skosno:relationshipWithSource   relationship-with-source-type:derived-from-source ;
+                                              ] .
