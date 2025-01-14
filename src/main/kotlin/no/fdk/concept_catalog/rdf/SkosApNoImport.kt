@@ -49,12 +49,7 @@ fun Resource.extractStatusUri(): String? {
 }
 
 fun Resource.extractAnbefaltTerm(): Term? {
-    return this.listProperties(SKOS.prefLabel)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { it.language.isNotBlank() and it.string.isNotBlank() }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
+    return extractLocalizesStrings(SKOS.prefLabel)
         ?.let { Term(it) }
 }
 
@@ -81,7 +76,7 @@ fun Resource.extractDefinisjon(): Definisjon? {
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
         .filterNot { it.hasProperty(DCTerms.audience) }
-        .firstNotNullOfOrNull { resource -> extractDefinition(resource) }
+        .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
 fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
@@ -94,7 +89,7 @@ fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
                 ?.asResourceOrNull()
                 ?.hasURI(AUDIENCE_TYPE.public.uri) == true
         }
-        .firstNotNullOfOrNull { resource -> extractDefinition(resource) }
+        .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
 fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
@@ -107,11 +102,19 @@ fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
                 ?.asResourceOrNull()
                 ?.hasURI(AUDIENCE_TYPE.specialist.uri) == true
         }
-        .firstNotNullOfOrNull { resource -> extractDefinition(resource) }
+        .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
-private fun extractDefinition(resource: Resource): Definisjon? {
-    val relationshipWithSource: ForholdTilKildeEnum? = resource.getProperty(SKOSNO.relationshipWithSource)
+fun Resource.extractMerknad(): Map<String, String>? {
+    return extractLocalizesStrings(SKOS.scopeNote)
+}
+
+fun Resource.extractEksempel(): Map<String, String>? {
+    return extractLocalizesStrings(SKOS.example)
+}
+
+private fun Resource.extractDefinition(): Definisjon? {
+    val relationshipWithSource: ForholdTilKildeEnum? = this.getProperty(SKOSNO.relationshipWithSource)
         ?.let { statement ->
             statement.`object`.asResourceOrNull()?.let {
                 when {
@@ -123,7 +126,7 @@ private fun extractDefinition(resource: Resource): Definisjon? {
             }
         }
 
-    val source: List<URITekst>? = resource.listProperties(DCTerms.source)
+    val source: List<URITekst>? = this.listProperties(DCTerms.source)
         .toList()
         .mapNotNull { statement ->
             statement.`object`.let { obj ->
@@ -140,27 +143,13 @@ private fun extractDefinition(resource: Resource): Definisjon? {
         Kildebeskrivelse(forholdTilKilde = relationshipWithSource, kilde = source)
     }
 
-    val value: Map<String, String>? = resource.listProperties(RDF.value)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { it.language.isNotBlank() and it.string.isNotBlank() }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
+    val value: Map<String, String>? = this.extractLocalizesStrings(RDF.value)
 
     return value?.let { Definisjon(tekst = it, kildebeskrivelse = sourceDescription) }
 }
 
-fun Resource.extractMerknad(): Map<String, String>? {
-    return this.listProperties(SKOS.scopeNote)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { it.language.isNotBlank() and it.string.isNotBlank() }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
-}
-
-fun Resource.extractEksempel(): Map<String, String>?{
-    return this.listProperties(SKOS.example)
+private fun Resource.extractLocalizesStrings(property: Property): Map<String, String>? {
+    return this.listProperties(property)
         .toList()
         .mapNotNull { it.`object`.asLiteralOrNull() }
         .filter { it.language.isNotBlank() and it.string.isNotBlank() }
