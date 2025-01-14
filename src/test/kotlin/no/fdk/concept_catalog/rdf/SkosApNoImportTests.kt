@@ -6,6 +6,7 @@ import no.fdk.concept_catalog.model.URITekst
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
+import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.OWL
 import org.apache.jena.vocabulary.SKOS
 import org.junit.jupiter.api.Assertions.*
@@ -30,15 +31,17 @@ class SkosApNoImportTests {
             assertNotNull(concept.statusURI)
 
             assertNotNull(concept.anbefaltTerm)
-            concept.tillattTerm?.let { assertFalse(it.isEmpty()) }
-            concept.frarådetTerm?.let { assertFalse(it.isEmpty()) }
+            assertFalse(concept.tillattTerm!!.isEmpty())
+            assertFalse(concept.frarådetTerm!!.isEmpty())
 
             assertNotNull(concept.definisjon)
             assertNotNull(concept.definisjonForAllmennheten)
             assertNotNull(concept.definisjonForSpesialister)
 
-            concept.merknad?.let { assertFalse(it.isEmpty()) }
-            concept.eksempel?.let { assertFalse(it.isEmpty()) }
+            assertFalse(concept.merknad!!.isEmpty())
+            assertFalse(concept.eksempel!!.isEmpty())
+            assertFalse(concept.fagområde!!.isEmpty())
+            assertFalse(concept.fagområdeKoder!!.isEmpty())
         }
     }
 
@@ -76,12 +79,12 @@ class SkosApNoImportTests {
 
         assertEquals(1, terms.size)
 
-        terms.first()?.navn?.let { localizedTerms ->
-            assertEquals(2, localizedTerms.size)
-            assertTrue(localizedTerms.containsKey("nb"))
-            assertEquals("anbefaltTerm", localizedTerms["nb"])
-            assertTrue(localizedTerms.containsKey("en"))
-            assertEquals("recommendedTerm", localizedTerms["en"])
+        terms.first()!!.navn.let {
+            assertEquals(2, it.size)
+            assertTrue(it.containsKey("nb"))
+            assertEquals("anbefaltTerm", it["nb"])
+            assertTrue(it.containsKey("en"))
+            assertEquals("recommendedTerm", it["en"])
         }
     }
 
@@ -95,9 +98,9 @@ class SkosApNoImportTests {
 
         assertEquals(1, terms.size)
 
-        terms.first()?.let { localizedTerms ->
-            assertTrue(localizedTerms.containsKey("nn"))
-            assertEquals(localizedTerms.getValue("nn").toSet(), setOf("tillattTerm", "tillattTerm2"))
+        terms.first().let {
+            assertTrue(it!!.containsKey("nn"))
+            assertEquals(it.getValue("nn").toSet(), setOf("tillattTerm", "tillattTerm2"))
         }
     }
 
@@ -111,9 +114,9 @@ class SkosApNoImportTests {
 
         assertEquals(1, terms.size)
 
-        terms.first()?.let { localizedTerms ->
-            assertTrue(localizedTerms.containsKey("nb"))
-            assertEquals(localizedTerms.getValue("nb").toSet(), setOf("fraraadetTerm", "fraraadetTerm2", "Lorem ipsum"))
+        terms.first().let {
+            assertTrue(it!!.containsKey("nb"))
+            assertEquals(it.getValue("nb").toSet(), setOf("fraraadetTerm", "fraraadetTerm2", "Lorem ipsum"))
         }
     }
 
@@ -127,20 +130,20 @@ class SkosApNoImportTests {
 
         assertEquals(1, definitions.size)
 
-        definitions.first()?.let {
-            it.tekst?.let { text ->
-                assertEquals(2, text.size)
+        definitions.first().let {
+            it!!.tekst.let { text ->
+                assertEquals(2, text!!.size)
                 assertTrue(text.containsKey("nb"))
                 assertEquals("definisjon", text["nb"])
                 assertTrue(text.containsKey("nb"))
                 assertEquals("definition", text["en"])
             }
 
-            it.kildebeskrivelse?.let { sourceDescription ->
-                assertEquals(ForholdTilKildeEnum.EGENDEFINERT, sourceDescription.forholdTilKilde)
+            it.kildebeskrivelse.let { sourceDescription ->
+                assertEquals(ForholdTilKildeEnum.EGENDEFINERT, sourceDescription!!.forholdTilKilde)
 
-                sourceDescription.kilde?.let { source ->
-                    assertEquals(2, source.size)
+                sourceDescription.kilde.let { source ->
+                    assertEquals(2, source!!.size)
                     assertEquals(URITekst(tekst = "kap14"), source.first())
                     assertEquals(
                         URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14"),
@@ -161,16 +164,14 @@ class SkosApNoImportTests {
 
         assertEquals(1, definitions.size)
 
-        definitions.first()?.let {
-            it.tekst?.let { text ->
-                assertEquals(1, text.size)
+        definitions.first().let {
+            it!!.tekst.let { text ->
+                assertEquals(1, text!!.size)
                 assertTrue(text.containsKey("nb"))
                 assertEquals("definisjon for allmennheten", text["nb"])
             }
 
-            it.kildebeskrivelse?.let { sourceDescription ->
-                assertEquals(ForholdTilKildeEnum.SITATFRAKILDE, sourceDescription.forholdTilKilde)
-            }
+            assertEquals(ForholdTilKildeEnum.SITATFRAKILDE, it.kildebeskrivelse!!.forholdTilKilde)
         }
     }
 
@@ -184,16 +185,14 @@ class SkosApNoImportTests {
 
         assertEquals(1, definitions.size)
 
-        definitions.first()?.let {
-            it.tekst?.let { text ->
-                assertEquals(1, text.size)
+        definitions.first().let {
+            it!!.tekst.let { text ->
+                assertEquals(1, text!!.size)
                 assertTrue(text.containsKey("nb"))
                 assertEquals("definisjon for spesialister", text["nb"])
             }
 
-            it.kildebeskrivelse?.let { sourceDescription ->
-                assertEquals(ForholdTilKildeEnum.BASERTPAAKILDE, sourceDescription.forholdTilKilde)
-            }
+            assertEquals(ForholdTilKildeEnum.BASERTPAAKILDE, it.kildebeskrivelse!!.forholdTilKilde)
         }
     }
 
@@ -207,12 +206,12 @@ class SkosApNoImportTests {
 
         assertEquals(1, notes.size)
 
-        notes.first()?.let { localizedNote ->
-            assertEquals(2, localizedNote.size)
-            assertTrue(localizedNote.containsKey("nb"))
-            assertEquals("merknad", localizedNote["nb"])
-            assertTrue(localizedNote.containsKey("nn"))
-            assertEquals("merknad", localizedNote["nn"])
+        notes.first().let {
+            assertEquals(2, it!!.size)
+            assertTrue(it.containsKey("nb"))
+            assertEquals("merknad", it["nb"])
+            assertTrue(it.containsKey("nn"))
+            assertEquals("merknad", it["nn"])
         }
     }
 
@@ -220,27 +219,55 @@ class SkosApNoImportTests {
     fun `should extract eksempel`() {
         val model = readModel("import_concept.ttl")
 
-        val notes = model.listResourcesWithProperty(SKOS.example)
+        val examples = model.listResourcesWithProperty(SKOS.example)
             .toList()
             .map { it.extractEksempel() }
 
-        assertEquals(1, notes.size)
+        assertEquals(1, examples.size)
 
-        notes.first()?.let { localizedNote ->
-            assertEquals(2, localizedNote.size)
-            assertTrue(localizedNote.containsKey("nb"))
-            assertEquals("eksempel", localizedNote["nb"])
-            assertTrue(localizedNote.containsKey("nn"))
-            assertEquals("eksempel", localizedNote["nn"])
+        examples.first().let {
+            assertEquals(2, it!!.size)
+            assertTrue(it.containsKey("nb"))
+            assertEquals("eksempel", it["nb"])
+            assertTrue(it.containsKey("nn"))
+            assertEquals("eksempel", it["nn"])
         }
     }
 
+    @Test
+    fun `should extract fagområde`() {
+        val model = readModel("import_concept.ttl")
+
+        val subjects = model.listResourcesWithProperty(DCTerms.subject)
+            .toList()
+            .map { it.extractFagområde() }
+
+        assertEquals(1, subjects.size)
+
+        subjects.first().let {
+            assertTrue(it!!.containsKey("nb"))
+            assertEquals(it.getValue("nb").toSet(), setOf("fagområde"))
+        }
+    }
+
+    @Test
+    fun `should extract fagområdeKoder`() {
+        val model = readModel("import_concept.ttl")
+
+        val subjects = model.listResourcesWithProperty(DCTerms.subject)
+            .toList()
+            .map { it.extractFagområdeKoder() }
+
+        assertEquals(1, subjects.size)
+
+        assertTrue(subjects.first()!!.contains("https://example.com/fagområdekode"))
+    }
+
     private fun readModel(file: String): Model {
-        val turtle = javaClass.classLoader.getResourceAsStream(file)
-            ?.let { String(it.readAllBytes(), StandardCharsets.UTF_8) }
+        val turtle = String(javaClass.classLoader.getResourceAsStream(file)!!.readAllBytes(), StandardCharsets.UTF_8)
 
         val model = ModelFactory.createDefaultModel()
-        model.read(StringReader(turtle!!), "http://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), "http://example.com", Lang.TURTLE.name)
 
         return model
     }

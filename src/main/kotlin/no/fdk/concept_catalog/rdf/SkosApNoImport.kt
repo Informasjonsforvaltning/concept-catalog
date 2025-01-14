@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.rdf
 
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.service.isValidURI
 import org.apache.jena.rdf.model.*
 import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.OWL
@@ -25,7 +26,9 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 definisjonForAllmennheten = it.extractDefinisjonForAllmennheten(),
                 definisjonForSpesialister = it.extractDefinisjonForSpesialister(),
                 merknad = it.extractMerknad(),
-                eksempel = it.extractEksempel()
+                eksempel = it.extractEksempel(),
+                fagområde = it.extractFagområde(),
+                fagområdeKoder = it.extractFagområdeKoder()
             )
         }
 
@@ -35,7 +38,7 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
 fun Resource.extractVersjonr(): SemVer? {
     return this.getProperty(OWL.versionInfo)
         ?.let { it.`object`.asLiteralOrNull()?.string }
-        ?.takeIf { it.isNotBlank() and SEM_VAR_REGEX.matches(it) }
+        ?.takeIf { it.isNotBlank() && SEM_VAR_REGEX.matches(it) }
         ?.let {
             SEM_VAR_REGEX.matchEntire(it)?.destructured?.let { (major, minor, patch) ->
                 SemVer(major.toInt(), minor.toInt(), patch.toInt())
@@ -45,30 +48,20 @@ fun Resource.extractVersjonr(): SemVer? {
 
 fun Resource.extractStatusUri(): String? {
     return this.getProperty(EUVOC.status)
-        ?.let { it.`object`.asResourceOrNull()?.uri }
+        ?.let { it.`object`.asResourceUriOrNull()?.uri }
 }
 
 fun Resource.extractAnbefaltTerm(): Term? {
-    return extractLocalizesStrings(SKOS.prefLabel)
+    return extractLocalizedStrings(SKOS.prefLabel)
         ?.let { Term(it) }
 }
 
 fun Resource.extractTillattTerm(): Map<String, List<String>>? {
-    return extractTerm(SKOS.altLabel)
+    return extractLocalizedStringsAsGrouping(SKOS.altLabel)
 }
 
 fun Resource.extractFrarådetTerm(): Map<String, List<String>>? {
-    return extractTerm(SKOS.hiddenLabel)
-}
-
-private fun Resource.extractTerm(property: Property): Map<String, List<String>>? {
-    return this.listProperties(property)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { it.language.isNotBlank() and it.string.isNotBlank() }
-        .groupBy { it.language }
-        .mapValues { (_, literals) -> literals.map { it.string } }
-        .takeIf { it.isNotEmpty() }
+    return extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
 }
 
 fun Resource.extractDefinisjon(): Definisjon? {
@@ -86,7 +79,7 @@ fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
         .filter {
             it.getProperty(DCTerms.audience)
                 ?.`object`
-                ?.asResourceOrNull()
+                ?.asResourceUriOrNull()
                 ?.hasURI(AUDIENCE_TYPE.public.uri) == true
         }
         .firstNotNullOfOrNull { it.extractDefinition() }
@@ -99,24 +92,36 @@ fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
         .filter {
             it.getProperty(DCTerms.audience)
                 ?.`object`
-                ?.asResourceOrNull()
+                ?.asResourceUriOrNull()
                 ?.hasURI(AUDIENCE_TYPE.specialist.uri) == true
         }
         .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
 fun Resource.extractMerknad(): Map<String, String>? {
-    return extractLocalizesStrings(SKOS.scopeNote)
+    return extractLocalizedStrings(SKOS.scopeNote)
 }
 
 fun Resource.extractEksempel(): Map<String, String>? {
-    return extractLocalizesStrings(SKOS.example)
+    return extractLocalizedStrings(SKOS.example)
+}
+
+fun Resource.extractFagområde(): Map<String, List<String>>? {
+    return extractLocalizedStringsAsGrouping(DCTerms.subject)
+}
+
+fun Resource.extractFagområdeKoder(): List<String>? {
+    return this.listProperties(DCTerms.subject)
+        .toList()
+        .mapNotNull { it.`object`.asResourceUriOrNull() }
+        .map { it.toString() }
+        .takeIf { it.isNotEmpty() }
 }
 
 private fun Resource.extractDefinition(): Definisjon? {
     val relationshipWithSource: ForholdTilKildeEnum? = this.getProperty(SKOSNO.relationshipWithSource)
         ?.let { statement ->
-            statement.`object`.asResourceOrNull()?.let {
+            statement.`object`.asResourceUriOrNull()?.let {
                 when {
                     it.hasURI(RELATIONSHIP.selfComposed.uri) -> ForholdTilKildeEnum.EGENDEFINERT
                     it.hasURI(RELATIONSHIP.directFromSource.uri) -> ForholdTilKildeEnum.BASERTPAAKILDE
@@ -132,7 +137,7 @@ private fun Resource.extractDefinition(): Definisjon? {
             statement.`object`.let { obj ->
                 when {
                     obj.isLiteral -> URITekst(tekst = obj.asLiteralOrNull()?.string)
-                    obj.isResource -> URITekst(uri = obj.asResourceOrNull()?.uri)
+                    obj.isURIResource -> URITekst(uri = obj.asResourceUriOrNull()?.uri)
                     else -> null
                 }
             }
@@ -143,16 +148,26 @@ private fun Resource.extractDefinition(): Definisjon? {
         Kildebeskrivelse(forholdTilKilde = relationshipWithSource, kilde = source)
     }
 
-    val value: Map<String, String>? = this.extractLocalizesStrings(RDF.value)
+    val value: Map<String, String>? = this.extractLocalizedStrings(RDF.value)
 
     return value?.let { Definisjon(tekst = it, kildebeskrivelse = sourceDescription) }
 }
 
-private fun Resource.extractLocalizesStrings(property: Property): Map<String, String>? {
+private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Map<String, List<String>>? {
     return this.listProperties(property)
         .toList()
         .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { it.language.isNotBlank() and it.string.isNotBlank() }
+        .filter { it.language.isNotBlank() && it.string.isNotBlank() }
+        .groupBy { it.language }
+        .mapValues { (_, literals) -> literals.map { it.string } }
+        .takeIf { it.isNotEmpty() }
+}
+
+private fun Resource.extractLocalizedStrings(property: Property): Map<String, String>? {
+    return this.listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asLiteralOrNull() }
+        .filter { it.language.isNotBlank() && it.string.isNotBlank() }
         .associate { it.language to it.string }
         .takeIf { it.isNotEmpty() }
 }
@@ -163,4 +178,8 @@ private fun RDFNode.asLiteralOrNull(): Literal? {
 
 private fun RDFNode.asResourceOrNull(): Resource? {
     return if (this.isResource) this.asResource() else null
+}
+
+private fun RDFNode.asResourceUriOrNull(): Resource? {
+    return if (this.isURIResource && this.asResource().uri.isValidURI()) this.asResource() else null
 }

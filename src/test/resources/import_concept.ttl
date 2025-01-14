@@ -20,8 +20,6 @@
 @prefix relationship-with-source-type: <https://data.norge.no/vocabulary/relationship-with-source-type#> .
 @prefix audience-type: <https://data.norge.no/vocabulary/audience-type#> .
 
-
-
 <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old>
         rdf:type            skos:Concept ;
         rdfs:seeAlso        <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
@@ -29,11 +27,14 @@
         dct:identifier      "https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old" ;
         dct:publisher       <https://data.brreg.no/enhetsregisteret/api/enheter/123456789> ;
         euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
+        owl:versionInfo     "1.0.0" ;
+        skos:prefLabel      "anbefaltTerm"@nb, "recommendedTerm"@en ;
         skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
         skos:hiddenLabel    "fraraadetTerm"@nb,"fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
-        owl:versionInfo     "1.0.0" ;
-
-        skos:prefLabel      "anbefaltTerm"@nb, "recommendedTerm"@en ;
+        skos:scopeNote      "merknad"@nn, "merknad"@nb ;
+        skos:example        "eksempel"@nn, "eksempel"@nb ;
+        dct:subject         "fagområde"@nb, <https://example.com/fagområdekode> ;
+        dct:modified        "2020-01-02"^^xsd:date ;
         skosno:hasGenericConceptRelation [ rdf:type                    skosno:GenericConceptRelation ;
                                   dct:description  "Inndelingskriterium"@nb ;
                                   skosno:hasSpecificConcept    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
@@ -65,7 +66,5 @@
                               rdf:value                      "definisjon for allmennheten"@nb ;
                               dct:audience                   audience-type:public ;
                               skosno:relationshipWithSource  relationship-with-source-type:derived-from-source ;
-                            ] ;
-        skos:scopeNote          "merknad"@nn, "merknad"@nb ;
-        skos:example          "eksempel"@nn, "eksempel"@nb ;
-        dct:modified        "2020-01-02"^^xsd:date .
+                            ] .
+
