@@ -26,14 +26,14 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
     return begreper
 }
 
-private fun Resource.extractStatusUri(): String? {
+fun Resource.extractStatusUri(): String? {
     return this.getProperty(EUVOC.status)
         ?.let { statement ->
             statement.`object`.asResourceOrNull()?.uri
         }
 }
 
-private fun Resource.extractAnbefaltTerm(): Term? {
+fun Resource.extractAnbefaltTerm(): Term? {
     return this.listProperties(SKOS.prefLabel)
         .toList()
         .mapNotNull { it.`object`.asLiteralOrNull() }
@@ -43,11 +43,11 @@ private fun Resource.extractAnbefaltTerm(): Term? {
         ?.let { Term(it) }
 }
 
-private fun Resource.extractTillattTerm(): Map<String, List<String>>? {
+fun Resource.extractTillattTerm(): Map<String, List<String>>? {
     return extractTerm(SKOS.altLabel)
 }
 
-private fun Resource.extractFrarådetTerm(): Map<String, List<String>>? {
+fun Resource.extractFrarådetTerm(): Map<String, List<String>>? {
     return extractTerm(SKOS.hiddenLabel)
 }
 
@@ -61,7 +61,7 @@ private fun Resource.extractTerm(property: Property): Map<String, List<String>>?
         .takeIf { it.isNotEmpty() }
 }
 
-private fun Resource.extractDefinisjon(): Definisjon? {
+fun Resource.extractDefinisjon(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
@@ -69,7 +69,7 @@ private fun Resource.extractDefinisjon(): Definisjon? {
         .firstNotNullOfOrNull { resource -> extractDefinition(resource) }
 }
 
-private fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
+fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
@@ -82,7 +82,7 @@ private fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
         .firstNotNullOfOrNull { resource -> extractDefinition(resource) }
 }
 
-private fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
+fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
@@ -135,10 +135,10 @@ private fun extractDefinition(resource: Resource): Definisjon? {
     return value?.let { Definisjon(tekst = it, kildebeskrivelse = sourceDescription) }
 }
 
-fun RDFNode.asLiteralOrNull(): Literal? {
+private fun RDFNode.asLiteralOrNull(): Literal? {
     return if (this.isLiteral) this.asLiteral() else null
 }
 
-fun RDFNode.asResourceOrNull(): Resource? {
+private fun RDFNode.asResourceOrNull(): Resource? {
     return if (this.isResource) this.asResource() else null
 }

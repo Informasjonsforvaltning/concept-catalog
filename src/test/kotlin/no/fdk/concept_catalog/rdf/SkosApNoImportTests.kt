@@ -18,7 +18,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract list of concepts`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         val concepts = model.extractBegreper("catalogId")
 
@@ -27,7 +27,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract statusUri`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         model.listResourcesWithProperty(EUVOC.status)
             .toList()
@@ -39,7 +39,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract anbefaltTerm`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         val terms = model.listResourcesWithProperty(SKOS.prefLabel)
             .toList()
@@ -58,7 +58,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract tillattTerm`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         val terms = model.listResourcesWithProperty(SKOS.altLabel)
             .toList()
@@ -74,7 +74,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract frarådetTerm`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         val terms = model.listResourcesWithProperty(SKOS.hiddenLabel)
             .toList()
@@ -90,7 +90,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract definisjon`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         val definitions = model.listResourcesWithProperty(EUVOC.xlDefinition)
             .toList()
@@ -124,7 +124,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract definisjonForAllmennheten`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         val definitions = model.listResourcesWithProperty(EUVOC.xlDefinition)
             .toList()
@@ -147,7 +147,7 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract definisjonForSpesialister`() {
-        val model = readModel("concept.ttl")
+        val model = readModel("import_concept.ttl")
 
         val definitions = model.listResourcesWithProperty(EUVOC.xlDefinition)
             .toList()

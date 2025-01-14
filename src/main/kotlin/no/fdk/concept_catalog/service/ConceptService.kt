@@ -190,11 +190,8 @@ class ConceptService(
     }
 
     fun createConcepts(concepts: String, lang: Lang, user: User, jwt: Jwt) {
-        val responseModel = ModelFactory.createDefaultModel()
-        responseModel.read(StringReader(concepts), "http://placeholder.com", lang.name)
-
         /*
-        TODO: Convert and process begreper
+        TODO: Read, convert and process begreper
          */
     }
 
