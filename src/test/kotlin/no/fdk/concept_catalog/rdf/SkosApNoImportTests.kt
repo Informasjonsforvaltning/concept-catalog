@@ -42,6 +42,7 @@ class SkosApNoImportTests {
             assertFalse(concept.eksempel!!.isEmpty())
             assertFalse(concept.fagområde!!.isEmpty())
             assertFalse(concept.fagområdeKoder!!.isEmpty())
+            assertNotNull(concept.omfang)
         }
     }
 
@@ -260,7 +261,20 @@ class SkosApNoImportTests {
 
         assertEquals(1, subjects.size)
 
-        assertTrue(subjects.first()!!.contains("https://example.com/fagområdekode"))
+        assertTrue(subjects.first()!!.contains("https://example.com/fagområde"))
+    }
+
+    @Test
+    fun `should extract omfang`() {
+        val model = readModel("import_concept.ttl")
+
+        val scope = model.listResourcesWithProperty(SKOSNO.valueRange)
+            .toList()
+            .map { it.extractOmfang() }
+
+        assertEquals(1, scope.size)
+
+        assertEquals(URITekst("https://example.com/omfang", "omfang"), scope.first())
     }
 
     private fun readModel(file: String): Model {

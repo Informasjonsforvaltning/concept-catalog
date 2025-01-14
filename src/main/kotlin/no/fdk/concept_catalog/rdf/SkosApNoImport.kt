@@ -28,7 +28,8 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 merknad = it.extractMerknad(),
                 eksempel = it.extractEksempel(),
                 fagområde = it.extractFagområde(),
-                fagområdeKoder = it.extractFagområdeKoder()
+                fagområdeKoder = it.extractFagområdeKoder(),
+                omfang = it.extractOmfang(),
             )
         }
 
@@ -118,6 +119,24 @@ fun Resource.extractFagområdeKoder(): List<String>? {
         .takeIf { it.isNotEmpty() }
 }
 
+fun Resource.extractOmfang(): URITekst? {
+    val text = this.listProperties(SKOSNO.valueRange)
+        .toList()
+        .firstOrNull { it.`object`.isLiteral }
+        ?.let { it.`object`.asLiteralOrNull()?.string }
+
+    val uri = this.listProperties(SKOSNO.valueRange)
+        .toList()
+        .firstOrNull { it.`object`.isURIResource }
+        ?.let { it.`object`.asResourceUriOrNull()?.uri }
+
+    return if (text != null || uri != null) {
+        URITekst(uri, text)
+    } else {
+        null
+    }
+}
+
 private fun Resource.extractDefinition(): Definisjon? {
     val relationshipWithSource: ForholdTilKildeEnum? = this.getProperty(SKOSNO.relationshipWithSource)
         ?.let { statement ->
@@ -134,10 +153,10 @@ private fun Resource.extractDefinition(): Definisjon? {
     val source: List<URITekst>? = this.listProperties(DCTerms.source)
         .toList()
         .mapNotNull { statement ->
-            statement.`object`.let { obj ->
+            statement.`object`.let {
                 when {
-                    obj.isLiteral -> URITekst(tekst = obj.asLiteralOrNull()?.string)
-                    obj.isURIResource -> URITekst(uri = obj.asResourceUriOrNull()?.uri)
+                    it.isLiteral -> URITekst(tekst = it.asLiteralOrNull()?.string)
+                    it.isURIResource -> URITekst(uri = it.asResourceUriOrNull()?.uri)
                     else -> null
                 }
             }

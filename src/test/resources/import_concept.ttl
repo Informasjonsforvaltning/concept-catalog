@@ -30,10 +30,11 @@
         owl:versionInfo     "1.0.0" ;
         skos:prefLabel      "anbefaltTerm"@nb, "recommendedTerm"@en ;
         skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
-        skos:hiddenLabel    "fraraadetTerm"@nb,"fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
+        skos:hiddenLabel    "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
         skos:scopeNote      "merknad"@nn, "merknad"@nb ;
         skos:example        "eksempel"@nn, "eksempel"@nb ;
-        dct:subject         "fagområde"@nb, <https://example.com/fagområdekode> ;
+        dct:subject         "fagområde"@nb, <https://example.com/fagområde> ;
+        skosno:valueRange   "omfang"@nb, <https://example.com/omfang> ;
         dct:modified        "2020-01-02"^^xsd:date ;
         skosno:hasGenericConceptRelation [ rdf:type                    skosno:GenericConceptRelation ;
                                   dct:description  "Inndelingskriterium"@nb ;
