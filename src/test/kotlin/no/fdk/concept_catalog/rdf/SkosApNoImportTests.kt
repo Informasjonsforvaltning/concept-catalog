@@ -23,28 +23,29 @@ class SkosApNoImportTests {
 
         assertEquals(1, concepts.size)
 
-        concepts.first().let { concept ->
-            assertNotNull(concept.versjonsnr)
-            assertNotNull(concept.statusURI)
+        concepts.first().let {
+            assertNotNull(it.versjonsnr)
+            assertNotNull(it.statusURI)
 
-            assertNotNull(concept.anbefaltTerm)
-            assertFalse(concept.tillattTerm!!.isEmpty())
-            assertFalse(concept.frarådetTerm!!.isEmpty())
+            assertNotNull(it.anbefaltTerm)
+            assertFalse(it.tillattTerm!!.isEmpty())
+            assertFalse(it.frarådetTerm!!.isEmpty())
 
-            assertNotNull(concept.definisjon)
-            assertNotNull(concept.definisjonForAllmennheten)
-            assertNotNull(concept.definisjonForSpesialister)
+            assertNotNull(it.definisjon)
+            assertNotNull(it.definisjonForAllmennheten)
+            assertNotNull(it.definisjonForSpesialister)
 
-            assertFalse(concept.merknad!!.isEmpty())
-            assertFalse(concept.eksempel!!.isEmpty())
-            assertFalse(concept.fagområde!!.isEmpty())
-            assertFalse(concept.fagområdeKoder!!.isEmpty())
-            assertNotNull(concept.omfang)
-            assertNotNull(concept.gyldigFom)
-            assertNotNull(concept.gyldigTom)
-            assertNotNull(concept.seOgså!!.isEmpty())
-            assertFalse(concept.erstattesAv!!.isEmpty())
-            assertNotNull(concept.kontaktpunkt)
+            assertFalse(it.merknad!!.isEmpty())
+            assertFalse(it.eksempel!!.isEmpty())
+            assertFalse(it.fagområde!!.isEmpty())
+            assertFalse(it.fagområdeKoder!!.isEmpty())
+            assertNotNull(it.omfang)
+            assertNotNull(it.gyldigFom)
+            assertNotNull(it.gyldigTom)
+            assertNotNull(it.seOgså!!.isEmpty())
+            assertFalse(it.erstattesAv!!.isEmpty())
+            assertNotNull(it.kontaktpunkt)
+            assertFalse(it.begrepsRelasjon!!.isEmpty())
         }
     }
 
@@ -271,6 +272,71 @@ class SkosApNoImportTests {
         concepts.first().kontaktpunkt!!.let {
             assertEquals("organization@example.com", it.harEpost)
             assertEquals("+123-456-789", it.harTelefon)
+        }
+    }
+
+    @Test
+    fun `should extract begrepsRelasjon`() {
+        val model = readModel("import_concept.ttl")
+        val concepts = model.extractBegreper("catalogId")
+
+        concepts.first().begrepsRelasjon!!.let { relations ->
+            assertEquals(5, relations.size)
+
+            relations.find { it.relasjon == "assosiativ" }!!
+                .let { associative ->
+                    assertEquals("https://example.com/topConcept", associative.relatertBegrep)
+
+                    associative.beskrivelse!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "muliggjør")
+                    }
+                }
+
+            relations.find { it.relasjon == "partitiv" && it.relasjonsType == "omfatter" }!!
+                .let { partitive ->
+                    assertEquals("https://example.com/partitiveConcept", partitive.relatertBegrep)
+
+                    partitive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
+
+            relations.find { it.relasjon == "partitiv" && it.relasjonsType == "erDelAv" }!!
+                .let { comprehensive ->
+                    assertEquals("https://example.com/comprehensiveConcept", comprehensive.relatertBegrep)
+
+                    comprehensive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
+
+            relations.find { it.relasjon == "generisk" && it.relasjonsType == "overordnet" }!!
+                .let { comprehensive ->
+                    assertEquals("https://example.com/genericConcept", comprehensive.relatertBegrep)
+
+                    comprehensive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
+
+            relations.find { it.relasjon == "generisk" && it.relasjonsType == "underordnet" }!!
+                .let { comprehensive ->
+                    assertEquals("https://example.com/specificConcept", comprehensive.relatertBegrep)
+
+                    comprehensive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
         }
     }
 

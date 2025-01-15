@@ -35,7 +35,8 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 gyldigTom = it.extractGyldigTom(),
                 seOgså = it.extractSeOgså(),
                 erstattesAv = it.extractErstattesAv(),
-                kontaktpunkt = it.extractKontaktPunkt()
+                kontaktpunkt = it.extractKontaktPunkt(),
+                begrepsRelasjon = it.extractBegrepsRelasjon()
             )
         }
 }
@@ -81,12 +82,7 @@ private fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
-        .filter {
-            it.getProperty(DCTerms.audience)
-                ?.`object`
-                ?.asUriResourceOrNull()
-                ?.hasURI(AUDIENCE_TYPE.public.uri) == true
-        }
+        .filter { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.public) }
         .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
@@ -94,12 +90,7 @@ private fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
-        .filter {
-            it.getProperty(DCTerms.audience)
-                ?.`object`
-                ?.asUriResourceOrNull()
-                ?.hasURI(AUDIENCE_TYPE.specialist.uri) == true
-        }
+        .filter { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.specialist) }
         .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
@@ -154,8 +145,8 @@ private fun Resource.extractErstattesAv(): List<String>? {
     return this.extractUri(DCTerms.isReplacedBy)
 }
 
-private fun Resource.extractKontaktPunkt(): Kontaktpunkt? {
-    return this.getProperty(DCAT.contactPoint)
+private fun Resource.extractKontaktPunkt(): Kontaktpunkt? =
+    this.getProperty(DCAT.contactPoint)
         ?.`object`?.asResourceOrNull()
         ?.let { vcard ->
             val email = vcard.getProperty(VCARD4.hasEmail)
@@ -166,16 +157,17 @@ private fun Resource.extractKontaktPunkt(): Kontaktpunkt? {
 
             val telephone = vcard.getProperty(VCARD4.hasTelephone)
                 ?.let {
-                    if (it.`object`.isURIResource) {
-                        it.`object`.asUriResourceOrNull()
-                            ?.toString()
-                            ?.removePrefix("tel:")
-                    } else {
-                        it.`object`.asResourceOrNull()
-                            ?.getProperty(VCARD4.hasValue)
-                            ?.`object`
-                            ?.asUriResourceOrNull()
-                            ?.toString()
+                    when {
+                        it.`object`.isURIResource -> {
+                            it.`object`.asUriResourceOrNull()?.toString()
+                        }
+
+                        else -> {
+                            it.`object`.asResourceOrNull()
+                                ?.getProperty(VCARD4.hasValue)
+                                ?.`object`
+                                ?.asUriResourceOrNull()?.toString()
+                        }
                     }
                 }
                 ?.toString()
@@ -185,6 +177,107 @@ private fun Resource.extractKontaktPunkt(): Kontaktpunkt? {
             Kontaktpunkt(harEpost = email, harTelefon = telephone)
                 .takeIf { email != null || telephone != null }
         }
+
+private fun Resource.extractBegrepsRelasjon(): List<BegrepsRelasjon>? {
+    val associativeConceptRelations = this.listProperties(SKOSNO.isFromConceptIn)
+        .toList()
+        .mapNotNull { it.`object`.asResourceOrNull() }
+        .filter { it.hasProperty(RDF.type, SKOSNO.AssociativeConceptRelation) }
+        .mapNotNull {
+            val relationRole = it.extractLocalizedStrings(SKOSNO.relationRole)
+
+            val toConcept = it.getProperty(SKOSNO.hasToConcept)
+                ?.`object`
+                ?.asUriResourceOrNull()
+                ?.toString()
+
+            BegrepsRelasjon(relasjon = "assosiativ", beskrivelse = relationRole, relatertBegrep = toConcept)
+                .takeIf { relationRole != null && toConcept != null }
+        }
+
+    val partitiveConceptRelations = this.listProperties(SKOSNO.hasPartitiveConceptRelation)
+        .toList()
+        .mapNotNull { it.`object`.asResourceOrNull() }
+        .filter { it.hasProperty(RDF.type, SKOSNO.PartitiveConceptRelation) }
+        .mapNotNull {
+            val description = it.extractLocalizedStrings(DCTerms.description)
+
+            when {
+                it.hasProperty(SKOSNO.hasPartitiveConcept) -> {
+                    val partitiveConcept = it.getProperty(SKOSNO.hasPartitiveConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "partitiv",
+                        relasjonsType = "omfatter",
+                        inndelingskriterium = description,
+                        relatertBegrep = partitiveConcept
+                    ).takeIf { partitiveConcept != null }
+                }
+
+                it.hasProperty(SKOSNO.hasComprehensiveConcept) -> {
+                    val comprehensiveConcept = it.getProperty(SKOSNO.hasComprehensiveConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "partitiv",
+                        relasjonsType = "erDelAv",
+                        inndelingskriterium = description,
+                        relatertBegrep = comprehensiveConcept
+                    ).takeIf { comprehensiveConcept != null }
+                }
+
+                else -> null
+            }
+        }
+
+    val genericConceptRelations = this.listProperties(SKOSNO.hasGenericConceptRelation)
+        .toList()
+        .mapNotNull { it.`object`.asResourceOrNull() }
+        .filter { it.hasProperty(RDF.type, SKOSNO.GenericConceptRelation) }
+        .mapNotNull {
+            val description = it.extractLocalizedStrings(DCTerms.description)
+
+            when {
+                it.hasProperty(SKOSNO.hasGenericConcept) -> {
+                    val genericConcept = it.getProperty(SKOSNO.hasGenericConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "generisk",
+                        relasjonsType = "overordnet",
+                        inndelingskriterium = description,
+                        relatertBegrep = genericConcept
+                    ).takeIf { genericConcept != null }
+                }
+
+                it.hasProperty(SKOSNO.hasSpecificConcept) -> {
+                    val specificConcept = it.getProperty(SKOSNO.hasSpecificConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "generisk",
+                        relasjonsType = "underordnet",
+                        inndelingskriterium = description,
+                        relatertBegrep = specificConcept
+                    ).takeIf { specificConcept != null }
+                }
+
+                else -> null
+            }
+        }
+
+    return listOf(associativeConceptRelations, partitiveConceptRelations, genericConceptRelations)
+        .flatten()
+        .takeIf { it.isNotEmpty() }
 }
 
 private fun Resource.extractLocalizedStrings(property: Property): Map<String, String>? {
@@ -248,14 +341,13 @@ private fun Resource.extractDate(property: Property): LocalDate? {
         ?.let { LocalDate.parse(it) }
 }
 
-private fun isValidDate(dateString: String): Boolean {
-    return try {
+private fun isValidDate(dateString: String): Boolean =
+    try {
         LocalDate.parse(dateString)
         true
     } catch (e: DateTimeParseException) {
         false
     }
-}
 
 private fun Resource.extractUri(property: Property): List<String>? {
     return this.listProperties(property)

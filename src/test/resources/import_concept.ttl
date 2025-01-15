@@ -47,29 +47,35 @@
                         vcard:hasValue  <tel:+123-456-789> ;
                       ] ;
               ];
-        skosno:hasGenericConceptRelation     
+        skosno:isFromConceptIn 
               [ 
-                rdf:type                        skosno:GenericConceptRelation ;
-                dct:description                 "Inndelingskriterium"@nb ;
-                skosno:hasSpecificConcept       <https://example.com/specificConcept>
-              ] ;
-        skosno:hasGenericConceptRelation      
-              [ 
-                rdf:type                        skosno:GenericConceptRelation ;
-                dct:description                 "Inndelingskriterium"@nb ;
-                skosno:hasGenericConcept        <https://example.com/genericConcept>
+                rdf:type                        skosno:AssociativeConceptRelation ;
+                skosno:hasToConcept             <https://example.com/topConcept> ; 
+                skosno:relationRole             "muliggjør"@nb ;
               ] ;
         skosno:hasPartitiveConceptRelation    
               [ 
                 rdf:type                        skosno:PartitiveConceptRelation ;
-                dct:description                 "Inndelingskriterium"@nb ;
+                dct:description                 "inndelingskriterium"@nb ;
                 skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
               ] ;
         skosno:hasPartitiveConceptRelation    
               [ 
                 rdf:type                        skosno:PartitiveConceptRelation ;
-                dct:description                 "Inndelingskriterium"@nb ;
+                dct:description                 "inndelingskriterium"@nb ;
                 skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
+              ] ;
+        skosno:hasGenericConceptRelation      
+              [ 
+                rdf:type                        skosno:GenericConceptRelation ;
+                dct:description                 "inndelingskriterium"@nb ;
+                skosno:hasGenericConcept        <https://example.com/genericConcept>
+              ] ;
+        skosno:hasGenericConceptRelation     
+              [ 
+                rdf:type                        skosno:GenericConceptRelation ;
+                dct:description                 "inndelingskriterium"@nb ;
+                skosno:hasSpecificConcept       <https://example.com/specificConcept>
               ] ;
         euvoc:xlDefinition                   
               [ 
@@ -84,7 +90,6 @@
                 rdf:value                       "definisjon for spesialister"@nb ;
                 dct:audience                    audience-type:specialist ;
                 skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
-                                              
               ] ;
         euvoc:xlDefinition                    
               [ 
