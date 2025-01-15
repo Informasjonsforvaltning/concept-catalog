@@ -8,6 +8,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
 private val SEM_VAR_REGEX = Regex("""^(\d+)\.(\d+)\.(\d+)$""")
+private val EMAIL_REGEX = Regex("""^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$""")
+private val TELEPHONE_REGEX = Regex("""^\+?[0-9\s\-()]{7,15}$""")
 
 fun Model.extractBegreper(catalogId: String): List<Begrep> {
     val begreper = this.listResourcesWithProperty(RDF.type, SKOS.Concept)
@@ -32,7 +34,8 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 gyldigFom = it.extractGyldigFom(),
                 gyldigTom = it.extractGyldigTom(),
                 seOgså = it.extractSeOgså(),
-                erstattesAv = it.extractErstattesAv()
+                erstattesAv = it.extractErstattesAv(),
+                kontaktpunkt = it.extractKontaktPunkt()
             )
         }
 
@@ -133,11 +136,8 @@ fun Resource.extractOmfang(): URITekst? {
         .firstOrNull { it.`object`.isURIResource }
         ?.let { it.`object`.asUriResourceOrNull()?.uri }
 
-    return if (text != null || uri != null) {
-        URITekst(uri, text)
-    } else {
-        null
-    }
+    return URITekst(uri, text)
+        .takeIf { text != null || uri != null }
 }
 
 fun Resource.extractGyldigFom(): LocalDate? {
@@ -156,11 +156,37 @@ fun Resource.extractErstattesAv(): List<String>? {
     return this.extractUri(DCTerms.isReplacedBy)
 }
 
-private fun Resource.extractUri(property: Property): List<String>? {
-    return this.listProperties(property)
-        .toList()
-        .mapNotNull { it.`object`.asUriResourceOrNull()?.uri }
-        .takeIf { it.isNotEmpty() }
+fun Resource.extractKontaktPunkt(): Kontaktpunkt? {
+    return this.getProperty(DCAT.contactPoint)
+        ?.`object`?.asResourceOrNull()
+        ?.let { vcard ->
+            val email = vcard.getProperty(VCARD4.hasEmail)
+                ?.`object`?.asUriResourceOrNull()
+                ?.toString()
+                ?.removePrefix("mailto:")
+                ?.takeIf { EMAIL_REGEX.matches(it) }
+
+            val telephone = vcard.getProperty(VCARD4.hasTelephone)
+                ?.let {
+                    if (it.`object`.isURIResource) {
+                        it.`object`.asUriResourceOrNull()
+                            ?.toString()
+                            ?.removePrefix("tel:")
+                    } else {
+                        it.`object`.asResourceOrNull()
+                            ?.getProperty(VCARD4.hasValue)
+                            ?.`object`
+                            ?.asUriResourceOrNull()
+                            ?.toString()
+                    }
+                }
+                ?.toString()
+                ?.removePrefix("tel:")
+                ?.takeIf { TELEPHONE_REGEX.matches(it) }
+
+            Kontaktpunkt(harEpost = email, harTelefon = telephone)
+                .takeIf { email != null || telephone != null }
+        }
 }
 
 private fun Resource.extractLocalizedStrings(property: Property): Map<String, String>? {
@@ -227,11 +253,17 @@ private fun Resource.extractDate(property: Property): LocalDate? {
 private fun isValidDate(dateString: String): Boolean {
     return try {
         LocalDate.parse(dateString)
-
         true
     } catch (e: DateTimeParseException) {
         false
     }
+}
+
+private fun Resource.extractUri(property: Property): List<String>? {
+    return this.listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asUriResourceOrNull()?.uri }
+        .takeIf { it.isNotEmpty() }
 }
 
 private fun RDFNode.asLiteralOrNull(): Literal? {

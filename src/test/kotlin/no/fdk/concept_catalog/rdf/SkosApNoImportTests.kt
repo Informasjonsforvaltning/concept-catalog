@@ -6,10 +6,7 @@ import no.fdk.concept_catalog.model.URITekst
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
-import org.apache.jena.vocabulary.DCTerms
-import org.apache.jena.vocabulary.OWL
-import org.apache.jena.vocabulary.RDFS
-import org.apache.jena.vocabulary.SKOS
+import org.apache.jena.vocabulary.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -49,6 +46,7 @@ class SkosApNoImportTests {
             assertNotNull(concept.gyldigTom)
             assertNotNull(concept.seOgså!!.isEmpty())
             assertFalse(concept.erstattesAv!!.isEmpty())
+            assertNotNull(concept.kontaktpunkt)
         }
     }
 
@@ -262,7 +260,7 @@ class SkosApNoImportTests {
 
         subject!!.let {
             assertEquals(1, it.size)
-            assertTrue(it.contains("https://example.com/fagområde"))
+            assertTrue(it.contains("https://example.com/subject"))
         }
     }
 
@@ -275,7 +273,7 @@ class SkosApNoImportTests {
             .first()
             .extractOmfang()
 
-        assertEquals(URITekst("https://example.com/omfang", "omfang"), valueRange)
+        assertEquals(URITekst("https://example.com/valueRange", "omfang"), valueRange)
     }
 
     @Test
@@ -313,7 +311,7 @@ class SkosApNoImportTests {
 
         seeAlso!!.let {
             assertEquals(1, it.size)
-            assertTrue(it.contains("https://example.com/seeAlso"))
+            assertTrue(it.contains("https://example.com/seeAlsoConcept"))
         }
     }
 
@@ -328,7 +326,22 @@ class SkosApNoImportTests {
 
         seeAlso!!.let {
             assertEquals(1, it.size)
-            assertTrue(it.contains("https://example.com/isReplacedBy"))
+            assertTrue(it.contains("https://example.com/isReplacedByConcept"))
+        }
+    }
+
+    @Test
+    fun `should extract kontaktpunkt`() {
+        val model = readModel("import_concept.ttl")
+
+        val contactPoint = model.listResourcesWithProperty(DCAT.contactPoint)
+            .toList()
+            .first()
+            .extractKontaktPunkt()
+
+        contactPoint!!.let {
+            assertEquals("organization@example.com", it.harEpost)
+            assertEquals("+123-456-789", it.harTelefon)
         }
     }
 
