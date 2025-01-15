@@ -12,7 +12,7 @@ private val EMAIL_REGEX = Regex("""^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2
 private val TELEPHONE_REGEX = Regex("""^\+?[0-9\s\-()]{7,15}$""")
 
 fun Model.extractBegreper(catalogId: String): List<Begrep> {
-    val begreper = this.listResourcesWithProperty(RDF.type, SKOS.Concept)
+    return this.listResourcesWithProperty(RDF.type, SKOS.Concept)
         .toList()
         .mapNotNull { it.asResourceOrNull() }
         .map {
@@ -38,11 +38,9 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 kontaktpunkt = it.extractKontaktPunkt()
             )
         }
-
-    return begreper
 }
 
-fun Resource.extractVersjonr(): SemVer? {
+private fun Resource.extractVersjonr(): SemVer? {
     return this.getProperty(OWL.versionInfo)
         ?.let { it.`object`.asLiteralOrNull()?.string }
         ?.takeIf { it.isNotBlank() && SEM_VAR_REGEX.matches(it) }
@@ -53,25 +51,25 @@ fun Resource.extractVersjonr(): SemVer? {
         }
 }
 
-fun Resource.extractStatusUri(): String? {
+private fun Resource.extractStatusUri(): String? {
     return this.getProperty(EUVOC.status)
         ?.let { it.`object`.asUriResourceOrNull()?.uri }
 }
 
-fun Resource.extractAnbefaltTerm(): Term? {
+private fun Resource.extractAnbefaltTerm(): Term? {
     return this.extractLocalizedStrings(SKOS.prefLabel)
         ?.let { Term(it) }
 }
 
-fun Resource.extractTillattTerm(): Map<String, List<String>>? {
+private fun Resource.extractTillattTerm(): Map<String, List<String>>? {
     return this.extractLocalizedStringsAsGrouping(SKOS.altLabel)
 }
 
-fun Resource.extractFrarådetTerm(): Map<String, List<String>>? {
+private fun Resource.extractFrarådetTerm(): Map<String, List<String>>? {
     return this.extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
 }
 
-fun Resource.extractDefinisjon(): Definisjon? {
+private fun Resource.extractDefinisjon(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
@@ -79,7 +77,7 @@ fun Resource.extractDefinisjon(): Definisjon? {
         .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
-fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
+private fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
@@ -92,7 +90,7 @@ fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
         .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
-fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
+private fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
     return this.listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
@@ -105,19 +103,19 @@ fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
         .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
-fun Resource.extractMerknad(): Map<String, String>? {
+private fun Resource.extractMerknad(): Map<String, String>? {
     return this.extractLocalizedStrings(SKOS.scopeNote)
 }
 
-fun Resource.extractEksempel(): Map<String, String>? {
+private fun Resource.extractEksempel(): Map<String, String>? {
     return this.extractLocalizedStrings(SKOS.example)
 }
 
-fun Resource.extractFagområde(): Map<String, List<String>>? {
+private fun Resource.extractFagområde(): Map<String, List<String>>? {
     return this.extractLocalizedStringsAsGrouping(DCTerms.subject)
 }
 
-fun Resource.extractFagområdeKoder(): List<String>? {
+private fun Resource.extractFagområdeKoder(): List<String>? {
     return this.listProperties(DCTerms.subject)
         .toList()
         .mapNotNull { it.`object`.asUriResourceOrNull() }
@@ -125,7 +123,7 @@ fun Resource.extractFagområdeKoder(): List<String>? {
         .takeIf { it.isNotEmpty() }
 }
 
-fun Resource.extractOmfang(): URITekst? {
+private fun Resource.extractOmfang(): URITekst? {
     val text = this.listProperties(SKOSNO.valueRange)
         .toList()
         .firstOrNull { it.`object`.isLiteral }
@@ -140,23 +138,23 @@ fun Resource.extractOmfang(): URITekst? {
         .takeIf { text != null || uri != null }
 }
 
-fun Resource.extractGyldigFom(): LocalDate? {
+private fun Resource.extractGyldigFom(): LocalDate? {
     return this.extractDate(EUVOC.startDate)
 }
 
-fun Resource.extractGyldigTom(): LocalDate? {
+private fun Resource.extractGyldigTom(): LocalDate? {
     return this.extractDate(EUVOC.endDate)
 }
 
-fun Resource.extractSeOgså(): List<String>? {
+private fun Resource.extractSeOgså(): List<String>? {
     return this.extractUri(RDFS.seeAlso)
 }
 
-fun Resource.extractErstattesAv(): List<String>? {
+private fun Resource.extractErstattesAv(): List<String>? {
     return this.extractUri(DCTerms.isReplacedBy)
 }
 
-fun Resource.extractKontaktPunkt(): Kontaktpunkt? {
+private fun Resource.extractKontaktPunkt(): Kontaktpunkt? {
     return this.getProperty(DCAT.contactPoint)
         ?.`object`?.asResourceOrNull()
         ?.let { vcard ->
