@@ -8,6 +8,7 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.OWL
+import org.apache.jena.vocabulary.RDFS
 import org.apache.jena.vocabulary.SKOS
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Tag
@@ -46,6 +47,8 @@ class SkosApNoImportTests {
             assertNotNull(concept.omfang)
             assertNotNull(concept.gyldigFom)
             assertNotNull(concept.gyldigTom)
+            assertNotNull(concept.seOgså!!.isEmpty())
+            assertFalse(concept.erstattesAv!!.isEmpty())
         }
     }
 
@@ -53,37 +56,36 @@ class SkosApNoImportTests {
     fun `should extract versjonsnr`() {
         val model = readModel("import_concept.ttl")
 
-        model.listResourcesWithProperty(OWL.versionInfo)
+        val versionInfo = model.listResourcesWithProperty(OWL.versionInfo)
             .toList()
-            .map { it.extractVersjonr() }
-            .firstNotNullOf {
-                assertEquals(SemVer(1, 0, 0), it)
-            }
+            .first()
+            .extractVersjonr()
+
+        assertEquals(SemVer(1, 0, 0), versionInfo)
     }
 
     @Test
     fun `should extract statusUri`() {
         val model = readModel("import_concept.ttl")
 
-        model.listResourcesWithProperty(EUVOC.status)
+        val status = model.listResourcesWithProperty(EUVOC.status)
             .toList()
-            .map { it.extractStatusUri() }
-            .firstNotNullOf {
-                assertEquals("http://publications.europa.eu/resource/authority/concept-status/CURRENT", it)
-            }
+            .first()
+            .extractStatusUri()
+
+        assertEquals("http://publications.europa.eu/resource/authority/concept-status/CURRENT", status)
     }
 
     @Test
     fun `should extract anbefaltTerm`() {
         val model = readModel("import_concept.ttl")
 
-        val terms = model.listResourcesWithProperty(SKOS.prefLabel)
+        val prefLabel = model.listResourcesWithProperty(SKOS.prefLabel)
             .toList()
-            .map { it.extractAnbefaltTerm() }
+            .first()
+            .extractAnbefaltTerm()
 
-        assertEquals(1, terms.size)
-
-        terms.first()!!.navn.let {
+        prefLabel!!.navn.let {
             assertEquals(2, it.size)
             assertTrue(it.containsKey("nb"))
             assertEquals("anbefaltTerm", it["nb"])
@@ -96,14 +98,13 @@ class SkosApNoImportTests {
     fun `should extract tillattTerm`() {
         val model = readModel("import_concept.ttl")
 
-        val terms = model.listResourcesWithProperty(SKOS.altLabel)
+        val altLabel = model.listResourcesWithProperty(SKOS.altLabel)
             .toList()
-            .map { it.extractTillattTerm() }
+            .first()
+            .extractTillattTerm()
 
-        assertEquals(1, terms.size)
-
-        terms.first().let {
-            assertTrue(it!!.containsKey("nn"))
+        altLabel!!.let {
+            assertTrue(it.containsKey("nn"))
             assertEquals(it.getValue("nn").toSet(), setOf("tillattTerm", "tillattTerm2"))
         }
     }
@@ -112,14 +113,13 @@ class SkosApNoImportTests {
     fun `should extract frarådetTerm`() {
         val model = readModel("import_concept.ttl")
 
-        val terms = model.listResourcesWithProperty(SKOS.hiddenLabel)
+        val hiddenLabel = model.listResourcesWithProperty(SKOS.hiddenLabel)
             .toList()
-            .map { it.extractFrarådetTerm() }
+            .first()
+            .extractFrarådetTerm()
 
-        assertEquals(1, terms.size)
-
-        terms.first().let {
-            assertTrue(it!!.containsKey("nb"))
+        hiddenLabel!!.let {
+            assertTrue(it.containsKey("nb"))
             assertEquals(it.getValue("nb").toSet(), setOf("fraraadetTerm", "fraraadetTerm2", "Lorem ipsum"))
         }
     }
@@ -128,14 +128,13 @@ class SkosApNoImportTests {
     fun `should extract definisjon`() {
         val model = readModel("import_concept.ttl")
 
-        val definitions = model.listResourcesWithProperty(EUVOC.xlDefinition)
+        val xlDefinition = model.listResourcesWithProperty(EUVOC.xlDefinition)
             .toList()
-            .map { it.extractDefinisjon() }
+            .first()
+            .extractDefinisjon()
 
-        assertEquals(1, definitions.size)
-
-        definitions.first().let {
-            it!!.tekst.let { text ->
+        xlDefinition!!.let {
+            it.tekst.let { text ->
                 assertEquals(2, text!!.size)
                 assertTrue(text.containsKey("nb"))
                 assertEquals("definisjon", text["nb"])
@@ -164,14 +163,13 @@ class SkosApNoImportTests {
     fun `should extract definisjonForAllmennheten`() {
         val model = readModel("import_concept.ttl")
 
-        val definitions = model.listResourcesWithProperty(EUVOC.xlDefinition)
+        val xlDefinition = model.listResourcesWithProperty(EUVOC.xlDefinition)
             .toList()
-            .map { it.extractDefinisjonForAllmennheten() }
+            .first()
+            .extractDefinisjonForAllmennheten()
 
-        assertEquals(1, definitions.size)
-
-        definitions.first().let {
-            it!!.tekst.let { text ->
+        xlDefinition!!.let {
+            it.tekst.let { text ->
                 assertEquals(1, text!!.size)
                 assertTrue(text.containsKey("nb"))
                 assertEquals("definisjon for allmennheten", text["nb"])
@@ -185,14 +183,13 @@ class SkosApNoImportTests {
     fun `should extract definisjonForSpesialister`() {
         val model = readModel("import_concept.ttl")
 
-        val definitions = model.listResourcesWithProperty(EUVOC.xlDefinition)
+        val xlDefinition = model.listResourcesWithProperty(EUVOC.xlDefinition)
             .toList()
-            .map { it.extractDefinisjonForSpesialister() }
+            .first()
+            .extractDefinisjonForSpesialister()
 
-        assertEquals(1, definitions.size)
-
-        definitions.first().let {
-            it!!.tekst.let { text ->
+        xlDefinition!!.let {
+            it.tekst.let { text ->
                 assertEquals(1, text!!.size)
                 assertTrue(text.containsKey("nb"))
                 assertEquals("definisjon for spesialister", text["nb"])
@@ -206,14 +203,13 @@ class SkosApNoImportTests {
     fun `should extract merknad`() {
         val model = readModel("import_concept.ttl")
 
-        val notes = model.listResourcesWithProperty(SKOS.scopeNote)
+        val scopeNote = model.listResourcesWithProperty(SKOS.scopeNote)
             .toList()
-            .map { it.extractMerknad() }
+            .first()
+            .extractMerknad()
 
-        assertEquals(1, notes.size)
-
-        notes.first().let {
-            assertEquals(2, it!!.size)
+        scopeNote!!.let {
+            assertEquals(2, it.size)
             assertTrue(it.containsKey("nb"))
             assertEquals("merknad", it["nb"])
             assertTrue(it.containsKey("nn"))
@@ -225,14 +221,13 @@ class SkosApNoImportTests {
     fun `should extract eksempel`() {
         val model = readModel("import_concept.ttl")
 
-        val examples = model.listResourcesWithProperty(SKOS.example)
+        val example = model.listResourcesWithProperty(SKOS.example)
             .toList()
-            .map { it.extractEksempel() }
+            .first()
+            .extractEksempel()
 
-        assertEquals(1, examples.size)
-
-        examples.first().let {
-            assertEquals(2, it!!.size)
+        example!!.let {
+            assertEquals(2, it.size)
             assertTrue(it.containsKey("nb"))
             assertEquals("eksempel", it["nb"])
             assertTrue(it.containsKey("nn"))
@@ -244,14 +239,14 @@ class SkosApNoImportTests {
     fun `should extract fagområde`() {
         val model = readModel("import_concept.ttl")
 
-        val subjects = model.listResourcesWithProperty(DCTerms.subject)
+        val subject = model.listResourcesWithProperty(DCTerms.subject)
             .toList()
-            .map { it.extractFagområde() }
+            .first()
+            .extractFagområde()
 
-        assertEquals(1, subjects.size)
-
-        subjects.first().let {
-            assertTrue(it!!.containsKey("nb"))
+        subject!!.let {
+            assertEquals(1, it.size)
+            assertTrue(it.containsKey("nb"))
             assertEquals(it.getValue("nb").toSet(), setOf("fagområde"))
         }
     }
@@ -260,52 +255,81 @@ class SkosApNoImportTests {
     fun `should extract fagområdeKoder`() {
         val model = readModel("import_concept.ttl")
 
-        val subjects = model.listResourcesWithProperty(DCTerms.subject)
+        val subject = model.listResourcesWithProperty(DCTerms.subject)
             .toList()
-            .map { it.extractFagområdeKoder() }
+            .first()
+            .extractFagområdeKoder()
 
-        assertEquals(1, subjects.size)
-
-        assertTrue(subjects.first()!!.contains("https://example.com/fagområde"))
+        subject!!.let {
+            assertEquals(1, it.size)
+            assertTrue(it.contains("https://example.com/fagområde"))
+        }
     }
 
     @Test
     fun `should extract omfang`() {
         val model = readModel("import_concept.ttl")
 
-        val scope = model.listResourcesWithProperty(SKOSNO.valueRange)
+        val valueRange = model.listResourcesWithProperty(SKOSNO.valueRange)
             .toList()
-            .map { it.extractOmfang() }
+            .first()
+            .extractOmfang()
 
-        assertEquals(1, scope.size)
-
-        assertEquals(URITekst("https://example.com/omfang", "omfang"), scope.first())
+        assertEquals(URITekst("https://example.com/omfang", "omfang"), valueRange)
     }
 
     @Test
     fun `should extract gyldigFom`() {
         val model = readModel("import_concept.ttl")
 
-        val date = model.listResourcesWithProperty(EUVOC.startDate)
+        val startDate = model.listResourcesWithProperty(EUVOC.startDate)
             .toList()
-            .map { it.extractGyldigFom() }
+            .first()
+            .extractGyldigFom()
 
-        assertEquals(1, date.size)
-
-        assertEquals(LocalDate.of(2020, 12, 31), date.first())
+        assertEquals(LocalDate.of(2020, 12, 31), startDate)
     }
 
     @Test
     fun `should extract gyldigTom`() {
         val model = readModel("import_concept.ttl")
 
-        val date = model.listResourcesWithProperty(EUVOC.endDate)
+        val endDate = model.listResourcesWithProperty(EUVOC.endDate)
             .toList()
-            .map { it.extractGyldigTom() }
+            .first()
+            .extractGyldigTom()
 
-        assertEquals(1, date.size)
+        assertEquals(LocalDate.of(2030, 12, 31), endDate)
+    }
 
-        assertEquals(LocalDate.of(2030, 12, 31), date.first())
+    @Test
+    fun `should extract seOgså`() {
+        val model = readModel("import_concept.ttl")
+
+        val seeAlso = model.listResourcesWithProperty(RDFS.seeAlso)
+            .toList()
+            .first()
+            .extractSeOgså()
+
+        seeAlso!!.let {
+            assertEquals(1, it.size)
+            assertTrue(it.contains("https://example.com/seeAlso"))
+        }
+    }
+
+    @Test
+    fun `should extract erstattesAv`() {
+        val model = readModel("import_concept.ttl")
+
+        val seeAlso = model.listResourcesWithProperty(DCTerms.isReplacedBy)
+            .toList()
+            .first()
+            .extractErstattesAv()
+
+        seeAlso!!.let {
+            assertEquals(1, it.size)
+            assertTrue(it.contains("https://example.com/isReplacedBy"))
+        }
     }
 
     private fun readModel(file: String): Model {

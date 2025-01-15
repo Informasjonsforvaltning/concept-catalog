@@ -3,10 +3,7 @@ package no.fdk.concept_catalog.rdf
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.service.isValidURI
 import org.apache.jena.rdf.model.*
-import org.apache.jena.vocabulary.DCTerms
-import org.apache.jena.vocabulary.OWL
-import org.apache.jena.vocabulary.RDF
-import org.apache.jena.vocabulary.SKOS
+import org.apache.jena.vocabulary.*
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -34,6 +31,8 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 omfang = it.extractOmfang(),
                 gyldigFom = it.extractGyldigFom(),
                 gyldigTom = it.extractGyldigTom(),
+                seOgså = it.extractSeOgså(),
+                erstattesAv = it.extractErstattesAv()
             )
         }
 
@@ -53,20 +52,20 @@ fun Resource.extractVersjonr(): SemVer? {
 
 fun Resource.extractStatusUri(): String? {
     return this.getProperty(EUVOC.status)
-        ?.let { it.`object`.asResourceUriOrNull()?.uri }
+        ?.let { it.`object`.asUriResourceOrNull()?.uri }
 }
 
 fun Resource.extractAnbefaltTerm(): Term? {
-    return extractLocalizedStrings(SKOS.prefLabel)
+    return this.extractLocalizedStrings(SKOS.prefLabel)
         ?.let { Term(it) }
 }
 
 fun Resource.extractTillattTerm(): Map<String, List<String>>? {
-    return extractLocalizedStringsAsGrouping(SKOS.altLabel)
+    return this.extractLocalizedStringsAsGrouping(SKOS.altLabel)
 }
 
 fun Resource.extractFrarådetTerm(): Map<String, List<String>>? {
-    return extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
+    return this.extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
 }
 
 fun Resource.extractDefinisjon(): Definisjon? {
@@ -84,7 +83,7 @@ fun Resource.extractDefinisjonForAllmennheten(): Definisjon? {
         .filter {
             it.getProperty(DCTerms.audience)
                 ?.`object`
-                ?.asResourceUriOrNull()
+                ?.asUriResourceOrNull()
                 ?.hasURI(AUDIENCE_TYPE.public.uri) == true
         }
         .firstNotNullOfOrNull { it.extractDefinition() }
@@ -97,28 +96,28 @@ fun Resource.extractDefinisjonForSpesialister(): Definisjon? {
         .filter {
             it.getProperty(DCTerms.audience)
                 ?.`object`
-                ?.asResourceUriOrNull()
+                ?.asUriResourceOrNull()
                 ?.hasURI(AUDIENCE_TYPE.specialist.uri) == true
         }
         .firstNotNullOfOrNull { it.extractDefinition() }
 }
 
 fun Resource.extractMerknad(): Map<String, String>? {
-    return extractLocalizedStrings(SKOS.scopeNote)
+    return this.extractLocalizedStrings(SKOS.scopeNote)
 }
 
 fun Resource.extractEksempel(): Map<String, String>? {
-    return extractLocalizedStrings(SKOS.example)
+    return this.extractLocalizedStrings(SKOS.example)
 }
 
 fun Resource.extractFagområde(): Map<String, List<String>>? {
-    return extractLocalizedStringsAsGrouping(DCTerms.subject)
+    return this.extractLocalizedStringsAsGrouping(DCTerms.subject)
 }
 
 fun Resource.extractFagområdeKoder(): List<String>? {
     return this.listProperties(DCTerms.subject)
         .toList()
-        .mapNotNull { it.`object`.asResourceUriOrNull() }
+        .mapNotNull { it.`object`.asUriResourceOrNull() }
         .map { it.toString() }
         .takeIf { it.isNotEmpty() }
 }
@@ -132,7 +131,7 @@ fun Resource.extractOmfang(): URITekst? {
     val uri = this.listProperties(SKOSNO.valueRange)
         .toList()
         .firstOrNull { it.`object`.isURIResource }
-        ?.let { it.`object`.asResourceUriOrNull()?.uri }
+        ?.let { it.`object`.asUriResourceOrNull()?.uri }
 
     return if (text != null || uri != null) {
         URITekst(uri, text)
@@ -142,24 +141,51 @@ fun Resource.extractOmfang(): URITekst? {
 }
 
 fun Resource.extractGyldigFom(): LocalDate? {
-    return extractDate(EUVOC.startDate)
+    return this.extractDate(EUVOC.startDate)
 }
 
 fun Resource.extractGyldigTom(): LocalDate? {
-    return extractDate(EUVOC.endDate)
+    return this.extractDate(EUVOC.endDate)
 }
 
-private fun Resource.extractDate(property: Property): LocalDate? {
-    return this.getProperty(property)
-        ?.let { it.`object`.asLiteralOrNull()?.string }
-        ?.takeIf { isValidDate(it) }
-        ?.let { LocalDate.parse(it) }
+fun Resource.extractSeOgså(): List<String>? {
+    return this.extractUri(RDFS.seeAlso)
+}
+
+fun Resource.extractErstattesAv(): List<String>? {
+    return this.extractUri(DCTerms.isReplacedBy)
+}
+
+private fun Resource.extractUri(property: Property): List<String>? {
+    return this.listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asUriResourceOrNull()?.uri }
+        .takeIf { it.isNotEmpty() }
+}
+
+private fun Resource.extractLocalizedStrings(property: Property): Map<String, String>? {
+    return this.listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asLiteralOrNull() }
+        .filter { it.language.isNotBlank() && it.string.isNotBlank() }
+        .associate { it.language to it.string }
+        .takeIf { it.isNotEmpty() }
+}
+
+private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Map<String, List<String>>? {
+    return this.listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asLiteralOrNull() }
+        .filter { it.language.isNotBlank() && it.string.isNotBlank() }
+        .groupBy { it.language }
+        .mapValues { (_, literals) -> literals.map { it.string } }
+        .takeIf { it.isNotEmpty() }
 }
 
 private fun Resource.extractDefinition(): Definisjon? {
     val relationshipWithSource: ForholdTilKildeEnum? = this.getProperty(SKOSNO.relationshipWithSource)
         ?.let { statement ->
-            statement.`object`.asResourceUriOrNull()?.let {
+            statement.`object`.asUriResourceOrNull()?.let {
                 when {
                     it.hasURI(RELATIONSHIP.selfComposed.uri) -> ForholdTilKildeEnum.EGENDEFINERT
                     it.hasURI(RELATIONSHIP.directFromSource.uri) -> ForholdTilKildeEnum.BASERTPAAKILDE
@@ -175,7 +201,7 @@ private fun Resource.extractDefinition(): Definisjon? {
             statement.`object`.let {
                 when {
                     it.isLiteral -> URITekst(tekst = it.asLiteralOrNull()?.string)
-                    it.isURIResource -> URITekst(uri = it.asResourceUriOrNull()?.uri)
+                    it.isURIResource -> URITekst(uri = it.asUriResourceOrNull()?.uri)
                     else -> null
                 }
             }
@@ -191,23 +217,11 @@ private fun Resource.extractDefinition(): Definisjon? {
     return value?.let { Definisjon(tekst = it, kildebeskrivelse = sourceDescription) }
 }
 
-private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Map<String, List<String>>? {
-    return this.listProperties(property)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { it.language.isNotBlank() && it.string.isNotBlank() }
-        .groupBy { it.language }
-        .mapValues { (_, literals) -> literals.map { it.string } }
-        .takeIf { it.isNotEmpty() }
-}
-
-private fun Resource.extractLocalizedStrings(property: Property): Map<String, String>? {
-    return this.listProperties(property)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { it.language.isNotBlank() && it.string.isNotBlank() }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
+private fun Resource.extractDate(property: Property): LocalDate? {
+    return this.getProperty(property)
+        ?.let { it.`object`.asLiteralOrNull()?.string }
+        ?.takeIf { isValidDate(it) }
+        ?.let { LocalDate.parse(it) }
 }
 
 private fun isValidDate(dateString: String): Boolean {
@@ -228,6 +242,6 @@ private fun RDFNode.asResourceOrNull(): Resource? {
     return if (this.isResource) this.asResource() else null
 }
 
-private fun RDFNode.asResourceUriOrNull(): Resource? {
+private fun RDFNode.asUriResourceOrNull(): Resource? {
     return if (this.isURIResource && this.asResource().uri.isValidURI()) this.asResource() else null
 }
