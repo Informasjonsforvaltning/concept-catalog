@@ -145,8 +145,8 @@ private fun Resource.extractErstattesAv(): List<String>? {
     return this.extractUri(DCTerms.isReplacedBy)
 }
 
-private fun Resource.extractKontaktPunkt(): Kontaktpunkt? =
-    this.getProperty(DCAT.contactPoint)
+private fun Resource.extractKontaktPunkt(): Kontaktpunkt? {
+    return this.getProperty(DCAT.contactPoint)
         ?.`object`?.asResourceOrNull()
         ?.let { vcard ->
             val email = vcard.getProperty(VCARD4.hasEmail)
@@ -157,18 +157,10 @@ private fun Resource.extractKontaktPunkt(): Kontaktpunkt? =
 
             val telephone = vcard.getProperty(VCARD4.hasTelephone)
                 ?.let {
-                    when {
-                        it.`object`.isURIResource -> {
-                            it.`object`.asUriResourceOrNull()?.toString()
-                        }
-
-                        else -> {
-                            it.`object`.asResourceOrNull()
-                                ?.getProperty(VCARD4.hasValue)
-                                ?.`object`
-                                ?.asUriResourceOrNull()?.toString()
-                        }
-                    }
+                    it.`object`.asUriResourceOrNull()?.toString() ?: it.`object`.asResourceOrNull()
+                        ?.getProperty(VCARD4.hasValue)
+                        ?.`object`
+                        ?.asUriResourceOrNull()?.toString()
                 }
                 ?.toString()
                 ?.removePrefix("tel:")
@@ -177,6 +169,7 @@ private fun Resource.extractKontaktPunkt(): Kontaktpunkt? =
             Kontaktpunkt(harEpost = email, harTelefon = telephone)
                 .takeIf { email != null || telephone != null }
         }
+}
 
 private fun Resource.extractBegrepsRelasjon(): List<BegrepsRelasjon>? {
     val associativeConceptRelations = this.listProperties(SKOSNO.isFromConceptIn)
@@ -300,25 +293,34 @@ private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Map<
 }
 
 private fun Resource.extractDefinition(): Definisjon? {
-    val relationshipWithSource: ForholdTilKildeEnum? = this.getProperty(SKOSNO.relationshipWithSource)
-        ?.let { statement ->
-            statement.`object`.asUriResourceOrNull()?.let {
-                when {
-                    it.hasURI(RELATIONSHIP.selfComposed.uri) -> ForholdTilKildeEnum.EGENDEFINERT
-                    it.hasURI(RELATIONSHIP.directFromSource.uri) -> ForholdTilKildeEnum.BASERTPAAKILDE
-                    it.hasURI(RELATIONSHIP.derivedFromSource.uri) -> ForholdTilKildeEnum.SITATFRAKILDE
-                    else -> null
-                }
-            }
-        }
+    val relationshipWithSource: ForholdTilKildeEnum? = when {
+        this.hasProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.selfComposed)
+            -> ForholdTilKildeEnum.EGENDEFINERT
+
+        this.hasProperty(
+            SKOSNO.relationshipWithSource,
+            RELATIONSHIP.directFromSource
+        ) -> ForholdTilKildeEnum.BASERTPAAKILDE
+
+        this.hasProperty(
+            SKOSNO.relationshipWithSource,
+            RELATIONSHIP.derivedFromSource
+        ) -> ForholdTilKildeEnum.SITATFRAKILDE
+
+        else -> null
+    }
 
     val source: List<URITekst>? = this.listProperties(DCTerms.source)
         .toList()
         .mapNotNull { statement ->
             statement.`object`.let {
                 when {
-                    it.isLiteral -> URITekst(tekst = it.asLiteralOrNull()?.string)
-                    it.isURIResource -> URITekst(uri = it.asUriResourceOrNull()?.uri)
+                    it.isLiteral -> it.asLiteralOrNull()?.string
+                        ?.let { text -> URITekst(tekst = text) }
+
+                    it.isURIResource -> it.asUriResourceOrNull()?.uri
+                        ?.let { uri -> URITekst(uri = uri) }
+
                     else -> null
                 }
             }

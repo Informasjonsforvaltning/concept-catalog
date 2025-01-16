@@ -7,18 +7,33 @@ import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.io.StringReader
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 
 @Tag("unit")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SkosApNoImportTests {
+
+    lateinit var model: Model
+
+    @BeforeAll
+    fun setup() {
+        val turtle = String(
+            javaClass.classLoader.getResourceAsStream("import_concept.ttl")!!.readAllBytes(),
+            StandardCharsets.UTF_8
+        )
+
+        model = ModelFactory.createDefaultModel()
+        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+    }
 
     @Test
     fun `should extract list of concepts`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         assertEquals(1, concepts.size)
@@ -51,7 +66,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract versjonsnr`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         assertEquals(SemVer(1, 0, 0), concepts.first().versjonsnr)
@@ -59,7 +73,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract statusUri`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         assertEquals(
@@ -70,7 +83,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract anbefaltTerm`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().anbefaltTerm!!.navn.let {
@@ -84,7 +96,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract tillattTerm`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().tillattTerm!!.let {
@@ -95,7 +106,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract frarådetTerm`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().frarådetTerm!!.let {
@@ -106,7 +116,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract definisjon`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().definisjon!!.let {
@@ -137,7 +146,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract definisjonForAllmennheten`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().definisjonForAllmennheten!!.let {
@@ -153,7 +161,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract definisjonForSpesialister`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().definisjonForSpesialister!!.let {
@@ -169,7 +176,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract merknad`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().merknad!!.let {
@@ -183,7 +189,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract eksempel`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().eksempel!!.let {
@@ -197,7 +202,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract fagområde`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().fagområde!!.let {
@@ -209,7 +213,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract fagområdeKoder`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().fagområdeKoder!!.let {
@@ -220,7 +223,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract omfang`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         assertEquals(URITekst("https://example.com/valueRange", "omfang"), concepts.first().omfang)
@@ -228,7 +230,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract gyldigFom`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         assertEquals(LocalDate.of(2020, 12, 31), concepts.first().gyldigFom)
@@ -236,7 +237,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract gyldigTom`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         assertEquals(LocalDate.of(2030, 12, 31), concepts.first().gyldigTom)
@@ -244,7 +244,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract seOgså`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().seOgså!!.let {
@@ -255,7 +254,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract erstattesAv`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().erstattesAv!!.let {
@@ -266,7 +264,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract kontaktpunkt`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().kontaktpunkt!!.let {
@@ -277,7 +274,6 @@ class SkosApNoImportTests {
 
     @Test
     fun `should extract begrepsRelasjon`() {
-        val model = readModel("import_concept.ttl")
         val concepts = model.extractBegreper("catalogId")
 
         concepts.first().begrepsRelasjon!!.let { relations ->
@@ -338,14 +334,5 @@ class SkosApNoImportTests {
                     }
                 }
         }
-    }
-
-    private fun readModel(file: String): Model {
-        val turtle = String(javaClass.classLoader.getResourceAsStream(file)!!.readAllBytes(), StandardCharsets.UTF_8)
-
-        val model = ModelFactory.createDefaultModel()
-        model.read(StringReader(turtle), "http://example.com", Lang.TURTLE.name)
-
-        return model
     }
 }
