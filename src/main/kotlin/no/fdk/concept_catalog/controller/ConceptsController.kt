@@ -2,8 +2,7 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.elastic.ElasticUpdater
 import no.fdk.concept_catalog.model.*
-import no.fdk.concept_catalog.rdf.jenaLangFromAcceptHeader
-import no.fdk.concept_catalog.rdf.jenaLangFromContentTypeHeader
+import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.statusFromString
@@ -92,7 +91,7 @@ class ConceptsController(
 
             else -> {
                 logger.info("Importing RDF concepts for $catalogId")
-                conceptService.createConcepts(concepts, jenaLangFromContentTypeHeader(contentType), user, jwt)
+                conceptService.createConcepts(concepts, jenaLangFromHeader(contentType), user, jwt)
 
                 return ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED)
             }

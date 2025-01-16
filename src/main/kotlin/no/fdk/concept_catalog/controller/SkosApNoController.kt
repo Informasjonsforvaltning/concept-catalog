@@ -1,6 +1,6 @@
 package no.fdk.concept_catalog.controller
 
-import no.fdk.concept_catalog.rdf.jenaLangFromAcceptHeader
+import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.rdf.rdfResponse
 import no.fdk.concept_catalog.service.SkosApNoModelService
 import org.springframework.http.HttpHeaders
@@ -18,12 +18,12 @@ class SkosApNoController(private val skosApNoModelService: SkosApNoModelService)
     @GetMapping("/{id}")
     fun getCollectionById(@RequestHeader(HttpHeaders.ACCEPT) accept: String?, @PathVariable("id") id: String): String =
         skosApNoModelService.buildModelForPublishersCollection(id)
-            .rdfResponse(jenaLangFromAcceptHeader(accept))
+            .rdfResponse(jenaLangFromHeader(accept))
 
     @GetMapping
     fun getAllCollections(@RequestHeader(HttpHeaders.ACCEPT) accept: String?): String =
         skosApNoModelService.buildModelForAllCollections()
-            .rdfResponse(jenaLangFromAcceptHeader(accept))
+            .rdfResponse(jenaLangFromHeader(accept))
 
     @GetMapping("/{collectionId}/concepts/{id}")
     fun getConceptById(
@@ -32,6 +32,6 @@ class SkosApNoController(private val skosApNoModelService: SkosApNoModelService)
         @PathVariable("id") id: String
     ): String =
         skosApNoModelService.buildModelForConcept(collectionId, id)
-            .rdfResponse(jenaLangFromAcceptHeader(accept))
+            .rdfResponse(jenaLangFromHeader(accept))
 
 }

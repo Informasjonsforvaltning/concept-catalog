@@ -98,9 +98,8 @@ data class Begrep (
     val abbreviatedLabel: String? = null,
     val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList(),
     val internBegrepsRelasjon: List<BegrepsRelasjon>? = null,
-    val interneFelt: Map<String, InterntFelt>?,
-    val internErstattesAv: List<String>?
-
+    val interneFelt: Map<String, InterntFelt>? = null,
+    val internErstattesAv: List<String>? = null,
 )
 
 data class SemVer(val major: Int, val minor: Int, val patch: Int): Comparable<SemVer> {
