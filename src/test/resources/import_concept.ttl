@@ -1,0 +1,100 @@
+@prefix schema: <http://schema.org/> .
+@prefix adms:  <http://www.w3.org/ns/adms#> .
+@prefix spdx:  <http://spdx.org/rdf/terms#> .
+@prefix iso:   <http://iso.org/25012/2008/dataquality/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dqv:   <http://www.w3.org/ns/dqv#> .
+@prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
+@prefix oa:    <http://www.w3.org/ns/prov#> .
+@prefix dct:   <http://purl.org/dc/terms/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcat:  <http://www.w3.org/ns/dcat#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+@prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
+@prefix relationship-with-source-type: <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+@prefix audience-type: <https://data.norge.no/vocabulary/audience-type#> .
+
+<https://example.com/concept>
+        rdf:type              skos:Concept ;
+        euvoc:status          <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
+        owl:versionInfo       "1.0.0" ;
+        skos:prefLabel        "anbefaltTerm"@nb, "recommendedTerm"@en ;
+        skos:altLabel         "tillattTerm"@nn, "tillattTerm2"@nn ;
+        skos:hiddenLabel      "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
+        skos:scopeNote        "merknad"@nn, "merknad"@nb ;
+        skos:example          "eksempel"@nn, "eksempel"@nb ;
+        dct:subject           "fagområde"@nb ;
+        skosno:valueRange     "omfang"@nb, <https://example.com/valueRange> ;
+        euvoc:startDate       "2020-12-31"^^xsd:date ;
+        euvoc:endDate         "2030-12-31"^^xsd:date ;
+        dct:modified          "2025-01-02"^^xsd:date ;
+        rdfs:seeAlso          <https://example.com/seeAlsoConcept> ;
+        dct:isReplacedBy      <https://example.com/isReplacedByConcept> ;
+        dcat:contactPoint     
+              [ 
+                rdf:type                vcard:Organization ;
+                vcard:hasEmail          <mailto:organization@example.com> ;
+                vcard:hasTelephone      <tel:+123-456-789> ;
+                vcard:hasTelephone 
+                      [ 
+                        rdf:type        vcard:Home ,vcard:Voice ;
+                        vcard:hasValue  <tel:+123-456-789> ;
+                      ] ;
+              ];
+        skosno:isFromConceptIn 
+              [ 
+                rdf:type                        skosno:AssociativeConceptRelation ;
+                skosno:hasToConcept             <https://example.com/topConcept> ; 
+                skosno:relationRole             "muliggjør"@nb ;
+              ] ;
+        skosno:hasPartitiveConceptRelation    
+              [ 
+                rdf:type                        skosno:PartitiveConceptRelation ;
+                dct:description                 "inndelingskriterium"@nb ;
+                skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
+              ] ;
+        skosno:hasPartitiveConceptRelation    
+              [ 
+                rdf:type                        skosno:PartitiveConceptRelation ;
+                dct:description                 "inndelingskriterium"@nb ;
+                skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
+              ] ;
+        skosno:hasGenericConceptRelation      
+              [ 
+                rdf:type                        skosno:GenericConceptRelation ;
+                dct:description                 "inndelingskriterium"@nb ;
+                skosno:hasGenericConcept        <https://example.com/genericConcept>
+              ] ;
+        skosno:hasGenericConceptRelation     
+              [ 
+                rdf:type                        skosno:GenericConceptRelation ;
+                dct:description                 "inndelingskriterium"@nb ;
+                skosno:hasSpecificConcept       <https://example.com/specificConcept>
+              ] ;
+        euvoc:xlDefinition                   
+              [ 
+                rdf:type                        euvoc:XlNote ;
+                rdf:value                       "definisjon"@nb, "definition"@en ;
+                skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
+                dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
+              ] ;
+        euvoc:xlDefinition                   
+              [ 
+                rdf:type                        euvoc:XlNote ;
+                rdf:value                       "definisjon for spesialister"@nb ;
+                dct:audience                    audience-type:specialist ;
+                skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
+              ] ;
+        euvoc:xlDefinition                    
+              [ 
+                rdf:type                        euvoc:XlNote ;
+                rdf:value                       "definisjon for allmennheten"@nb ;
+                dct:audience                    audience-type:public ;
+                skosno:relationshipWithSource   relationship-with-source-type:derived-from-source ;
+              ] .

@@ -12,20 +12,17 @@ fun Model.rdfResponse(lang: Lang): String =
         out.toString()
     }
 
-fun jenaLangFromContentTypeHeader(contentType: String?): Lang =
-    jenaLangFromAcceptHeader(contentType)
-
-fun jenaLangFromAcceptHeader(accept: String?): Lang =
+fun jenaLangFromHeader(header: String?): Lang =
     when {
-        accept == null -> throw HttpServerErrorException(HttpStatus.NOT_ACCEPTABLE)
-        accept.contains(Lang.TURTLE.headerString) -> Lang.TURTLE
-        accept.contains(Lang.RDFXML.headerString) -> Lang.RDFXML
-        accept.contains(Lang.RDFJSON.headerString) -> Lang.RDFJSON
-        accept.contains(Lang.JSONLD.headerString) -> Lang.JSONLD
-        accept.contains(Lang.NTRIPLES.headerString) -> Lang.NTRIPLES
-        accept.contains("text/n3") -> Lang.N3
-        accept.contains(Lang.NQUADS.headerString) -> Lang.NQUADS
-        accept.contains(Lang.TRIG.headerString) -> Lang.TRIG
-        accept.contains(Lang.TRIX.headerString) -> Lang.TRIX
+        header == null -> throw HttpServerErrorException(HttpStatus.NOT_ACCEPTABLE)
+        header.contains(Lang.TURTLE.headerString) -> Lang.TURTLE
+        header.contains(Lang.RDFXML.headerString) -> Lang.RDFXML
+        header.contains(Lang.RDFJSON.headerString) -> Lang.RDFJSON
+        header.contains(Lang.JSONLD.headerString) -> Lang.JSONLD
+        header.contains(Lang.NTRIPLES.headerString) -> Lang.NTRIPLES
+        header.contains("text/n3") -> Lang.N3
+        header.contains(Lang.NQUADS.headerString) -> Lang.NQUADS
+        header.contains(Lang.TRIG.headerString) -> Lang.TRIG
+        header.contains(Lang.TRIX.headerString) -> Lang.TRIX
         else -> throw HttpServerErrorException(HttpStatus.NOT_ACCEPTABLE)
     }
