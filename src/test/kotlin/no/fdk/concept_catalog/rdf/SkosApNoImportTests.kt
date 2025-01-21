@@ -53,7 +53,6 @@ class SkosApNoImportTests {
             assertFalse(it.merknad!!.isEmpty())
             assertFalse(it.eksempel!!.isEmpty())
             assertFalse(it.fagområde!!.isEmpty())
-            assertFalse(it.fagområdeKoder!!.isEmpty())
             assertNotNull(it.omfang)
             assertNotNull(it.gyldigFom)
             assertNotNull(it.gyldigTom)
@@ -208,16 +207,6 @@ class SkosApNoImportTests {
             assertEquals(1, it.size)
             assertTrue(it.containsKey("nb"))
             assertEquals(it.getValue("nb").toSet(), setOf("fagområde"))
-        }
-    }
-
-    @Test
-    fun `should extract fagområdeKoder`() {
-        val concepts = model.extractBegreper("catalogId")
-
-        concepts.first().fagområdeKoder!!.let {
-            assertEquals(1, it.size)
-            assertTrue(it.contains("https://example.com/subject"))
         }
     }
 

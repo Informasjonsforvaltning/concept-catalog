@@ -29,7 +29,6 @@ fun Model.extractBegreper(catalogId: String): List<Begrep> {
                 merknad = it.extractMerknad(),
                 eksempel = it.extractEksempel(),
                 fagområde = it.extractFagområde(),
-                fagområdeKoder = it.extractFagområdeKoder(),
                 omfang = it.extractOmfang(),
                 gyldigFom = it.extractGyldigFom(),
                 gyldigTom = it.extractGyldigTom(),
@@ -104,14 +103,6 @@ private fun Resource.extractEksempel(): Map<String, String>? {
 
 private fun Resource.extractFagområde(): Map<String, List<String>>? {
     return this.extractLocalizedStringsAsGrouping(DCTerms.subject)
-}
-
-private fun Resource.extractFagområdeKoder(): List<String>? {
-    return this.listProperties(DCTerms.subject)
-        .toList()
-        .mapNotNull { it.`object`.asUriResourceOrNull() }
-        .map { it.toString() }
-        .takeIf { it.isNotEmpty() }
 }
 
 private fun Resource.extractOmfang(): URITekst? {

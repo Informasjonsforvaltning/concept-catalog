@@ -29,7 +29,7 @@
         skos:hiddenLabel      "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb ;
         skos:scopeNote        "merknad"@nn, "merknad"@nb ;
         skos:example          "eksempel"@nn, "eksempel"@nb ;
-        dct:subject           "fagområde"@nb, <https://example.com/subject> ;
+        dct:subject           "fagområde"@nb ;
         skosno:valueRange     "omfang"@nb, <https://example.com/valueRange> ;
         euvoc:startDate       "2020-12-31"^^xsd:date ;
         euvoc:endDate         "2030-12-31"^^xsd:date ;
