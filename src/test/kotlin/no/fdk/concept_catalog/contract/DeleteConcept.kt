@@ -1,6 +1,10 @@
 package no.fdk.concept_catalog.contract
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
+import no.fdk.concept_catalog.model.CurrentConcept
+import no.fdk.concept_catalog.model.Paginated
+import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.utils.*
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -69,6 +73,37 @@ class DeleteConcept : ContractTestsBase() {
             HttpMethod.GET
         )
         assertEquals(HttpStatus.NOT_FOUND, after.statusCode)
+    }
+
+    @Test
+    fun `Previous version is added to search when current is deleted`() {
+        mongoOperations.insertAll(listOf(BEGREP_0_OLD.toDBO(), BEGREP_0.copy(erPublisert = false).toDBO()))
+        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_0.copy(erPublisert = false).toDBO())))
+
+        val deleteResponse = authorizedRequest(
+            "/begreper/${BEGREP_0.id}",
+            null,
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.DELETE
+        )
+        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.statusCode)
+
+        val searchResponse = authorizedRequest(
+            "/begreper/search?orgNummer=123456789",
+
+            mapper.writeValueAsString(SearchOperation("")),
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+        assertEquals(HttpStatus.OK, searchResponse.statusCode)
+
+        val expected = BEGREP_0_OLD.copy(
+            erSistPublisert = true,
+            sistPublisertId = BEGREP_0_OLD.id
+        )
+
+        val result: Paginated = mapper.readValue(searchResponse.body as String)
+        assertEquals(listOf(expected), result.hits)
     }
 
 }
