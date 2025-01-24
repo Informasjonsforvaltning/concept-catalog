@@ -40,11 +40,18 @@ class ConceptService(
 ) {
 
     fun deleteConcept(concept: BegrepDBO) {
-        if (concept.id == concept.originaltBegrep) {
+        conceptRepository.delete(concept)
+
+        val latestAfterDelete = getLatestVersion(concept.originaltBegrep)
+        if (latestAfterDelete != null) {
+            // update search to latest version
+            currentConceptRepository.save(CurrentConcept(latestAfterDelete))
+        } else {
+            // remove from search
             currentConceptRepository.delete(CurrentConcept(concept))
         }
-        conceptRepository.delete(concept)
-            .also { logger.debug("deleted concept ${concept.id}") }
+
+        logger.debug("deleted concept ${concept.id}")
     }
 
     fun getConceptById(id: String): Begrep? =
