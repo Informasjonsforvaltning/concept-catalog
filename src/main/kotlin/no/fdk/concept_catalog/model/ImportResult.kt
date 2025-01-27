@@ -1,15 +1,18 @@
 package no.fdk.concept_catalog.model
 
+import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import java.time.LocalDateTime
 
 enum class ImportResultStatus { FAILED, COMPLETED }
 
-@Document(collection = "importResult")
+@Document(collection = "importResults")
 data class ImportResult(
     @Id
     val id: String,
 
+    val created: LocalDateTime,
     val catalogId: String,
     val status: ImportResultStatus,
     val extractionRecords: List<ExtractionRecord> = emptyList()

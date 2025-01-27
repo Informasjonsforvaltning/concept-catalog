@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
+import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -74,6 +75,7 @@ class ImportService(
     ): ImportResult {
         val importResult = ImportResult(
             id = UUID.randomUUID().toString(),
+            created = LocalDateTime.now(),
             catalogId = catalogId,
             status = status,
             extractionRecords = extractionRecords
