@@ -71,33 +71,6 @@ class ConceptsController(
         }
     }
 
-    @PostMapping(
-        value = ["/{catalogId}/import"],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
-            "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
-    )
-    fun createBegreperFromRDF(
-        @AuthenticationPrincipal jwt: Jwt,
-        @RequestHeader(HttpHeaders.CONTENT_TYPE) contentType: String,
-        @PathVariable catalogId: String,
-        @RequestBody concepts: String
-    ): ResponseEntity<Void> {
-        val user = endpointPermissions.getUser(jwt)
-
-        return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
-
-            else -> {
-                logger.info("Importing RDF concepts for $catalogId")
-                conceptService.createConcepts(concepts, jenaLangFromHeader(contentType), user, jwt)
-
-                return ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED)
-            }
-        }
-    }
-
     @PostMapping(value = ["/{id}/revisjon"])
     fun createRevision(
         @AuthenticationPrincipal jwt: Jwt,
