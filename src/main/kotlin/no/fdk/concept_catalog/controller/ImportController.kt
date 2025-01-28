@@ -25,7 +25,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
         consumes = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
             "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
     )
-    fun fromRDF(
+    fun import(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestHeader(HttpHeaders.CONTENT_TYPE) contentType: String,
         @PathVariable catalogId: String,
@@ -49,14 +49,14 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
                 )
 
                 return ResponseEntity
-                    .created(URI("/import/$catalogId/status/${importStatus.id}"))
+                    .created(URI("/import/$catalogId/${importStatus.id}"))
                     .build()
             }
         }
     }
 
     @GetMapping(
-        value = ["/status/{id}"],
+        value = ["/{id}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun status(
