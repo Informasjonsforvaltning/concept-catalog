@@ -8,9 +8,15 @@ data class ExtractResult(val operations: Set<JsonPatchOperation> = emptySet(), v
 }
 
 fun Sequence<ExtractResult?>.merge(): ExtractResult {
-    val operations = this.filterNotNull().flatMap { it.operations }.toMutableSet()
+    val operations = mutableSetOf<JsonPatchOperation>()
+    val issues = mutableSetOf<Issue>()
 
-    val issues = this.filterNotNull().flatMap { it.issues }.toMutableSet()
+    for (result in this) {
+        if (result != null) {
+            operations.addAll(result.operations)
+            issues.addAll(result.issues)
+        }
+    }
 
     return ExtractResult(operations, issues)
 }
