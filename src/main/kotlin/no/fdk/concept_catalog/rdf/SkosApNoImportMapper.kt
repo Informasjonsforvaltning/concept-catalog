@@ -57,7 +57,7 @@ private fun Resource.extractVersjonr(): ExtractResult? {
                             value = SemVer(major.toInt(), minor.toInt(), patch.toInt())
                         )
                     )
-                } ?: issues.add(Issue(IssueType.ERROR, "Invalid format for owl:versionInfo: $this"))
+                } ?: issues.add(Issue(IssueType.ERROR, "Not acceptable format for owl:versionInfo: $this"))
         }
 
     return ExtractResult(operations, issues)
