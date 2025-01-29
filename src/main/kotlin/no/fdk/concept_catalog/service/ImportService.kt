@@ -64,7 +64,11 @@ class ImportService(
         return saveImportResult(catalogId, processedExtractionRecords, ImportResultStatus.COMPLETED)
     }
 
-    fun getStatus(statusId: String): ImportResult? {
+    fun getResults(catalogId: String): List<ImportResult> {
+        return importResultRepository.findAllByCatalogId(catalogId);
+    }
+
+    fun getResult(statusId: String): ImportResult? {
         return importResultRepository.findByIdOrNull(statusId)
     }
 

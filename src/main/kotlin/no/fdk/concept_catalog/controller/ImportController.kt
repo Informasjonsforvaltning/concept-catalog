@@ -49,17 +49,37 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
                 )
 
                 return ResponseEntity
-                    .created(URI("/import/$catalogId/${importStatus.id}"))
+                    .created(URI("/import/$catalogId/results/${importStatus.id}"))
                     .build()
             }
         }
     }
 
     @GetMapping(
-        value = ["/{id}"],
+        value = ["/results"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
-    fun status(
+    fun result(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+    ): ResponseEntity<List<ImportResult>> {
+        val user = endpointPermissions.getUser(jwt)
+
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                return ResponseEntity.ok(importService.getResults(catalogId))
+            }
+        }
+    }
+
+    @GetMapping(
+        value = ["/results/{id}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+    )
+    fun result(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable id: String,
@@ -71,9 +91,9 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                val importStatus = importService.getStatus(id)
-
-                return ResponseEntity.ok(importStatus)
+                importService.getResult(id)
+                    ?.let { ResponseEntity.ok(it) }
+                    ?: ResponseEntity(HttpStatus.NOT_FOUND)
             }
         }
     }
