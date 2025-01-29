@@ -4,8 +4,6 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -38,8 +36,6 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                logger.info("RDF import for catalog {}", catalogId)
-
                 val importStatus = importService.importRdf(
                     catalogId = catalogId,
                     concepts = concepts,
@@ -98,5 +94,3 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
         }
     }
 }
-
-private val logger: Logger = LoggerFactory.getLogger(ImportController::class.java)

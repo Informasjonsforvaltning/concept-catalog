@@ -1,10 +1,7 @@
 package no.fdk.concept_catalog.rdf
 
 import no.fdk.concept_catalog.model.*
-import org.apache.jena.rdf.model.Literal
-import org.apache.jena.rdf.model.Model
-import org.apache.jena.rdf.model.RDFNode
-import org.apache.jena.rdf.model.Resource
+import org.apache.jena.rdf.model.*
 import org.apache.jena.vocabulary.*
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
@@ -44,7 +41,9 @@ private fun Resource.extractVersjonr(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.getProperty(OWL.versionInfo)
+    val versionInfo = OWL.versionInfo
+
+    getProperty(versionInfo)
         ?.`object`?.asLiteralOrNull()?.string
         ?.takeIf { it.isNotBlank() }
         ?.apply {
@@ -57,7 +56,7 @@ private fun Resource.extractVersjonr(): ExtractResult? {
                             value = SemVer(major.toInt(), minor.toInt(), patch.toInt())
                         )
                     )
-                } ?: issues.add(Issue(IssueType.ERROR, "Not acceptable format for owl:versionInfo: $this"))
+                } ?: issues.add(Issue(IssueType.ERROR, "Not acceptable format for ${versionInfo.localName}: $this"))
         }
 
     return ExtractResult(operations, issues)
@@ -68,7 +67,9 @@ private fun Resource.extractStatusUri(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.getProperty(EUVOC.status)
+    val status = EUVOC.status
+
+    getProperty(status)
         ?.apply {
             this.`object`
                 .takeIf { it.isURIResource }
@@ -83,7 +84,7 @@ private fun Resource.extractStatusUri(): ExtractResult? {
                         )
                     )
                 }
-                ?: issues.add(Issue(IssueType.ERROR, "Invalid URI for euvoc:status: ${this.`object`}"))
+                ?: issues.add(Issue(IssueType.ERROR, "Invalid URI for ${status.localName}: ${this.`object`}"))
         }
 
     return ExtractResult(operations, issues)
@@ -94,26 +95,12 @@ private fun Resource.extractAnbefaltTerm(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    val localizedStrings: Map<String, String>? = this.listProperties(SKOS.prefLabel)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter {
-            if (it.string.isNullOrBlank())
-                return@filter false
+    val prefLabel = SKOS.prefLabel
 
-            if (it.language.isNullOrBlank()) {
-                issues.add(Issue(IssueType.WARNING, "Missing language tag for skos:prefLabel: ${it.string}"))
-
-                return@filter false
-            }
-
-            true
-        }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
+    val localizedStrings: Map<String, String>? = extractLocalizedStrings(prefLabel, issues)
 
     if (localizedStrings.isNullOrEmpty()) {
-        issues.add(Issue(IssueType.ERROR, "Missing skos:prefLabel"))
+        issues.add(Issue(IssueType.ERROR, "Missing ${prefLabel.localName}"))
     } else {
         operations.add(
             JsonPatchOperation(
@@ -132,78 +119,43 @@ private fun Resource.extractTillattTerm(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    val localizedStrings: Map<String, List<String>>? = this.listProperties(SKOS.altLabel)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter {
-            if (it.string.isNullOrBlank())
-                return@filter false
-
-            if (it.language.isNullOrBlank()) {
-                issues.add(Issue(IssueType.WARNING, "Missing language tag for skos:altLabel: ${it.string}"))
-
-                return@filter false
-            }
-
-            true
-        }
-        .groupBy { it.language }
-        .mapValues { (_, literals) -> literals.map { it.string } }
-        .takeIf { it.isNotEmpty() }
-
-    if (!localizedStrings.isNullOrEmpty()) {
-        operations.add(
-            JsonPatchOperation(
-                op = OpEnum.ADD,
-                path = "/tillattTerm",
-                value = localizedStrings
+    extractLocalizedStringsAsGrouping(SKOS.altLabel, issues)
+        ?.apply {
+            operations.add(
+                JsonPatchOperation(
+                    op = OpEnum.ADD,
+                    path = "/tillattTerm",
+                    value = this
+                )
             )
-        )
-    }
+        }
 
     return ExtractResult(operations, issues)
         .takeIf { operations.isNotEmpty() || issues.isNotEmpty() }
 }
 
+
 private fun Resource.extractFrarådetTerm(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    val localizedStrings: Map<String, List<String>>? = this.listProperties(SKOS.hiddenLabel)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter {
-            if (it.string.isNullOrBlank())
-                return@filter false
-
-            if (it.language.isNullOrBlank()) {
-                issues.add(Issue(IssueType.WARNING, "Missing language tag for skos:hiddenLabel: ${it.string}"))
-
-                return@filter false
-            }
-
-            true
-        }
-        .groupBy { it.language }
-        .mapValues { (_, literals) -> literals.map { it.string } }
-        .takeIf { it.isNotEmpty() }
-
-    if (!localizedStrings.isNullOrEmpty()) {
-        operations.add(
-            JsonPatchOperation(
-                op = OpEnum.ADD,
-                path = "/frarådetTerm",
-                value = localizedStrings
+    extractLocalizedStringsAsGrouping(SKOS.hiddenLabel, issues)
+        ?.apply {
+            operations.add(
+                JsonPatchOperation(
+                    op = OpEnum.ADD,
+                    path = "/frarådetTerm",
+                    value = this
+                )
             )
-        )
-    }
+        }
 
     return ExtractResult(operations, issues)
         .takeIf { operations.isNotEmpty() || issues.isNotEmpty() }
 }
 
 private fun Resource.extractDefinisjon(): ExtractResult? {
-    return this.listProperties(EUVOC.xlDefinition)
+    return listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
         .filterNot { it.hasProperty(DCTerms.audience) }
@@ -211,7 +163,7 @@ private fun Resource.extractDefinisjon(): ExtractResult? {
 }
 
 private fun Resource.extractDefinisjonForAllmennheten(): ExtractResult? {
-    return this.listProperties(EUVOC.xlDefinition)
+    return listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
         .filter { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.public) }
@@ -219,7 +171,7 @@ private fun Resource.extractDefinisjonForAllmennheten(): ExtractResult? {
 }
 
 private fun Resource.extractDefinisjonForSpesialister(): ExtractResult? {
-    return this.listProperties(EUVOC.xlDefinition)
+    return listProperties(EUVOC.xlDefinition)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
         .filter { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.specialist) }
@@ -230,30 +182,36 @@ private fun Resource.extractDefinition(path: String): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    val relationshipWithSource: ForholdTilKildeEnum? = when {
-        this.hasProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.selfComposed)
+    val relationshipWithSource = SKOSNO.relationshipWithSource
+    val xlDefinition = EUVOC.xlDefinition
+
+    val relationship: ForholdTilKildeEnum? = when {
+        hasProperty(relationshipWithSource, RELATIONSHIP.selfComposed)
             -> ForholdTilKildeEnum.EGENDEFINERT
 
-        this.hasProperty(
-            SKOSNO.relationshipWithSource,
+        hasProperty(
+            relationshipWithSource,
             RELATIONSHIP.directFromSource
         ) -> ForholdTilKildeEnum.BASERTPAAKILDE
 
-        this.hasProperty(
-            SKOSNO.relationshipWithSource,
+        hasProperty(
+            relationshipWithSource,
             RELATIONSHIP.derivedFromSource
         ) -> ForholdTilKildeEnum.SITATFRAKILDE
 
         else -> {
             issues.add(
-                Issue(IssueType.WARNING, "[euvoc:xlDefinition] Invalid type for skosno:relationshipWithSource")
+                Issue(
+                    IssueType.WARNING,
+                    "[${xlDefinition.localName}] Invalid type for ${relationshipWithSource.localName}"
+                )
             )
 
             null
         }
     }
 
-    val source: List<URITekst>? = this.listProperties(DCTerms.source)
+    val source: List<URITekst>? = listProperties(DCTerms.source)
         .toList()
         .mapNotNull { statement ->
             statement.`object`.let {
@@ -270,35 +228,16 @@ private fun Resource.extractDefinition(path: String): ExtractResult? {
         }
         .takeIf { it.isNotEmpty() }
 
-    val sourceDescription: Kildebeskrivelse? = relationshipWithSource?.let {
-        Kildebeskrivelse(forholdTilKilde = relationshipWithSource, kilde = source)
+    val sourceDescription: Kildebeskrivelse? = relationship?.let {
+        Kildebeskrivelse(forholdTilKilde = relationship, kilde = source)
     }
 
-    val localizedStrings: Map<String, String>? = this.listProperties(RDF.value)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter {
-            if (it.string.isNullOrBlank())
-                return@filter false
+    val value = RDF.value
 
-            if (it.language.isNullOrBlank()) {
-                issues.add(
-                    Issue(
-                        IssueType.WARNING,
-                        "[euvoc:xlDefinition] Missing language tag for rdf:value: ${it.string}"
-                    )
-                )
-
-                return@filter false
-            }
-
-            true
-        }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
+    val localizedStrings: Map<String, String>? = extractLocalizedStrings(value, issues)
 
     if (localizedStrings.isNullOrEmpty()) {
-        issues.add(Issue(IssueType.ERROR, "[euvoc:xlDefinition] Missing rdf:value"))
+        issues.add(Issue(IssueType.ERROR, "[${xlDefinition.localName}] Missing ${value.localName}"))
     } else {
         operations.add(
             JsonPatchOperation(
@@ -317,23 +256,7 @@ private fun Resource.extractMerknad(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.listProperties(SKOS.scopeNote)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter {
-            if (it.string.isNullOrBlank())
-                return@filter false
-
-            if (it.language.isNullOrBlank()) {
-                issues.add(Issue(IssueType.WARNING, "Missing language tag for skos:scopeNote: ${it.string}"))
-
-                return@filter false
-            }
-
-            true
-        }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
+    extractLocalizedStrings(SKOS.scopeNote, issues)
         ?.apply {
             operations.add(
                 JsonPatchOperation(
@@ -352,23 +275,7 @@ private fun Resource.extractEksempel(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.listProperties(SKOS.example)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter {
-            if (it.string.isNullOrBlank())
-                return@filter false
-
-            if (it.language.isNullOrBlank()) {
-                issues.add(Issue(IssueType.WARNING, "Missing language tag for skos:example: ${it.string}"))
-
-                return@filter false
-            }
-
-            true
-        }
-        .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
+    extractLocalizedStrings(SKOS.example, issues)
         ?.apply {
             operations.add(
                 JsonPatchOperation(
@@ -387,24 +294,7 @@ private fun Resource.extractFagområde(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.listProperties(DCTerms.subject)
-        .toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter {
-            if (it.string.isNullOrBlank())
-                return@filter false
-
-            if (it.language.isNullOrBlank()) {
-                issues.add(Issue(IssueType.WARNING, "Missing language tag for dct:subject: ${it.string}"))
-
-                return@filter false
-            }
-
-            true
-        }
-        .groupBy { it.language }
-        .mapValues { (_, literals) -> literals.map { it.string } }
-        .takeIf { it.isNotEmpty() }
+    extractLocalizedStringsAsGrouping(DCTerms.subject, issues)
         ?.apply {
             operations.add(
                 JsonPatchOperation(
@@ -423,12 +313,12 @@ private fun Resource.extractOmfang(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    val text = this.listProperties(SKOSNO.valueRange)
+    val text = listProperties(SKOSNO.valueRange)
         .toList()
         .firstOrNull { it.`object`.isLiteral }
         ?.let { it.`object`.asLiteralOrNull()?.string }
 
-    val uri = this.listProperties(SKOSNO.valueRange)
+    val uri = listProperties(SKOSNO.valueRange)
         .toList()
         .firstOrNull { it.`object`.isURIResource }
         ?.let { it.`object`.asUriResourceOrNull()?.uri }
@@ -451,13 +341,15 @@ private fun Resource.extractGyldigFom(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.getProperty(EUVOC.startDate)
+    val startDate = EUVOC.startDate
+
+    getProperty(startDate)
         ?.let { it.`object`.asLiteralOrNull()?.string }
         ?.takeIf { it.isNotBlank() }
         ?.apply {
             if (!isValidDate(this)) {
                 issues.add(
-                    Issue(IssueType.ERROR, "Invalid date for euvoc:startDate: $this")
+                    Issue(IssueType.ERROR, "Invalid date for ${startDate.localName}: $this")
                 )
             } else {
                 operations.add(
@@ -478,13 +370,15 @@ private fun Resource.extractGyldigTom(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.getProperty(EUVOC.endDate)
+    val endDate = EUVOC.endDate
+
+    getProperty(endDate)
         ?.let { it.`object`.asLiteralOrNull()?.string }
         ?.takeIf { it.isNotBlank() }
         ?.apply {
             if (!isValidDate(this)) {
                 issues.add(
-                    Issue(IssueType.ERROR, "Invalid date for euvoc:endDate: $this")
+                    Issue(IssueType.ERROR, "Invalid date for ${endDate.localName}: $this")
                 )
             } else {
                 operations.add(
@@ -501,22 +395,18 @@ private fun Resource.extractGyldigTom(): ExtractResult? {
         .takeIf { operations.isNotEmpty() || issues.isNotEmpty() }
 }
 
-private fun isValidDate(dateString: String): Boolean =
-    try {
-        LocalDate.parse(dateString)
-        true
-    } catch (e: DateTimeParseException) {
-        false
-    }
-
 private fun Resource.extractKontaktPunkt(): ExtractResult? {
     val issues = mutableSetOf<Issue>()
     val operations = mutableSetOf<JsonPatchOperation>()
 
-    this.getProperty(DCAT.contactPoint)
+    val contactPoint = DCAT.contactPoint
+
+    getProperty(contactPoint)
         ?.`object`?.asResourceOrNull()
         ?.apply {
-            val email = this.getProperty(VCARD4.hasEmail)
+            val hasEmail = VCARD4.hasEmail
+
+            val email = this.getProperty(hasEmail)
                 ?.`object`?.asUriResourceOrNull()?.toString()
                 ?.removePrefix("mailto:")
                 ?.takeIf {
@@ -524,14 +414,19 @@ private fun Resource.extractKontaktPunkt(): ExtractResult? {
 
                     if (!validEmail) {
                         issues.add(
-                            Issue(IssueType.WARNING, "[dcat:contactPoint] Invalid email for vcard:hasEmail: $it")
+                            Issue(
+                                IssueType.WARNING,
+                                "[${contactPoint.localName}] Invalid email for ${hasEmail.localName}: $it"
+                            )
                         )
                     }
 
                     validEmail
                 }
 
-            val telephone = this.getProperty(VCARD4.hasTelephone)
+            val hasTelephone = VCARD4.hasTelephone
+
+            val telephone = this.getProperty(hasTelephone)
                 ?.let {
                     it.`object`.asUriResourceOrNull()?.toString() ?: it.`object`.asResourceOrNull()
                         ?.getProperty(VCARD4.hasValue)
@@ -546,7 +441,7 @@ private fun Resource.extractKontaktPunkt(): ExtractResult? {
                         issues.add(
                             Issue(
                                 IssueType.WARNING,
-                                "[dcat:contactPoint] Invalid telephone for vcard:hasTelephone: $it"
+                                "[${contactPoint.localName}] Invalid telephone for ${hasTelephone.localName}: $it"
                             )
                         )
                     }
@@ -569,14 +464,66 @@ private fun Resource.extractKontaktPunkt(): ExtractResult? {
         .takeIf { operations.isNotEmpty() || issues.isNotEmpty() }
 }
 
+private fun Resource.extractLocalizedStrings(property: Property, issues: MutableSet<Issue>): Map<String, String>? {
+    return listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asLiteralOrNull() }
+        .filter {
+            if (it.string.isNullOrBlank())
+                return@filter false
+
+            if (it.language.isNullOrBlank()) {
+                issues.add(Issue(IssueType.WARNING, "Missing language tag for ${property.localName}: ${it.string}"))
+
+                return@filter false
+            }
+
+            true
+        }
+        .associate { it.language to it.string }
+        .takeIf { it.isNotEmpty() }
+}
+
+private fun Resource.extractLocalizedStringsAsGrouping(
+    property: Property,
+    issues: MutableSet<Issue>
+): Map<String, List<String>>? {
+    return listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asLiteralOrNull() }
+        .filter {
+            if (it.string.isNullOrBlank())
+                return@filter false
+
+            if (it.language.isNullOrBlank()) {
+                issues.add(Issue(IssueType.WARNING, "Missing language tag for ${property.localName}: ${it.string}"))
+
+                return@filter false
+            }
+
+            true
+        }
+        .groupBy { it.language }
+        .mapValues { (_, literals) -> literals.map { it.string } }
+        .takeIf { it.isNotEmpty() }
+}
+
+private fun isValidDate(dateString: String): Boolean =
+    try {
+        LocalDate.parse(dateString)
+        true
+    } catch (e: DateTimeParseException) {
+        false
+    }
+
 private fun RDFNode.asLiteralOrNull(): Literal? {
-    return if (this.isLiteral) asLiteral() else null
+    return if (isLiteral) asLiteral() else null
 }
 
 private fun RDFNode.asResourceOrNull(): Resource? {
-    return if (this.isResource) asResource() else null
+    return if (isResource) asResource() else null
 }
 
 private fun RDFNode.asUriResourceOrNull(): Resource? {
-    return if (this.isURIResource) asResource() else null
+    return if (isURIResource) asResource() else null
 }

@@ -78,7 +78,7 @@ class SkosApNoImportMapperTests {
 
             result.issues.first().let {
                 assertEquals(IssueType.ERROR, it.type)
-                assertEquals("Missing skos:prefLabel", it.message)
+                assertEquals("Missing prefLabel", it.message)
             }
         }
     }
@@ -201,7 +201,7 @@ class SkosApNoImportMapperTests {
 
             result.issues.first().let {
                 assertEquals(IssueType.ERROR, it.type)
-                assertEquals("Invalid format for owl:versionInfo: 1", it.message)
+                assertEquals("Not acceptable format for versionInfo: 1", it.message)
             }
         }
     }
@@ -263,7 +263,7 @@ class SkosApNoImportMapperTests {
 
             result.issues.first().let {
                 assertEquals(IssueType.ERROR, it.type)
-                assertEquals("Invalid URI for euvoc:status: invalid status", it.message)
+                assertEquals("Invalid URI for status: invalid status", it.message)
             }
         }
     }
@@ -445,12 +445,12 @@ class SkosApNoImportMapperTests {
 
             result.issues.first().let {
                 assertEquals(IssueType.WARNING, it.type)
-                assertEquals("[euvoc:xlDefinition] Invalid type for skosno:relationshipWithSource", it.message)
+                assertEquals("[xlDefinition] Invalid type for relationshipWithSource", it.message)
             }
 
             result.issues.last().let {
                 assertEquals(IssueType.ERROR, it.type)
-                assertEquals("[euvoc:xlDefinition] Missing rdf:value", it.message)
+                assertEquals("[xlDefinition] Missing value", it.message)
             }
         }
     }
@@ -489,7 +489,7 @@ class SkosApNoImportMapperTests {
 
                 result.issues.first().let {
                     assertEquals(IssueType.WARNING, it.type)
-                    assertEquals("Missing language tag for skos:scopeNote: merknad uten språktag", it.message)
+                    assertEquals("Missing language tag for scopeNote: merknad uten språktag", it.message)
                 }
             }
         }
@@ -529,7 +529,7 @@ class SkosApNoImportMapperTests {
             assertEquals(1, result.issues.size)
             result.issues.first().let {
                 assertEquals(IssueType.WARNING, it.type)
-                assertEquals("Missing language tag for skos:example: eksempel uten språktag", it.message)
+                assertEquals("Missing language tag for example: eksempel uten språktag", it.message)
             }
         }
     }
@@ -568,7 +568,7 @@ class SkosApNoImportMapperTests {
             assertEquals(1, result.issues.size)
             result.issues.first().let {
                 assertEquals(IssueType.WARNING, it.type)
-                assertEquals("Missing language tag for dct:subject: fagområde uten språktag", it.message)
+                assertEquals("Missing language tag for subject: fagområde uten språktag", it.message)
             }
         }
     }
@@ -666,7 +666,7 @@ class SkosApNoImportMapperTests {
 
             result.issues.first().let {
                 assertEquals(IssueType.ERROR, it.type)
-                assertEquals("Invalid date for euvoc:startDate: 2020", it.message)
+                assertEquals("Invalid date for startDate: 2020", it.message)
             }
         }
     }
@@ -729,7 +729,7 @@ class SkosApNoImportMapperTests {
 
             result.issues.first().let {
                 assertEquals(IssueType.ERROR, it.type)
-                assertEquals("Invalid date for euvoc:endDate: 2025", it.message)
+                assertEquals("Invalid date for endDate: 2025", it.message)
             }
         }
     }
@@ -775,7 +775,7 @@ class SkosApNoImportMapperTests {
                 result.issues.first().let {
                     assertEquals(IssueType.WARNING, it.type)
                     assertEquals(
-                        "[dcat:contactPoint] Invalid telephone for vcard:hasTelephone: +123-ABC-789",
+                        "[contactPoint] Invalid telephone for hasTelephone: +123-ABC-789",
                         it.message
                     )
                 }
