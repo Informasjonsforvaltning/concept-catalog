@@ -14,7 +14,7 @@ private val TELEPHONE_REGEX = Regex("""^\+?[0-9\s\-()]{7,15}$""")
 fun Model.extractBegreper(catalogId: String): List<Begrep> {
     return this.listResourcesWithProperty(RDF.type, SKOS.Concept)
         .toList()
-        .mapNotNull { it.asResourceOrNull() }
+        .mapNotNull { it.asUriResourceOrNull() }
         .map {
             Begrep(
                 ansvarligVirksomhet = Virksomhet(id = catalogId),
