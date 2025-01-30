@@ -196,12 +196,6 @@ class ConceptService(
             .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
     }
 
-    fun createConcepts(concepts: String, lang: Lang, user: User, jwt: Jwt) {
-        /*
-        TODO: Read, convert and process begreper
-         */
-    }
-
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
         val patched = patchAndValidateConcept(concept, operations, user)
         return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt)

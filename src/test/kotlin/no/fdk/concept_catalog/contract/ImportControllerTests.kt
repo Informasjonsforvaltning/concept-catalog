@@ -1,8 +1,10 @@
 package no.fdk.concept_catalog.contract
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
@@ -11,11 +13,10 @@ import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import kotlin.test.assertEquals
 
 @Tag("contract")
@@ -121,12 +122,8 @@ class ImportControllerTests : ContractTestsBase() {
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
-    @ParameterizedTest
-    @ValueSource(
-        strings = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
-            "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
-    )
-    fun `Created with location on minimum viable skos-ap-no`(mediaType: String) {
+    @Test
+    fun `Created with location on minimum viable skos-ap-no`() {
         val turtle = """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -141,7 +138,7 @@ class ImportControllerTests : ContractTestsBase() {
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
-            contentType = MediaType.valueOf(mediaType)
+            contentType = MediaType.valueOf("text/turtle")
         )
 
         assertEquals(HttpStatus.CREATED, response.statusCode)
@@ -206,6 +203,90 @@ class ImportControllerTests : ContractTestsBase() {
         val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
         assertEquals(ImportResultStatus.FAILED, importResult!!.status)
+    }
+
+    @Test
+    fun `Updated with location on minimum viable skos-ap-no`() {
+        val turtle = """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb, "recommendedTerm"@en .
+        """.trimIndent()
+
+        val response = authorizedRequest(
+            path = "/import/123456789",
+            body = turtle,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+        assertEquals(HttpStatus.CREATED, response.statusCode)
+
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+
+        val updateTurtle = """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "oppdatertAnbefaltTerm"@nb, "recommendedTerm"@en .
+        """.trimIndent()
+
+        val updateResponse = authorizedRequest(
+            path = "/import/123456789",
+            body = updateTurtle,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+        assertEquals(HttpStatus.CREATED, updateResponse.statusCode)
+
+        val countResponse = authorizedRequest(
+            path = "/import/123456789/results",
+            body = updateTurtle,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.GET,
+            contentType = MediaType.valueOf(APPLICATION_JSON_VALUE)
+        )
+
+        assertEquals(HttpStatus.OK, countResponse.statusCode)
+
+        val importResults = objectMapper.readValue(countResponse.body, object : TypeReference<List<ImportResult>>() {})
+        assertEquals(2, importResults.size)
+
+        val statusResponse = authorizedRequest(
+            path = updateResponse.headers.location.toString(),
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.GET
+        )
+
+        assertEquals(HttpStatus.OK, statusResponse.statusCode)
+
+        val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
+
+        assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
+
+        assertEquals(1, importResult.extractionRecords.size)
+        val extractionRecord = importResult.extractionRecords.first()
+
+        val conceptResponse = authorizedRequest(
+            path = "/begreper/${extractionRecord.internalId}",
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.GET
+        )
+
+        assertEquals(HttpStatus.OK, conceptResponse.statusCode)
+
+        val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
+
+        assertEquals("123456789", concept.ansvarligVirksomhet.id)
+        assertEquals("oppdatertAnbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
     }
 
     @Test

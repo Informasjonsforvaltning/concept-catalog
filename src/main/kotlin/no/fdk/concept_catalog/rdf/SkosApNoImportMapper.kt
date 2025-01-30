@@ -13,7 +13,7 @@ private val TELEPHONE_REGEX = Regex("""^\+?[0-9\s\-()]{7,15}$""")
 fun Model.extract(): List<ExtractionRecord> {
     return this.listResourcesWithProperty(RDF.type, SKOS.Concept)
         .toList()
-        .mapNotNull { it.asResourceOrNull() }
+        .mapNotNull { it.asUriResourceOrNull() }
         .map {
             val extractResult = sequenceOf(
                 it.extractAnbefaltTerm(),
