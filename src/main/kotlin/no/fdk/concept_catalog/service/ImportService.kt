@@ -123,7 +123,7 @@ class ImportService(
 
         conceptService.updateConcept(
             concept = updatedConcept,
-            operations = extractionRecord.extractResult.operations.toList(),
+            operations = extractionRecord.allOperations,
             user = user,
             jwt = jwt
         )
@@ -139,7 +139,7 @@ class ImportService(
 
         val updatedConcept = patchOriginal(
             original = newConcept,
-            operations = extractionRecord.extractResult.operations.toList(),
+            operations = extractionRecord.allOperations,
             mapper = objectMapper
         ).let { conceptRepository.save(it) }
 

@@ -20,3 +20,6 @@ fun Sequence<ExtractResult?>.merge(): ExtractResult {
 
     return ExtractResult(operations, issues)
 }
+
+val ExtractionRecord.allOperations: List<JsonPatchOperation>
+    get() = this.extractResult.operations.toList()
