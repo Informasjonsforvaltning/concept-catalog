@@ -52,22 +52,39 @@ class ImportService(
             return saveImportResult(catalogId, extractionRecords, ImportResultStatus.FAILED)
         }
 
-        val processedExtractionRecords = extractionRecords.map { extractionRecord ->
-            val existingConceptId = findExistingConceptId(extractionRecord.externalId)
+        val processedRecords = mutableListOf<ExtractionRecord>()
 
-            try {
-                if (existingConceptId != null) {
+        try {
+            extractionRecords.forEach { extractionRecord ->
+                val existingConceptId = findExistingConceptId(extractionRecord.externalId)
+
+                val record = if (existingConceptId != null) {
                     replaceExistingConcept(catalogId, existingConceptId, extractionRecord, user, jwt)
                 } else {
                     createNewConcept(catalogId, extractionRecord, user, jwt)
                 }
-            } catch (ex: Exception) {
-                logger.error("Unexpected error during RDF processing", ex)
-                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
+
+                processedRecords.add(record)
             }
+        } catch (ex: Exception) {
+            logger.error("Unexpected error during RDF processing. Rolling back changes...", ex)
+
+            processedRecords.forEach { record ->
+                val internalId = record.internalId ?: return@forEach
+
+                try {
+                    conceptRepository.deleteById(internalId)
+                    historyService.removeHistoryUpdate(record.internalId, jwt)
+                    logger.info("Rolled back concept $internalId successfully")
+                } catch (deleteEx: Exception) {
+                    logger.error("Failed to delete concept $internalId during rollback", deleteEx)
+                }
+            }
+
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
         }
 
-        return saveImportResult(catalogId, processedExtractionRecords, ImportResultStatus.COMPLETED)
+        return saveImportResult(catalogId, processedRecords, ImportResultStatus.COMPLETED)
     }
 
     fun getResults(catalogId: String): List<ImportResult> {
