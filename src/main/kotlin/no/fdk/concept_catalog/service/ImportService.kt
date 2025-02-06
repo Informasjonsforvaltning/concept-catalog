@@ -21,7 +21,7 @@ import java.util.*
 
 @Service
 class ImportService(
-    private val conceptService: ConceptService,
+    private val historyService: HistoryService,
     private val conceptRepository: ConceptRepository,
     private val importResultRepository: ImportResultRepository,
     private val objectMapper: ObjectMapper
@@ -55,10 +55,15 @@ class ImportService(
         val processedExtractionRecords = extractionRecords.map { extractionRecord ->
             val existingConceptId = findExistingConceptId(extractionRecord.externalId)
 
-            if (existingConceptId != null) {
-                replaceExistingConcept(catalogId, existingConceptId, extractionRecord, user, jwt)
-            } else {
-                createNewConcept(catalogId, extractionRecord, user)
+            try {
+                if (existingConceptId != null) {
+                    replaceExistingConcept(catalogId, existingConceptId, extractionRecord, user, jwt)
+                } else {
+                    createNewConcept(catalogId, extractionRecord, user, jwt)
+                }
+            } catch (ex: Exception) {
+                logger.error("Unexpected error during RDF processing", ex)
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
             }
         }
 
@@ -109,43 +114,50 @@ class ImportService(
             ?.let { conceptRepository.getByOriginaltBegrep(it.originaltBegrep) }
             ?.maxByOrNull { it.versjonsnr }
 
-        val updatedConcept: BegrepDBO = if (existingConcept != null) {
-            if (existingConcept.erPublisert) {
-                existingConcept
-            } else {
-                existingConcept.createNewRevision()
-                    .updateLastChangedAndByWhom(user)
-            }
-        } else {
-            createNewConcept(Virksomhet(id = catalogId), user)
-                .updateLastChangedAndByWhom(user)
+        val updatedConcept: BegrepDBO = when {
+            existingConcept == null -> createNewConcept(Virksomhet(id = catalogId), user)
+            existingConcept.erPublisert -> existingConcept
+            else -> existingConcept.createNewRevision()
         }
 
-        conceptService.updateConcept(
-            concept = updatedConcept,
-            operations = extractionRecord.allOperations,
-            user = user,
-            jwt = jwt
-        )
+        val patchedConcept =
+            patchOriginal(updatedConcept.copy(endringslogelement = null), extractionRecord.allOperations, objectMapper)
+                .copy(
+                    id = updatedConcept.id,
+                    originaltBegrep = updatedConcept.originaltBegrep,
+                    ansvarligVirksomhet = updatedConcept.ansvarligVirksomhet
+                ).updateLastChangedAndByWhom(user)
 
-        logger.info("Updated concept in catalog $catalogId by user ${user.id}: ${updatedConcept.id}")
+        val savedConcept = conceptRepository.save(patchedConcept)
+        logger.info("Updated concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
 
-        return extractionRecord.copy(internalId = updatedConcept.id)
+        historyService.updateHistory(savedConcept, extractionRecord.allOperations, user, jwt)
+        logger.info("Updated history in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
+
+        return extractionRecord.copy(internalId = savedConcept.id)
     }
 
-    private fun createNewConcept(catalogId: String, extractionRecord: ExtractionRecord, user: User): ExtractionRecord {
+    private fun createNewConcept(
+        catalogId: String,
+        extractionRecord: ExtractionRecord,
+        user: User,
+        jwt: Jwt
+    ): ExtractionRecord {
         val newConcept = createNewConcept(Virksomhet(id = catalogId), user)
-            .updateLastChangedAndByWhom(user)
 
-        val updatedConcept = patchOriginal(
+        val patchedConcept = patchOriginal(
             original = newConcept,
             operations = extractionRecord.allOperations,
             mapper = objectMapper
-        ).let { conceptRepository.save(it) }
+        ).updateLastChangedAndByWhom(user)
 
-        logger.info("New concept created in catalog $catalogId by user ${user.id}: ${updatedConcept.id}")
+        val savedConcept = conceptRepository.save(patchedConcept)
+        logger.info("Created concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
 
-        return extractionRecord.copy(internalId = updatedConcept.id)
+        historyService.updateHistory(savedConcept, extractionRecord.allOperations, user, jwt)
+        logger.info("Updated history in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
+
+        return extractionRecord.copy(internalId = savedConcept.id)
     }
 }
 

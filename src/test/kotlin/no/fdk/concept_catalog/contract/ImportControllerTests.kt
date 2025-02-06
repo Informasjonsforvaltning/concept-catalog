@@ -124,6 +124,8 @@ class ImportControllerTests : ContractTestsBase() {
 
     @Test
     fun `Created with location on minimum viable skos-ap-no`() {
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+
         val turtle = """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -207,6 +209,8 @@ class ImportControllerTests : ContractTestsBase() {
 
     @Test
     fun `Updated with location on minimum viable skos-ap-no`() {
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+
         val turtle = """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -291,6 +295,8 @@ class ImportControllerTests : ContractTestsBase() {
 
     @Test
     fun `Created with location on maximum viable skos-ap-no`() {
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+
         val turtle = """
             @prefix owl:   <http://www.w3.org/2002/07/owl#> .
             @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
