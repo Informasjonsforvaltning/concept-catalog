@@ -74,7 +74,8 @@ class ImportService(
 
                 try {
                     conceptRepository.deleteById(internalId)
-                    historyService.removeHistoryUpdate(record.internalId, jwt)
+                    historyService.removeHistoryUpdate(internalId, jwt)
+
                     logger.info("Rolled back concept $internalId successfully")
                 } catch (deleteEx: Exception) {
                     logger.error("Failed to delete concept $internalId during rollback", deleteEx)
