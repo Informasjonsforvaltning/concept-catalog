@@ -14,7 +14,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
@@ -27,8 +26,6 @@ class ImportService(
     private val importResultRepository: ImportResultRepository,
     private val objectMapper: ObjectMapper
 ) {
-
-    @Transactional
     fun importRdf(catalogId: String, concepts: String, lang: Lang, user: User, jwt: Jwt): ImportResult {
         val model = ModelFactory.createDefaultModel()
 
