@@ -14,6 +14,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
@@ -27,6 +28,7 @@ class ImportService(
     private val objectMapper: ObjectMapper
 ) {
 
+    @Transactional
     fun importRdf(catalogId: String, concepts: String, lang: Lang, user: User, jwt: Jwt): ImportResult {
         val model = ModelFactory.createDefaultModel()
 
@@ -167,8 +169,7 @@ class ImportService(
         val savedConcept = conceptRepository.save(patchedConcept)
         logger.info("Updated concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
 
-        historyService.updateHistory(savedConcept, patchOperations, user, jwt)
-        logger.info("Updated history in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
+        updateHistory(savedConcept, patchOperations, user, jwt)
 
         return extractionRecord.copy(internalId = savedConcept.id)
     }
@@ -190,10 +191,32 @@ class ImportService(
         val savedConcept = conceptRepository.save(patchedConcept)
         logger.info("Created concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
 
-        historyService.updateHistory(savedConcept, extractionRecord.allOperations, user, jwt)
-        logger.info("Updated history in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
+        updateHistory(savedConcept, extractionRecord.allOperations, user, jwt)
 
         return extractionRecord.copy(internalId = savedConcept.id)
+    }
+
+    private fun updateHistory(
+        concept: BegrepDBO,
+        operations: List<JsonPatchOperation>,
+        user: User,
+        jwt: Jwt,
+    ) {
+        try {
+            historyService.updateHistory(concept, operations, user, jwt)
+            logger.info("Updated history for concept: ${concept.id}")
+        } catch (ex: Exception) {
+            logger.error("Failed to update history for concept: ${concept.id}. Rolling back concept creation.", ex)
+
+            try {
+                conceptRepository.deleteById(concept.id)
+                logger.info("Successfully rolled back concept: ${concept.id}")
+            } catch (rollbackEx: Exception) {
+                logger.error("Failed to rollback concept: ${concept.id}", rollbackEx)
+            }
+
+            throw ex
+        }
     }
 }
 
