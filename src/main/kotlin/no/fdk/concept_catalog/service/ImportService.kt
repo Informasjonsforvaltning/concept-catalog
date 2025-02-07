@@ -134,8 +134,8 @@ class ImportService(
 
         val updatedConcept: BegrepDBO = when {
             existingConcept == null -> createNewConcept(Virksomhet(id = catalogId), user)
-            existingConcept.erPublisert -> existingConcept
-            else -> existingConcept.createNewRevision()
+            existingConcept.erPublisert -> existingConcept.createNewRevision()
+            else -> existingConcept
         }
 
         val patchedConcept =
