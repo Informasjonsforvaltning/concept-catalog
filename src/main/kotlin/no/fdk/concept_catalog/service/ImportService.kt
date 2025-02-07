@@ -132,24 +132,42 @@ class ImportService(
             ?.let { conceptRepository.getByOriginaltBegrep(it.originaltBegrep) }
             ?.maxByOrNull { it.versjonsnr }
 
-        val updatedConcept: BegrepDBO = when {
-            existingConcept == null -> createNewConcept(Virksomhet(id = catalogId), user)
-            existingConcept.erPublisert -> existingConcept.createNewRevision()
-            else -> existingConcept
+        if (existingConcept == null) {
+            logger.warn("No existing concept found for ID: $existingConceptId")
+
+            return extractionRecord
         }
 
-        val patchedConcept =
-            patchOriginal(updatedConcept.copy(endringslogelement = null), extractionRecord.allOperations, objectMapper)
-                .copy(
-                    id = updatedConcept.id,
-                    originaltBegrep = updatedConcept.originaltBegrep,
-                    ansvarligVirksomhet = updatedConcept.ansvarligVirksomhet
-                ).updateLastChangedAndByWhom(user)
+        val updatedConcept = patchOriginal(
+            original = createNewConcept(Virksomhet(id = catalogId), user),
+            operations = extractionRecord.allOperations,
+            mapper = objectMapper
+        ).copy(
+            id = existingConceptId,
+            originaltBegrep = existingConcept.originaltBegrep,
+            ansvarligVirksomhet = existingConcept.ansvarligVirksomhet,
+            versjonsnr = existingConcept.versjonsnr,
+            endringslogelement = existingConcept.endringslogelement,
+            opprettet = existingConcept.opprettet,
+            erPublisert = existingConcept.erPublisert,
+        )
+
+        val patchOperations = createPatchOperations(existingConcept, updatedConcept, objectMapper)
+
+        val patchedConcept = patchOriginal(
+            original = existingConcept,
+            operations = patchOperations,
+            mapper = objectMapper
+        ).updateLastChangedAndByWhom(user)
+
+        if (patchedConcept.erPublisert) {
+            patchedConcept.createNewRevision()
+        }
 
         val savedConcept = conceptRepository.save(patchedConcept)
         logger.info("Updated concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
 
-        historyService.updateHistory(savedConcept, extractionRecord.allOperations, user, jwt)
+        historyService.updateHistory(savedConcept, patchOperations, user, jwt)
         logger.info("Updated history in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
 
         return extractionRecord.copy(internalId = savedConcept.id)
