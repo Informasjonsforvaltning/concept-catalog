@@ -38,13 +38,13 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         statusURI = statusUri.first,
         anbefaltTerm = anbefaltTerm.first,
         tillattTerm = tillattTerm.first,
-        frarådetTerm = frarådetTerm.first ?: emptyMap(),
+        frarådetTerm = frarådetTerm.first,
         definisjon = definisjon?.first,
         definisjonForAllmennheten = definisjonForAllmennheten?.first,
         definisjonForSpesialister = definisjonForSpesialister?.first,
-        merknad = merknad.first ?: emptyMap(),
-        eksempel = eksempel.first ?: emptyMap(),
-        fagområde = fagområde.first ?: emptyMap(),
+        merknad = merknad.first,
+        eksempel = eksempel.first,
+        fagområde = fagområde.first,
         omfang = omfang.first,
         gyldigFom = gyldigFom.first,
         gyldigTom = gyldigTom.first,
@@ -436,14 +436,6 @@ private fun Resource.extractLocalizedStringsAsGrouping(
         .groupBy { it.language }
         .mapValues { (_, literals) -> literals.map { it.string } }
 }
-
-private fun isValidDate(dateString: String): Boolean =
-    try {
-        LocalDate.parse(dateString)
-        true
-    } catch (e: DateTimeParseException) {
-        false
-    }
 
 private fun RDFNode.asResourceOrNull(): Resource? {
     return if (isResource) asResource() else null
