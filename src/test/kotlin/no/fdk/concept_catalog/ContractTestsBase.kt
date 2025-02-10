@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.CurrentConcept
+import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.utils.JwkStore
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,6 +49,7 @@ open class ContractTestsBase {
 
         mongoOperations.remove(Query(), Begrep::class.java)
         mongoOperations.remove(Query(), ChangeRequest::class.java)
+        mongoOperations.remove(Query(), ImportResult::class.java)
 
         elasticsearchOperations.delete(
             DeleteQuery.builder(org.springframework.data.elasticsearch.core.query.Query.findAll()).build(),
