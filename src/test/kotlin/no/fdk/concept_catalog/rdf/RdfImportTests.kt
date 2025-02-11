@@ -43,7 +43,7 @@ class RdfImportTests {
                     owl:versionInfo       "1.0.0" .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -77,7 +77,7 @@ class RdfImportTests {
                     owl:versionInfo       "1" .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -105,7 +105,7 @@ class RdfImportTests {
                     euvoc:status          <http://publications.europa.eu/resource/authority/concept-status/CURRENT> .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -136,7 +136,7 @@ class RdfImportTests {
                     skos:prefLabel        "anbefaltTerm"@nb .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -163,7 +163,7 @@ class RdfImportTests {
                     rdf:type              skos:Concept .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -190,7 +190,7 @@ class RdfImportTests {
                     skos:altLabel         "tillattTerm"@nb .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -219,7 +219,7 @@ class RdfImportTests {
                     skos:hiddenLabel      "frarådetTerm"@nb .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -258,7 +258,7 @@ class RdfImportTests {
                           ] .
         """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -324,7 +324,7 @@ class RdfImportTests {
                               ] .
             """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -371,7 +371,7 @@ class RdfImportTests {
                               ] .
             """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -416,7 +416,7 @@ class RdfImportTests {
                               ] .
             """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -443,7 +443,7 @@ class RdfImportTests {
                         skos:scopeNote        "merknad"@nb .
             """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -472,7 +472,7 @@ class RdfImportTests {
                         skos:scopeNote        "merknad uten språktag" .
             """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -499,7 +499,7 @@ class RdfImportTests {
                             skos:example          "eksempel"@nb .
                 """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -529,7 +529,7 @@ class RdfImportTests {
                             dct:subject           "fagområde"@nb .
                 """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -560,7 +560,7 @@ class RdfImportTests {
 
                 """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -591,7 +591,7 @@ class RdfImportTests {
                                 euvoc:startDate       "2020-12-31"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -622,7 +622,7 @@ class RdfImportTests {
                                 euvoc:startDate       "2020"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -651,7 +651,7 @@ class RdfImportTests {
                                 euvoc:endDate         "2025-12-31"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -682,7 +682,7 @@ class RdfImportTests {
                                 euvoc:endDate         "2025"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")
@@ -716,7 +716,7 @@ class RdfImportTests {
                                       ].
                     """.trimIndent()
 
-        model.read(StringReader(turtle), "https://example.com", Lang.TURTLE.name)
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
         val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
         val resource = model.getResource("https://example.com/concept")

@@ -35,7 +35,7 @@ class ImportService(
 
         try {
             model = ModelFactory.createDefaultModel().apply {
-                read(StringReader(concepts), "https://example.com", Lang.TURTLE.name)
+                read(StringReader(concepts), null, lang.name)
             }
         } catch (ex: JenaException) {
             logger.error("Error parsing RDF import", ex)
