@@ -4,7 +4,7 @@ import co.elastic.clients.elasticsearch._types.FieldValue
 import co.elastic.clients.elasticsearch._types.query_dsl.Query
 import no.fdk.concept_catalog.model.SearchFilters
 
-private fun orgFilter(orgNumber: String): Query =
+fun orgFilter(orgNumber: String): Query =
     Query.of { queryBuilder ->
         queryBuilder.term { termBuilder -> termBuilder.field("ansvarligVirksomhet.id.keyword").value(orgNumber) }
     }

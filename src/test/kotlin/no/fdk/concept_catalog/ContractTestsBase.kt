@@ -25,7 +25,7 @@ import org.wiremock.spring.EnableWireMock
 @Import(TestcontainersConfig::class)
 @EnableWireMock(ConfigureWireMock(port = 6000))
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ContractTestsBase {
+open class ContractTestsBase {
 
     @LocalServerPort
     var port: Int = 0

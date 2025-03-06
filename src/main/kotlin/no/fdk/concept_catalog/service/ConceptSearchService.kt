@@ -38,6 +38,21 @@ class ConceptSearchService(
         )
     }
 
+    fun countCurrentConcepts(orgNumber: String): Long {
+        val builder = NativeQuery.builder()
+        builder.withFilter { queryBuilder ->
+            queryBuilder.bool { boolBuilder ->
+                boolBuilder.must(mutableListOf(orgFilter(orgNumber)))
+            }
+        }
+        val query = builder.build()
+        return elasticsearchOperations.count(
+            query,
+            CurrentConcept::class.java,
+            IndexCoordinates.of("concepts-current")
+        )
+    }
+
     private fun suggestionQuery(orgNumber: String, published: Boolean?, query: String): Query {
         val builder = NativeQuery.builder()
         builder.withFilter { queryBuilder ->
@@ -87,7 +102,6 @@ class ConceptSearchService(
 
         return builder.build()
     }
-
 
     private fun NativeQueryBuilder.addFieldsQuery(queryFields: QueryFields, queryValue: String) {
         withQuery { queryBuilder ->
