@@ -71,6 +71,20 @@ class ConceptsController(
         }
     }
 
+    @GetMapping(
+        value = ["/{catalogId}/count"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun getConceptCount(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String
+    ): ResponseEntity<Long> {
+        return when {
+            !endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            else -> ResponseEntity(conceptService.countCurrentConcepts(catalogId), HttpStatus.OK)
+        }
+    }
+
     @PostMapping(
         value = ["/{catalogId}/import"],
         produces = [MediaType.APPLICATION_JSON_VALUE],

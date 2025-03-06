@@ -341,6 +341,9 @@ class ConceptService(
             .map { it.toSuggestion() }
             .toList()
 
+    fun countCurrentConcepts(orgNumber: String): Long =
+        conceptSearchService.countCurrentConcepts(orgNumber)
+
     private fun CurrentConcept.toSuggestion(): Suggestion =
         Suggestion(
             id = idOfThisVersion,
