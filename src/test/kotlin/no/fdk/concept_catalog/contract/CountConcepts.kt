@@ -38,7 +38,7 @@ class CountConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for read access`() {
-        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_1.toDBO()), CurrentConcept(BEGREP_2.toDBO())))
+        addToElasticsearchIndex(listOf(BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
 
         val response = authorizedRequest(
             "/begreper/123456789/count",
