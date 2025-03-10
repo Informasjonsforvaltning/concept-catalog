@@ -104,8 +104,7 @@ class PublishConcept : ContractTestsBase() {
         assertEquals(
             BEGREP_TO_BE_UPDATED.copy(
                 erPublisert = true,
-                erSistPublisert = true,
-                sistPublisertId = "id-to-be-updated",
+                sistPublisertId = null,
                 publiseringsTidspunkt = result.publiseringsTidspunkt
             ), result
         )

@@ -106,7 +106,6 @@ class CreateRevision : ContractTestsBase() {
         assertEquals(false, revision?.erPublisert)
         assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
         assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
-        assertEquals(revision?.id, concept4After?.gjeldendeRevisjon)
     }
 
     @Test
@@ -150,7 +149,6 @@ class CreateRevision : ContractTestsBase() {
         assertEquals(false, revision?.erPublisert)
         assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
         assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
-        assertEquals(revision?.id, concept4After?.gjeldendeRevisjon)
     }
 
     @Test

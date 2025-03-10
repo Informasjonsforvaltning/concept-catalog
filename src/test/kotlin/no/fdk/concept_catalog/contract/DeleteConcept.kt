@@ -98,12 +98,11 @@ class DeleteConcept : ContractTestsBase() {
         assertEquals(HttpStatus.OK, searchResponse.statusCode)
 
         val expected = BEGREP_0_OLD.copy(
-            erSistPublisert = true,
             sistPublisertId = BEGREP_0_OLD.id
         )
 
         val result: Paginated = mapper.readValue(searchResponse.body as String)
-        assertEquals(listOf(expected.fromSearch()), result.hits)
+        assertEquals(listOf(expected), result.hits)
     }
 
 }

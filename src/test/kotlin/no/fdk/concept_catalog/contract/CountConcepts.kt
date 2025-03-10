@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.utils.*
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod

@@ -2,14 +2,12 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
-import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.Suggestion
 import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_1
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import no.fdk.concept_catalog.utils.asCurrentConcept
-import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod

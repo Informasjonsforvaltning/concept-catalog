@@ -674,11 +674,9 @@ class ChangeRequests : ContractTestsBase() {
                 id = location.id,
                 versjonsnr = SemVer(1, 0, 2),
                 erPublisert = false,
-                erSistPublisert = false,
-                sistPublisertId = BEGREP_0.id,
+                sistPublisertId = null,
                 publiseringsTidspunkt = null,
                 revisjonAv = BEGREP_0.id,
-                revisjonAvSistPublisert = true,
                 endringslogelement = Endringslogelement(
                     endretAv = "TEST USER",
                     endringstidspunkt = location.endringslogelement!!.endringstidspunkt
@@ -727,7 +725,8 @@ class ChangeRequests : ContractTestsBase() {
                     endretAv = "TEST USER",
                     endringstidspunkt = location.endringslogelement!!.endringstidspunkt
                 ),
-                assignedUser = "newUserId"
+                assignedUser = "newUserId",
+                sistPublisertId = null
             )
 
             assertEquals(expected, location)
@@ -768,8 +767,6 @@ class ChangeRequests : ContractTestsBase() {
                 id = location.id,
                 originaltBegrep = location.id,
                 erPublisert = false,
-                gjeldendeRevisjon = null,
-                revisjonAvSistPublisert = true,
                 versjonsnr = SemVer(0, 1, 0),
                 ansvarligVirksomhet = Virksomhet(
                     id = "123456789"

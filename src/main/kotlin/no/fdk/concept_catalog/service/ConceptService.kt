@@ -7,10 +7,7 @@ import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isValid
 import no.fdk.concept_catalog.validation.validateSchema
-import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
-import org.apache.jena.vocabulary.RDF
-import org.apache.jena.vocabulary.SKOS
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
@@ -20,7 +17,6 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.util.UriComponentsBuilder
-import java.io.StringReader
 import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.roundToLong
@@ -61,7 +57,7 @@ class ConceptService(
     }
 
     fun getConceptById(id: String): Begrep? =
-        conceptRepository.findByIdOrNull(id)?.withHighestVersionDTO()
+        conceptRepository.findByIdOrNull(id)?.toDTO()
 
     fun getConceptDBO(id: String): BegrepDBO? =
         conceptRepository.findByIdOrNull(id)
@@ -248,7 +244,7 @@ class ConceptService(
                 throw badRequest
             }
 
-            isPublishedAndNotValid(patched.withHighestVersionDTO()) -> {
+            isPublishedAndNotValid(patched.toDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${patched.id} has not passed validation for published concepts and has not been saved.",
@@ -279,7 +275,7 @@ class ConceptService(
         try {
             return conceptRepository.saveAll(conceptsAndOperations.keys)
                 .onEach { updateCurrentConceptForOriginalId(it.originaltBegrep) }
-                .map { it.withHighestVersionDTO() }
+                .map { it.toDTO() }
         } catch (ex: Exception) {
             logger.error("save failed, removing history update", ex)
             locations.filterNotNull().forEach { historyService.removeHistoryUpdate(it, jwt) }
@@ -299,9 +295,8 @@ class ConceptService(
     }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
-        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.withHighestVersionDTO() }
-        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status)
-            .map { it.withHighestVersionDTO() }
+        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.toDTO() }
+        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.toDTO() }
 
     fun getAllPublisherIds(): List<String> {
         return mongoOperations
@@ -317,7 +312,7 @@ class ConceptService(
             conceptRepository.getByOriginaltBegrep(originaltBegrep)
                 .filter { it.erPublisert }
                 .maxByOrNull { concept -> concept.versjonsnr }
-                ?.let { it.toDTO(null, null, it.id) }
+                ?.toDTO()
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
@@ -325,7 +320,7 @@ class ConceptService(
             .filter { it.erPublisert }
             .sortedByDescending { concept -> concept.versjonsnr }
             .distinctBy { concept -> concept.originaltBegrep }
-            .map { it.toDTO(null, null, it.id) }
+            .map { it.toDTO() }
 
     fun getLatestVersion(originalId: String): BegrepDBO? =
         conceptRepository.getByOriginaltBegrep(originalId)
@@ -384,14 +379,9 @@ class ConceptService(
         }
     }
 
-    private fun BegrepDBO.withHighestVersionDTO(): Begrep =
-        getLastPublished(originaltBegrep)
-            ?.let { toDTO(it.versjonsnr, it.id, findIdOfUnpublishedRevision(this)) }
-            ?: toDTO(null, null, findIdOfUnpublishedRevision(this))
-
     fun findRevisions(concept: BegrepDBO): List<Begrep> =
         conceptRepository.getByOriginaltBegrep(concept.originaltBegrep)
-            .map { it.withHighestVersionDTO() }
+            .map { it.toDTO() }
 
     fun publish(concept: BegrepDBO): Begrep {
         val published = concept.copy(
@@ -408,7 +398,7 @@ class ConceptService(
                 throw badRequest
             }
 
-            isPublishedAndNotValid(published.withHighestVersionDTO()) -> {
+            isPublishedAndNotValid(published.toDTO()) -> {
                 val badRequestException = ResponseStatusException(HttpStatus.BAD_REQUEST)
                 logger.error(
                     "Concept ${concept.id} has not passed validation and has not been published.",
@@ -422,7 +412,7 @@ class ConceptService(
 
         return conceptRepository.save(published)
             .also { updateRelationsToNonInternal(it) }
-            .withHighestVersionDTO()
+            .toDTO()
     }
 
     private fun updateRelationsToNonInternal(concept: BegrepDBO) {

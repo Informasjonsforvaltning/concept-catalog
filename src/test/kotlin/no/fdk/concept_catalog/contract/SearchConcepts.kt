@@ -68,7 +68,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
     }
 
     @Test
@@ -85,7 +85,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_1), result.hits)
     }
 
     @Test
@@ -109,7 +109,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_1), result.hits)
     }
 
     @Test
@@ -136,7 +136,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_0), result.hits)
     }
 
     @Test
@@ -163,14 +163,20 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_1, BEGREP_0), result.hits)
     }
 
     @Test
     fun `Query with published filter returns correct results`() {
         mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO(), BEGREP_2.toDBO()))
 
-        addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+        addToElasticsearchIndex(
+            listOf(
+                BEGREP_0.asCurrentConcept(),
+                BEGREP_1.asCurrentConcept(),
+                BEGREP_2.asCurrentConcept()
+            )
+        )
 
         val unPublishedResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -204,10 +210,10 @@ class SearchConcepts : ContractTestsBase() {
         assertEquals(HttpStatus.OK, unPublishedResponse.statusCode)
 
         val unPublished: Paginated = mapper.readValue(unPublishedResponse.body as String)
-        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), unPublished.hits)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), unPublished.hits)
 
         val published: Paginated = mapper.readValue(publishedResponse.body as String)
-        assertEquals(listOf(BEGREP_0.fromSearch()), published.hits)
+        assertEquals(listOf(BEGREP_0), published.hits)
     }
 
     @Test
@@ -253,10 +259,10 @@ class SearchConcepts : ContractTestsBase() {
         assertEquals(HttpStatus.OK, withSubjectFagomr3Response.statusCode)
 
         val withSubjectFagomr1: Paginated = mapper.readValue(withSubjectFagomr1Response.body as String)
-        assertEquals(listOf(BEGREP_5.fromSearch()), withSubjectFagomr1.hits)
+        assertEquals(listOf(BEGREP_5), withSubjectFagomr1.hits)
 
         val withSubjectFagomr3: Paginated = mapper.readValue(withSubjectFagomr3Response.body as String)
-        assertEquals(listOf(BEGREP_4.fromSearch(), BEGREP_5.fromSearch()), withSubjectFagomr3.hits)
+        assertEquals(listOf(BEGREP_4, BEGREP_5), withSubjectFagomr3.hits)
     }
 
     @Test
@@ -295,7 +301,7 @@ class SearchConcepts : ContractTestsBase() {
         assertEquals(HttpStatus.OK, withoutInternalFieldsResponse.statusCode)
 
         val withInternalFields: Paginated = mapper.readValue(withInternalFieldsResponse.body as String)
-        assertEquals(listOf(BEGREP_4.fromSearch()), withInternalFields.hits)
+        assertEquals(listOf(BEGREP_4), withInternalFields.hits)
 
         val withoutInternalFields: Paginated = mapper.readValue(withoutInternalFieldsResponse.body as String)
         assertEquals(emptyList(), withoutInternalFields.hits)
@@ -336,7 +342,7 @@ class SearchConcepts : ContractTestsBase() {
         assertEquals(HttpStatus.OK, withoutLabelResponse.statusCode)
 
         val withInternalFields: Paginated = mapper.readValue(withLabelResponse.body as String)
-        assertEquals(listOf(BEGREP_0.fromSearch()), withInternalFields.hits)
+        assertEquals(listOf(BEGREP_0), withInternalFields.hits)
 
         val withoutInternalFields: Paginated = mapper.readValue(withoutLabelResponse.body as String)
         assertEquals(emptyList(), withoutInternalFields.hits)
@@ -370,7 +376,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), result.hits)
     }
 
     @Test
@@ -390,7 +396,7 @@ class SearchConcepts : ContractTestsBase() {
         assertEquals(HttpStatus.OK, titleResponse.statusCode)
 
         val titleResult: Paginated = mapper.readValue(titleResponse.body as String)
-        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_2.fromSearch()), titleResult.hits)
+        assertEquals(listOf(BEGREP_1, BEGREP_2), titleResult.hits)
 
         val descriptionResponse = authorizedRequest(
             "/begreper/search?orgNummer=123456789",
@@ -420,14 +426,20 @@ class SearchConcepts : ContractTestsBase() {
 
         val statusResult: Paginated = mapper.readValue(statusResponse.body as String)
 
-        assertEquals(listOf(BEGREP_2.fromSearch()), statusResult.hits)
+        assertEquals(listOf(BEGREP_2), statusResult.hits)
     }
 
     @Test
     fun `Empty query returns all current versions`() {
         mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-        addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+        addToElasticsearchIndex(
+            listOf(
+                BEGREP_0.asCurrentConcept(),
+                BEGREP_1.asCurrentConcept(),
+                BEGREP_2.asCurrentConcept()
+            )
+        )
 
         val queryFields =
             QueryFields(definisjon = false, anbefaltTerm = false, frarådetTerm = false, tillattTerm = false)
@@ -442,7 +454,7 @@ class SearchConcepts : ContractTestsBase() {
         assertEquals(HttpStatus.OK, response.statusCode)
 
         val titleResult: Paginated = mapper.readValue(response.body as String)
-        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch(), BEGREP_2.fromSearch()), titleResult.hits)
+        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), titleResult.hits)
     }
 
     @Test
@@ -463,7 +475,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_2.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_2), result.hits)
     }
 
     @Test
@@ -480,14 +492,20 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_1), result.hits)
     }
 
     @Test
     fun `Query returns correct results when searching in terms`() {
         mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-        addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+        addToElasticsearchIndex(
+            listOf(
+                BEGREP_0.asCurrentConcept(),
+                BEGREP_1.asCurrentConcept(),
+                BEGREP_2.asCurrentConcept()
+            )
+        )
 
         val queryFields = QueryFields(definisjon = false, merknad = false)
 
@@ -502,7 +520,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch(), BEGREP_2.fromSearch()).sortedBy { it.id }, result.hits.sortedBy { it.id })
+        assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2).sortedBy { it.id }, result.hits.sortedBy { it.id })
     }
 
     @Test
@@ -526,7 +544,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_2.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_2), result.hits)
     }
 
     @Test
@@ -545,7 +563,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_0), result.hits)
     }
 
     @Test
@@ -570,7 +588,13 @@ class SearchConcepts : ContractTestsBase() {
         fun `Paginate handles invalid values`() {
             mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-            addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+            addToElasticsearchIndex(
+                listOf(
+                    BEGREP_0.asCurrentConcept(),
+                    BEGREP_1.asCurrentConcept(),
+                    BEGREP_2.asCurrentConcept()
+                )
+            )
 
             val response = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
@@ -590,7 +614,7 @@ class SearchConcepts : ContractTestsBase() {
 
             val result: Paginated = mapper.readValue(response.body as String)
 
-            assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch(), BEGREP_2.fromSearch()), result.hits)
+            assertEquals(listOf(BEGREP_1, BEGREP_0, BEGREP_2), result.hits)
         }
 
         @Test
@@ -614,7 +638,13 @@ class SearchConcepts : ContractTestsBase() {
         fun `Pages handled correctly`() {
             mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-            addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+            addToElasticsearchIndex(
+                listOf(
+                    BEGREP_0.asCurrentConcept(),
+                    BEGREP_1.asCurrentConcept(),
+                    BEGREP_2.asCurrentConcept()
+                )
+            )
 
             val firstResponse = authorizedRequest(
                 "/begreper/search?orgNummer=123456789",
@@ -650,8 +680,8 @@ class SearchConcepts : ContractTestsBase() {
             val result0: Paginated = mapper.readValue(firstResponse.body as String)
             val result1: Paginated = mapper.readValue(secondResponse.body as String)
 
-            assertEquals(listOf(BEGREP_1.fromSearch(), BEGREP_0.fromSearch()), result0.hits)
-            assertEquals(listOf(BEGREP_2.fromSearch()), result1.hits)
+            assertEquals(listOf(BEGREP_1, BEGREP_0), result0.hits)
+            assertEquals(listOf(BEGREP_2), result1.hits)
         }
     }
 
@@ -659,7 +689,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query returns sorted results ordered by sistEndret ascending`() {
         mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
 
-        addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+        addToElasticsearchIndex(
+            listOf(
+                BEGREP_0.asCurrentConcept(),
+                BEGREP_1.asCurrentConcept(),
+                BEGREP_2.asCurrentConcept()
+            )
+        )
 
         val searchOp = SearchOperation(
             query = "",
@@ -676,12 +712,18 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_2.fromSearch(), BEGREP_0.fromSearch(), BEGREP_1.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_2, BEGREP_0, BEGREP_1), result.hits)
     }
 
     @Test
     fun `Query returns sorted results ordered by anbefaltTerm ascending`() {
-        addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+        addToElasticsearchIndex(
+            listOf(
+                BEGREP_0.asCurrentConcept(),
+                BEGREP_1.asCurrentConcept(),
+                BEGREP_2.asCurrentConcept()
+            )
+        )
 
         val searchOp = SearchOperation(
             query = "",
@@ -705,7 +747,13 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns sorted results ordered by anbefaltTerm descending`() {
-        addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
+        addToElasticsearchIndex(
+            listOf(
+                BEGREP_0.asCurrentConcept(),
+                BEGREP_1.asCurrentConcept(),
+                BEGREP_2.asCurrentConcept()
+            )
+        )
 
         val searchOp = SearchOperation(
             query = "",
@@ -750,7 +798,7 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_1.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_1), result.hits)
     }
 
     @Test
@@ -775,6 +823,6 @@ class SearchConcepts : ContractTestsBase() {
 
         val result: Paginated = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.fromSearch()), result.hits)
+        assertEquals(listOf(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND), result.hits)
     }
 }
