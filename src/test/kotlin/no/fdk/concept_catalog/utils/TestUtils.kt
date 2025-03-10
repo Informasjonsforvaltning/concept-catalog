@@ -91,11 +91,7 @@ fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, 
     return isIsomorphic
 }
 
-fun Begrep.fromSearch() = copy(
-    erSistPublisert = false,
-    revisjonAvSistPublisert = false,
-    gjeldendeRevisjon = null
-)
+fun Begrep.fromDBO() = copy(sistPublisertId = null)
 
 fun Begrep.asCurrentConcept(latestPublishedId: String? = null) =
     if (latestPublishedId != null) CurrentConcept(toDBO(), latestPublishedId)

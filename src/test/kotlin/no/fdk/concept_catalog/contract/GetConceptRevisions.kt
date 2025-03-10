@@ -65,8 +65,8 @@ class GetConceptRevisions : ContractTestsBase() {
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
         assertEquals(2, result.size)
-        assertEquals(BEGREP_0, result[0])
-        assertEquals(BEGREP_0_OLD, result[1])
+        assertEquals(BEGREP_0.fromDBO(), result[0])
+        assertEquals(BEGREP_0_OLD.fromDBO(), result[1])
     }
 
     @Test
@@ -86,7 +86,7 @@ class GetConceptRevisions : ContractTestsBase() {
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
         assertEquals(2, result.size)
-        assertEquals(BEGREP_0, result[0])
-        assertEquals(BEGREP_0_OLD, result[1])
+        assertEquals(BEGREP_0.fromDBO(), result[0])
+        assertEquals(BEGREP_0_OLD.fromDBO(), result[1])
     }
 }

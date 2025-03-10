@@ -63,7 +63,7 @@ class GetConcept : ContractTestsBase() {
         assertEquals(HttpStatus.OK, response.statusCode)
 
         val result: Begrep = mapper.readValue(response.body as String)
-        assertEquals(BEGREP_0, result)
+        assertEquals(BEGREP_0.fromDBO(), result)
     }
 
     @Test
@@ -81,6 +81,6 @@ class GetConcept : ContractTestsBase() {
         assertEquals(HttpStatus.OK, response.statusCode)
 
         val result: Begrep = mapper.readValue(response.body as String)
-        assertEquals(BEGREP_0, result)
+        assertEquals(BEGREP_0.fromDBO(), result)
     }
 }

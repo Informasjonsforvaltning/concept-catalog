@@ -45,7 +45,7 @@ class GetConcepts : ContractTestsBase() {
 
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_0_OLD), result)
+        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()), result)
     }
 
     @Test
@@ -62,7 +62,7 @@ class GetConcepts : ContractTestsBase() {
 
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0, BEGREP_1, BEGREP_2, BEGREP_0_OLD), result)
+        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()), result)
     }
 
     @Test
@@ -95,9 +95,9 @@ class GetConcepts : ContractTestsBase() {
         assertEquals(listOf(BEGREP_2), resultHearing)
 
         val resultAccepted: List<Begrep> = mapper.readValue(accepted.body as String)
-        assertEquals(listOf(BEGREP_1), resultAccepted)
+        assertEquals(listOf(BEGREP_1.fromDBO()), resultAccepted)
 
         val resultPublished: List<Begrep> = mapper.readValue(published.body as String)
-        assertEquals(listOf(BEGREP_0, BEGREP_0_OLD), resultPublished)
+        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_0_OLD.fromDBO()), resultPublished)
     }
 }
