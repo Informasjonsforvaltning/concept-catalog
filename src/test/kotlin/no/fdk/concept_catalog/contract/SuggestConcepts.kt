@@ -8,6 +8,7 @@ import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_1
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.asCurrentConcept
 import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -46,7 +47,7 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for read access`() {
-        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
+        addToElasticsearchIndex(BEGREP_1.asCurrentConcept())
 
         val response = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=begr",
@@ -73,7 +74,7 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for write access`() {
-        addToElasticsearchIndex(CurrentConcept(BEGREP_1.toDBO()))
+        addToElasticsearchIndex(BEGREP_1.asCurrentConcept())
 
         val response = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=lorem",
@@ -100,7 +101,7 @@ class SuggestConcepts : ContractTestsBase() {
 
     @Test
     fun `Able to filter by published status`() {
-        addToElasticsearchIndex(listOf(CurrentConcept(BEGREP_0.toDBO()), CurrentConcept(BEGREP_1.toDBO())))
+        addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept()))
 
         val hitsPublished = authorizedRequest(
             "/begreper/suggestions?org=123456789&q=anb&published=true",

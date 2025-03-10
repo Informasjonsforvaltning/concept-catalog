@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.utils
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.BegrepDBO
+import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.rdf.rdfResponse
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
@@ -89,3 +90,13 @@ fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, 
 
     return isIsomorphic
 }
+
+fun Begrep.fromSearch() = copy(
+    erSistPublisert = false,
+    revisjonAvSistPublisert = false,
+    gjeldendeRevisjon = null
+)
+
+fun Begrep.asCurrentConcept(latestPublishedId: String? = null) =
+    if (latestPublishedId != null) CurrentConcept(toDBO(), latestPublishedId)
+    else CurrentConcept(toDBO(), if (erPublisert) id else null)
