@@ -13,13 +13,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
+        <version>3.4.4</version>
         <relativePath/>
     </parent>
 
     <properties>
         <!--standard properties-->
-        <java.release>17</java.release>
+        <java.release>21</java.release>
         <java.encoding>UTF-8</java.encoding>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -28,9 +28,9 @@
         <maven.exec.skip>false</maven.exec.skip>
         <!--end standard properties-->
 
-        <kotlin.version>2.0.21</kotlin.version>
-        <testcontainers.version>1.20.2</testcontainers.version>
-        <jena.version>5.2.0</jena.version>
+        <kotlin.version>2.1.20</kotlin.version>
+        <testcontainers.version>1.20.6</testcontainers.version>
+        <jena.version>5.3.0</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
     </properties>
 
@@ -84,7 +84,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.13.6</version>
         </dependency>
 
         <!-- Kotlin dependencies -->
@@ -191,7 +190,7 @@
         <dependency>
             <groupId>org.wiremock.integrations</groupId>
             <artifactId>wiremock-spring-boot</artifactId>
-            <version>3.4.0</version>
+            <version>3.9.0</version>
         </dependency>
     </dependencies>
 

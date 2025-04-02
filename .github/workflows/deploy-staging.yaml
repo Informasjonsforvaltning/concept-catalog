@@ -13,7 +13,7 @@ jobs:
     uses: Informasjonsforvaltning/workflows/.github/workflows/build-push.yaml@main
     with:
       app_name: concept-catalog
-      java_version: '17'
+      java_version: '21'
       coverage_file_path: ./target/site/jacoco/jacoco.xml
       environment: staging
     secrets:
@@ -39,4 +39,4 @@ jobs:
     if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
     uses: Informasjonsforvaltning/workflows/.github/workflows/build.yaml@main
     with:
-      java_version: '17'
+      java_version: '21'
