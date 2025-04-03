@@ -18,4 +18,4 @@ WORKDIR $HOME
 
 COPY --chown=app:app /target/app.jar app.jar
 
-CMD ["sh", "-c", "java -jar $JAVA_OPTS app.jar"]
+CMD ["sh", "-c", "java -jar -XX:+UseZGC -Xmx2g $JAVA_OPTS app.jar"]
