@@ -17,9 +17,12 @@ spring:
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
   elasticsearch:
-    username: ${CATALOG_STORE_USERNAME}
-    password: ${CATALOG_STORE_PASSWORD}
-    uris: ${CATALOG_STORE_URI}
+    username: ${ELASTIC_USERNAME}
+    password: ${ELASTIC_PASSWORD}
+    host: ${ELASTIC_HOST}
+    ssl: ${ELASTIC_SSL:true}
+    storePath: ${ELASTIC_KEYSTORE_PATH}
+    storePass: ${ELASTIC_KEYSTORE_PASSWORD}
 management:
   endpoints:
     web:
@@ -42,10 +45,6 @@ spring:
   data.mongodb.uri: mongodb://admin:admin@localhost:27017/datasetCatalog?authSource=admin&authMechanism=SCRAM-SHA-1
   security.oauth2.resourceserver.jwt.jwk-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
   rabbitmq.host: 127.0.0.1
-  elasticsearch:
-    username: elastic
-    password: elasticpwd
-    uris: http://localhost:9200
 application.cors.originPatterns: "*"
 
 ---
