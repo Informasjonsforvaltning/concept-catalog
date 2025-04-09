@@ -16,10 +16,6 @@ spring:
     port: 5672
     username: ${RABBIT_USERNAME:admin}
     password: ${RABBIT_PASSWORD:admin}
-  elasticsearch:
-    username: ${CATALOG_STORE_USERNAME}
-    password: ${CATALOG_STORE_PASSWORD}
-    uris: ${CATALOG_STORE_URI}
 management:
   endpoints:
     web:
@@ -35,6 +31,13 @@ application:
   historyServiceUri: ${CATALOG_HISTORY_SERVICE_URI:http://localhost:9090}
   adminServiceUri: ${CATALOG_ADMIN_SERVICE_URI:https://catalog-admin-service.fellesdatakatalog.digdir.no}
   cors.originPatterns: "${CORS_ORIGIN_PATTERNS}"
+  elasticsearch:
+    username: ${ELASTIC_USERNAME}
+    password: ${ELASTIC_PASSWORD}
+    host: ${ELASTIC_HOST}
+    ssl: true
+    storePath: ${ELASTIC_KEYSTORE_PATH}
+    storePass: ${ELASTIC_KEYSTORE_PASSWORD}
 
 ---
 spring:
@@ -42,11 +45,15 @@ spring:
   data.mongodb.uri: mongodb://admin:admin@localhost:27017/datasetCatalog?authSource=admin&authMechanism=SCRAM-SHA-1
   security.oauth2.resourceserver.jwt.jwk-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
   rabbitmq.host: 127.0.0.1
+application:
+  cors.originPatterns: "*"
   elasticsearch:
     username: elastic
     password: elasticpwd
-    uris: http://localhost:9200
-application.cors.originPatterns: "*"
+    host: localhost:9200
+    ssl: false
+    storePath: path
+    storePass: pass
 
 ---
 spring:
@@ -55,3 +62,10 @@ spring:
 application:
   historyServiceUri: http://localhost:6000
   cors.originPatterns: "*"
+  elasticsearch:
+    username: elastic
+    password: elasticpwd
+    host: localhost:9200
+    ssl: false
+    storePath: path
+    storePass: pass
