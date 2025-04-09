@@ -23,7 +23,7 @@ import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
 
 @ActiveProfiles("contract-test")
-@Import(TestcontainersConfig::class)
+@Import(TestcontainersConfig::class, ElasticTestConfig::class)
 @EnableWireMock(ConfigureWireMock(port = 6000))
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 open class ContractTestsBase {
