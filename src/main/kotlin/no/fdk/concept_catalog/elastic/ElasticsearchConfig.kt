@@ -31,8 +31,15 @@ class ElasticsearchConfig(private val elasticProperties: ElasticProperties): Ela
     override fun clientConfiguration(): ClientConfiguration {
         val builder = ClientConfiguration.builder()
             .connectedTo(elasticProperties.host)
-            .usingSsl(sslContext())
-            .withBasicAuth(elasticProperties.username, elasticProperties.password)
+
+        if (elasticProperties.ssl) {
+            builder.usingSsl(sslContext())
+        }
+
+        builder.withBasicAuth(
+            elasticProperties.username,
+            elasticProperties.password
+        )
 
         return builder.build()
     }

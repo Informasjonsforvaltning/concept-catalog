@@ -19,6 +19,10 @@ class TestcontainersConfig {
     @ServiceConnection
     fun elasticsearchContainer(): ElasticsearchContainer {
         return ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.2")
-            .withEnv(mapOf(Pair("xpack.security.enabled", "false"), Pair("ES_JAVA_OPTS", "-Xms512M -Xmx512M")))
+            .withEnv(mapOf(
+                Pair("xpack.security.enabled", "true"),
+                Pair("ELASTIC_PASSWORD", "elasticpwd"),
+                Pair("ES_JAVA_OPTS", "-Xms512M -Xmx512M")
+            ))
     }
 }
