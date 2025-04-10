@@ -2,7 +2,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
   labels:
     fdk.service: concept-catalog
   name: concept-catalog
@@ -15,13 +14,39 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         fdk.service: concept-catalog
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
     spec:
+      volumes:
+        - name: elastic-certs
+          secret:
+            secretName: elasticsearch-es-http-certs-public
+        - name: keystore-volume
+          emptyDir:
+            sizeLimit: 2Gi
+      initContainers:
+        - name: pem-to-keystore
+          image: eclipse-temurin:17-jdk-alpine
+          env:
+            - name: crtfile
+              value: /var/secrets/elastic/tls.crt
+            - name: keystore_jks
+              value: /var/secrets/elastic/keystores/keystore.jks
+            - name: KEYSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: concept-catalog
+                  key: KEYSTORE_PASSWORD
+          command: ["/bin/sh"]
+          args: ['-c', "keytool -noprompt -import -v -trustcacerts -file $crtfile -keystore $keystore_jks -keypass $KEYSTORE_PASSWORD -storepass $KEYSTORE_PASSWORD"]
+          volumeMounts:
+            - name: keystore-volume
+              mountPath: /var/secrets/elastic/keystores
+            - name: elastic-certs
+              mountPath: /var/secrets/elastic
       containers:
         - name: concept-catalog
           image: concept-catalog
@@ -34,4 +59,7 @@ spec:
               cpu: "200m"
             limits:
               memory: "2Gi"
+          volumeMounts:
+            - name: keystore-volume
+              mountPath: /var/secrets/elastic/keystores
       restartPolicy: Always    

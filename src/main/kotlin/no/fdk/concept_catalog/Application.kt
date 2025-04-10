@@ -10,11 +10,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-@EnableElasticsearchRepositories(basePackages = ["no.fdk.concept_catalog.elastic"])
 @EnableMongoRepositories(basePackages = ["no.fdk.concept_catalog.repository"])
 @EnableScheduling
 @EnableWebSecurity
-open class Application
+class Application
 
 fun main(args: Array<String>) {
     SpringApplication.run(Application::class.java, *args)
