@@ -43,6 +43,8 @@ open class SecurityConfig(
                 authorize(HttpMethod.OPTIONS, "/**", permitAll)
                 authorize(HttpMethod.GET, "/ping", permitAll)
                 authorize(HttpMethod.GET, "/ready", permitAll)
+                authorize(HttpMethod.GET, "/swagger-ui/**", permitAll)
+                authorize(HttpMethod.GET, "/v3/**", permitAll)
                 authorize(HttpMethod.GET, "/actuator/**", permitAll)
                 authorize(anyRequest, authenticated)
             }
@@ -65,7 +67,7 @@ open class SecurityConfig(
     }
 }
 
-private class RDFMatcher: RequestMatcher{
+private class RDFMatcher : RequestMatcher {
     override fun matches(request: HttpServletRequest?): Boolean =
         request?.method == "GET" && acceptHeaderIsRDF(request.getHeader("Accept"))
 }

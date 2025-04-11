@@ -1,38 +1,50 @@
-# Concept-catalogue
+# Concept Catalog
 
-Backend for the concept-registration.
+This application provides an API for the management of concepts. A concept is defined according to
+the [SKOS-AP-NO](https://data.norge.no/specification/skos-ap-no-begrep) specification.
 
-## Requirements
+For a broader understanding of the system’s context, refer to
+the [architecture documentation](https://github.com/Informasjonsforvaltning/architecture-documentation) wiki. For more
+specific context on this application, see the **Registration** subsystem section.
 
-- maven
+## Getting Started
 
-- java 17
+These instructions will give you a copy of the project up and running on your local machine for development and testing
+purposes.
 
-- docker
+### Prerequisites
 
-- docker-compose
+Ensure you have the following installed:
 
-## Run tests
+- Java 21
+- Maven
+- Docker
 
-```shell
+### Running locally
+
+Clone the repository
+
+```sh
+git clone https://github.com/Informasjonsforvaltning/concept-catalog.git
+cd concept-catalog
+```
+
+Start MongoDB, RabbitMQ, Elasticsearch and the application (either through your IDE using the dev profile, or via CLI):
+
+```sh
+docker compose up -d
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+### API Documentation (OpenAPI)
+
+Once the application is running locally, the API documentation can be accessed
+at http://localhost:8080/swagger-ui/index.html
+
+### Running tests
+
+```sh
 mvn verify
 ```
 
-## Run locally
 
-### docker-compose
-
-```shell
-docker-compose up -d --build
-```
-
-### If running on mac
-
-If you are running this on a mac you might have issues with `mvn verify`
-
-Change the port in these files in order to get wiremock to work properly e.g. to `6000`:
-`..src/main/resources/application.yml#L46`
-
-`..src/test/kotlin/no/fdk/concept_catalog/utils/ApiTestContext.kt#L47`
-
-`..src/test/kotlin/no/fdk/concept_catalog/utils/TestData.kt#L7`
