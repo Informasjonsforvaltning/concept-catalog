@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
+import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.Paginated
 import no.fdk.concept_catalog.model.SearchOperation
@@ -73,6 +74,58 @@ class DeleteConcept : ContractTestsBase() {
             HttpMethod.GET
         )
         assertEquals(HttpStatus.NOT_FOUND, after.statusCode)
+    }
+
+    @Test
+    fun `Is deleted with change request`() {
+        mongoOperations.insert(BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.toDBO())
+        mongoOperations.insert(CHANGE_REQUEST_TO_BE_DELETED)
+
+        val before = authorizedRequest(
+            "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+            null,
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.GET
+        )
+        assertEquals(HttpStatus.OK, before.statusCode)
+
+        val beforeChangeRequest = authorizedRequest(
+            "/111111111/endringsforslag?concept=${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+            null,
+            JwtToken(Access.ORG_READ).toString(),
+            HttpMethod.GET
+        )
+
+        assertEquals(HttpStatus.OK, beforeChangeRequest.statusCode)
+        val beforeChangeRequestResult: List<ChangeRequest> = mapper.readValue(beforeChangeRequest.body as String)
+        assertEquals(listOf(CHANGE_REQUEST_TO_BE_DELETED), beforeChangeRequestResult)
+
+        val response = authorizedRequest(
+            "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+            null,
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.DELETE
+        )
+        assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
+
+        val after = authorizedRequest(
+            "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+            null,
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.GET
+        )
+        assertEquals(HttpStatus.NOT_FOUND, after.statusCode)
+
+        val afterChangeRequest = authorizedRequest(
+            "/111111111/endringsforslag?concept=${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+            null,
+            JwtToken(Access.ORG_READ).toString(),
+            HttpMethod.GET
+        )
+        assertEquals(HttpStatus.OK, afterChangeRequest.statusCode)
+
+        val afterChangeRequestResult: List<ChangeRequest> = mapper.readValue(afterChangeRequest.body as String)
+        assertEquals(emptyList(), afterChangeRequestResult)
     }
 
     @Test

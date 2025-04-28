@@ -33,6 +33,11 @@ class ChangeRequestService(
         }
     }
 
+    fun deleteChangeRequestByConcept(concept: BegrepDBO): Unit =
+        changeRequestRepository.getByCatalogIdAndConceptId(concept.ansvarligVirksomhet.id, concept.id)
+            .forEach { toDelete -> changeRequestRepository.delete(toDelete) }
+            .also { logger.debug("deleted change request with concept id ${concept.id}") }
+
     fun deleteChangeRequest(id: String, catalogId: String): Unit =
         changeRequestRepository.getByIdAndCatalogId(id, catalogId)
             ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
