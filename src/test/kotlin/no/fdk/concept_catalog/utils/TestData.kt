@@ -195,6 +195,19 @@ val BEGREP_TO_BE_DELETED = Begrep(
     internErstattesAv = null,
 )
 
+val BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED = Begrep(
+    id = "id-with-change-request-to-be-deleted",
+    originaltBegrep = "id-with-change-request-to-be-deleted",
+    versjonsnr = SemVer(0, 0, 1),
+    status = Status.UTKAST,
+    statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+    ansvarligVirksomhet = Virksomhet(
+        id = "111111111"
+    ),
+    interneFelt = null,
+    internErstattesAv = null,
+)
+
 val BEGREP_TO_BE_UPDATED = Begrep(
     id = "id-to-be-updated",
     originaltBegrep = "id-to-be-updated",
@@ -545,4 +558,15 @@ val CHANGE_REQUEST_UPDATE_BODY_0 = ChangeRequestUpdateBody(
         )
     ),
     title = "Endringsforslag 7"
+)
+
+val CHANGE_REQUEST_TO_BE_DELETED = ChangeRequest(
+    id = "cr6",
+    conceptId = BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id,
+    catalogId = "111111111",
+    status = ChangeRequestStatus.OPEN,
+    operations = listOf(),
+    timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
+    proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
+    title = "Endringsforslag 6"
 )
