@@ -216,6 +216,10 @@ class ConceptService(
         operations: List<JsonPatchOperation>,
         user: User
     ): BegrepDBO {
+        if (!jsonPatchOperationsPathsIsValid(operations)) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch of id, ansvarligVirksomhet, originaltBegrep and endringslogelement is not permitted")
+        }
+
         val patched = try {
             patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
                 .copy(

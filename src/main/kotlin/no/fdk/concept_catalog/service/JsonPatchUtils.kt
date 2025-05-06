@@ -43,3 +43,14 @@ inline fun <reified T> createPatchOperations(originalObject: T, updatedObject: T
 
         return readValue(Json.createDiff(original, updated).toString())
     }
+
+fun jsonPatchOperationsPathsIsValid(operations: List<JsonPatchOperation>): Boolean {
+    val invalidPaths = listOf(
+        "/id",
+        "/ansvarligVirksomhet",
+        "/originaltBegrep",
+        "/endringslogelement"
+    )
+
+    return operations.none { it.path in invalidPaths }
+}
