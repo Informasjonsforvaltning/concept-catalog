@@ -149,15 +149,8 @@ class ChangeRequestService(
         )
     }
 
-    private fun validateJsonPatchOperationsPaths(operations: List<JsonPatchOperation>) {
-        if (!jsonPatchOperationsPathsIsValid(operations)) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch of id, ansvarligVirksomhet, originaltBegrep and endringslogelement is not permitted")
-        }
-    }
-
     private fun validateJsonPatchOperations(concept: BegrepDBO, operations: List<JsonPatchOperation>) {
         try {
-            validateJsonPatchOperationsPaths(operations)
             patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
         } catch (ex: Exception) {
             logger.error("failed to validate change request for concept ${concept.id}", ex)

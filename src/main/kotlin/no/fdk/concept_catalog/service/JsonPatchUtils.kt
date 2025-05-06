@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 
 inline fun <reified T> patchOriginal(original: T, operations: List<JsonPatchOperation>, mapper: ObjectMapper): T {
+    validateOperations(operations)
     try {
         return applyPatch(original, operations, mapper)
     } catch (ex: Exception) {
@@ -44,13 +45,14 @@ inline fun <reified T> createPatchOperations(originalObject: T, updatedObject: T
         return readValue(Json.createDiff(original, updated).toString())
     }
 
-fun jsonPatchOperationsPathsIsValid(operations: List<JsonPatchOperation>): Boolean {
+fun validateOperations(operations: List<JsonPatchOperation>) {
     val invalidPaths = listOf(
         "/id",
         "/ansvarligVirksomhet",
         "/originaltBegrep",
         "/endringslogelement"
     )
-
-    return operations.none { it.path in invalidPaths }
+    if (operations.any { it.path in invalidPaths }) {
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch of paths $invalidPaths is not permitted")
+    }
 }
