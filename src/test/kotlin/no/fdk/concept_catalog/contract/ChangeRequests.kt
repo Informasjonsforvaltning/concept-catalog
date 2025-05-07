@@ -437,7 +437,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun badRequestWhenUpdatingIdFields() {
-            val errMsg = "Patch of paths [/id, /catalogId, /conceptId, /status] is not permitted"
+            val errMsg = "Patch of paths [/id, /ansvarligVirksomhet, /originaltBegrep, /endringslogelement] is not permitted"
 
             val illegalIdReplace = CHANGE_REQUEST_UPDATE_BODY_0.copy(
                 operations = listOf(
@@ -466,8 +466,8 @@ class ChangeRequests : ContractTestsBase() {
                 operations = listOf(
                     JsonPatchOperation(
                         op = OpEnum.REPLACE,
-                        "/catalogId",
-                        "123456"
+                        "/ansvarligVirksomhet",
+                        mapOf(Pair("id", "123456"))
                     )
                 )
             )
@@ -489,7 +489,7 @@ class ChangeRequests : ContractTestsBase() {
                 operations = listOf(
                     JsonPatchOperation(
                         op = OpEnum.ADD,
-                        "/conceptId",
+                        "/originaltBegrep",
                         "123456"
                     )
                 )

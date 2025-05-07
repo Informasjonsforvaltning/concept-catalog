@@ -149,16 +149,8 @@ class ChangeRequestService(
         )
     }
 
-    private fun validateJsonPatchOperationsPaths(operations: List<JsonPatchOperation>) {
-        val invalidPaths = listOf("/id", "/catalogId", "/conceptId", "/status")
-        if (operations.any { it.path in invalidPaths }) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch of paths $invalidPaths is not permitted")
-        }
-    }
-
     private fun validateJsonPatchOperations(concept: BegrepDBO, operations: List<JsonPatchOperation>) {
         try {
-            validateJsonPatchOperationsPaths(operations)
             patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
         } catch (ex: Exception) {
             logger.error("failed to validate change request for concept ${concept.id}", ex)
