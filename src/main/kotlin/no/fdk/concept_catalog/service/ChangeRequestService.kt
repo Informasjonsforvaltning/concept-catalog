@@ -52,6 +52,7 @@ class ChangeRequestService(
             id = newId,
             catalogId = catalogId,
             conceptId = body.conceptId,
+            conceptSnapshot = null,
             status = ChangeRequestStatus.OPEN,
             operations = body.operations,
             proposedBy = user,
@@ -82,9 +83,6 @@ class ChangeRequestService(
         val changeRequest = changeRequestRepository.getByIdAndCatalogId(id, catalogId)
 
         changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
-            ?.copy(status = ChangeRequestStatus.ACCEPTED)
-            ?.let { changeRequestRepository.save(it) }
-            ?.also { logger.debug("accepted change request ${it.id}") }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
         val dbConcept = changeRequest.conceptId
@@ -103,9 +101,12 @@ class ChangeRequestService(
 
         try {
             conceptService.updateConcept(conceptToUpdate, changeRequest.operations, user, jwt)
+            changeRequest.copy(status = ChangeRequestStatus.ACCEPTED, conceptSnapshot = conceptToUpdate.toDTO())
+                .let { changeRequestRepository.save(it) }
+                .also { logger.debug("accepted change request ${it.id}") }
+
         } catch (ex: Exception) {
             logger.error("update of concept failed when accepting ${changeRequest.id}, reverting acceptation", ex)
-            changeRequest.copy(status = ChangeRequestStatus.OPEN).run { changeRequestRepository.save(this) }
             if (conceptToUpdate.id != dbConcept?.id) {
                 conceptRepository.delete(conceptToUpdate)
             }
@@ -116,12 +117,19 @@ class ChangeRequestService(
     }
 
     fun rejectChangeRequest(id: String, catalogId: String) {
-        changeRequestRepository.getByIdAndCatalogId(id, catalogId)
-            ?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
-            ?.copy(status = ChangeRequestStatus.REJECTED)
-            ?.let { changeRequestRepository.save(it) }
-            ?.also { logger.debug("rejected change request ${it.id}") }
+        val changeRequest = changeRequestRepository.getByIdAndCatalogId(id, catalogId)
+
+        changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+
+        val dbConcept = changeRequest.conceptId
+            ?.let { conceptRepository.getByOriginaltBegrep(it) }
+            ?.maxByOrNull { it.versjonsnr }
+
+        changeRequest
+            .copy(status = ChangeRequestStatus.REJECTED, conceptSnapshot = dbConcept?.toDTO())
+            .let { changeRequestRepository.save(it) }
+            .also { logger.debug("rejected change request ${it.id}") }
     }
 
     fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest? =
