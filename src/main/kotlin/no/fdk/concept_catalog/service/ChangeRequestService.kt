@@ -103,7 +103,6 @@ class ChangeRequestService(
             conceptService.updateConcept(conceptToUpdate, changeRequest.operations, user, jwt)
             changeRequest.copy(
                 status = ChangeRequestStatus.ACCEPTED,
-                conceptId = conceptToUpdate.originaltBegrep,
                 conceptSnapshot = conceptToUpdate.toDTO())
                 .let { changeRequestRepository.save(it) }
                 .also { logger.debug("accepted change request ${it.id}") }
