@@ -10,6 +10,7 @@ data class ChangeRequest(
     @Id
     val id: String,
     val conceptId: String?,
+    val conceptSnapshot: Begrep?,
     val catalogId: String,
     val status: ChangeRequestStatus,
     val operations: List<JsonPatchOperation>,
