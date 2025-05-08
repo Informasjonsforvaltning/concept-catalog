@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.service
 
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.rdf.CONCEPT_STATUS
 import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.*
@@ -112,6 +113,7 @@ fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
         versjonsnr = NEW_CONCEPT_VERSION,
         revisjonAv = null,
         status = Status.UTKAST,
+        statusURI = CONCEPT_STATUS.draft.uri,
         erPublisert = false,
         publiseringsTidspunkt = null,
         opprettet = Instant.now(),

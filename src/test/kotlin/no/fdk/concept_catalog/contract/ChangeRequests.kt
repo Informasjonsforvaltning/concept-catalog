@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.rdf.CONCEPT_STATUS
 import no.fdk.concept_catalog.utils.*
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Nested
@@ -781,6 +782,7 @@ class ChangeRequests : ContractTestsBase() {
                     endringstidspunkt = location.endringslogelement!!.endringstidspunkt
                 ),
                 status = Status.UTKAST,
+                statusURI = CONCEPT_STATUS.draft.uri,
                 assignedUser = "newUserId",
                 internErstattesAv = null
             )

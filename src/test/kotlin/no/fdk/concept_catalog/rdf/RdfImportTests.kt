@@ -52,7 +52,7 @@ class RdfImportTests {
         assertEquals(SemVer(1, 0, 0), conceptExtraction.concept.versjonsnr)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(4, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.REPLACE && it.path == "/versjonsnr/major" && it.value == 1
@@ -120,7 +120,7 @@ class RdfImportTests {
             assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/statusURI" && it.value == "http://publications.europa.eu/resource/authority/concept-status/CURRENT"
+                it.op == OpEnum.REPLACE && it.path == "/statusURI" && it.value == "http://publications.europa.eu/resource/authority/concept-status/CURRENT"
             })
         }
     }
@@ -145,7 +145,7 @@ class RdfImportTests {
         assertEquals(Term(navn = mapOf("nb" to "anbefaltTerm")), conceptExtraction.concept.anbefaltTerm)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(1, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/anbefaltTerm" && it.value == mapOf("navn" to mapOf("nb" to "anbefaltTerm"))
@@ -199,7 +199,7 @@ class RdfImportTests {
         assertEquals(mapOf("nb" to listOf("tillattTerm")), conceptExtraction.concept.tillattTerm)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/tillattTerm/nb" && it.value == listOf("tillattTerm")
@@ -228,7 +228,7 @@ class RdfImportTests {
         assertEquals(mapOf("nb" to listOf("frarådetTerm")), conceptExtraction.concept.frarådetTerm)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/frarådetTerm/nb" && it.value == listOf("frarådetTerm")
@@ -278,7 +278,7 @@ class RdfImportTests {
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/definisjon" && it.value == mapOf(
@@ -340,7 +340,7 @@ class RdfImportTests {
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/definisjonForAllmennheten"
@@ -387,7 +387,7 @@ class RdfImportTests {
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/definisjonForSpesialister"
@@ -452,7 +452,7 @@ class RdfImportTests {
         assertEquals(mapOf("nb" to "merknad"), conceptExtraction.concept.merknad)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/merknad/nb"
@@ -508,7 +508,7 @@ class RdfImportTests {
         assertEquals(mapOf("nb" to "eksempel"), conceptExtraction.concept.eksempel)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/eksempel/nb"
@@ -538,7 +538,7 @@ class RdfImportTests {
         assertEquals(mapOf("nb" to listOf("fagområde")), conceptExtraction.concept.fagområde)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/fagområde/nb"
@@ -569,7 +569,7 @@ class RdfImportTests {
         assertEquals(URITekst(uri = "https://example.com/omfang", tekst = "omfang"), conceptExtraction.concept.omfang)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/omfang"
@@ -600,7 +600,7 @@ class RdfImportTests {
         assertEquals(LocalDate.of(2020, 12, 31), conceptExtraction.concept.gyldigFom)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/gyldigFom"
@@ -660,7 +660,7 @@ class RdfImportTests {
         assertEquals(LocalDate.of(2025, 12, 31), conceptExtraction.concept.gyldigTom)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/gyldigTom"
@@ -725,7 +725,7 @@ class RdfImportTests {
         assertEquals(Kontaktpunkt(harEpost = "organization@example.com"), conceptExtraction.concept.kontaktpunkt)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/kontaktpunkt" && it.value == mapOf(
