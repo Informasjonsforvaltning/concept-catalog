@@ -50,7 +50,9 @@ fun validateOperations(operations: List<JsonPatchOperation>) {
         "/id",
         "/ansvarligVirksomhet",
         "/originaltBegrep",
-        "/endringslogelement"
+        "/endringslogelement",
+        "/publiseringsTidspunkt",
+        "/erPublisert"
     )
     if (operations.any { it.path in invalidPaths }) {
         throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch of paths $invalidPaths is not permitted")
