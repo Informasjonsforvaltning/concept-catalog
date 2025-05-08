@@ -151,7 +151,13 @@ class ChangeRequestService(
 
     private fun validateJsonPatchOperations(concept: BegrepDBO, operations: List<JsonPatchOperation>) {
         try {
-            patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
+            concept.addUpdatableFieldsFromDTO(
+                patchOriginal(
+                    concept.copy(endringslogelement = null).toDTO(),
+                    operations,
+                    mapper
+                )
+            )
         } catch (ex: Exception) {
             logger.error("failed to validate change request for concept ${concept.id}", ex)
             throw ex

@@ -217,11 +217,13 @@ class ConceptService(
         user: User
     ): BegrepDBO {
         val patched = try {
-            patchOriginal(concept.copy(endringslogelement = null), operations, mapper)
-                .copy(
-                    id = concept.id,
-                    originaltBegrep = concept.originaltBegrep,
-                    ansvarligVirksomhet = concept.ansvarligVirksomhet
+            concept
+                .addUpdatableFieldsFromDTO(
+                    patchOriginal(
+                        concept.toDTO(),
+                        operations,
+                        mapper
+                    )
                 )
                 .updateLastChangedAndByWhom(user)
         } catch (ex: Exception) {

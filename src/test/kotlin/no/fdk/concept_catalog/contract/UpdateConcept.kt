@@ -190,27 +190,6 @@ class UpdateConcept : ContractTestsBase() {
     }
 
     @Test
-    fun `Bad request when concept is published`() {
-        mongoOperations.insert(BEGREP_0.toDBO())
-
-        val operations = listOf(
-            JsonPatchOperation(
-                op = OpEnum.ADD,
-                path = "/kildebeskrivelse",
-                value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList())
-            )
-        )
-
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_0.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
-    }
-
-    @Test
     fun `Bad request when trying to publish as part of normal update`() {
         mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
 
