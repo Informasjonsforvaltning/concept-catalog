@@ -32,23 +32,29 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val gyldigFom = extractGyldigFom()
     val gyldigTom = extractGyldigTom()
     val kontaktPunkt = extractKontaktPunkt()
+    val seOgså = extractSeOgså()
+    val erstattesAv = extractErstattesAv()
+    val begrepsRelasjon = extractBegrepsRelasjon()
 
     val updatedConcept = originalConcept.copy(
         versjonsnr = versjonsnr.first ?: originalConcept.versjonsnr,
-        statusURI = statusUri.first,
-        anbefaltTerm = anbefaltTerm.first,
-        tillattTerm = tillattTerm.first,
-        frarådetTerm = frarådetTerm.first,
-        definisjon = definisjon?.first,
-        definisjonForAllmennheten = definisjonForAllmennheten?.first,
-        definisjonForSpesialister = definisjonForSpesialister?.first,
-        merknad = merknad.first,
-        eksempel = eksempel.first,
-        fagområde = fagområde.first,
-        omfang = omfang.first,
-        gyldigFom = gyldigFom.first,
-        gyldigTom = gyldigTom.first,
-        kontaktpunkt = kontaktPunkt.first
+        statusURI = statusUri.first ?: originalConcept.statusURI,
+        anbefaltTerm = anbefaltTerm.first ?: originalConcept.anbefaltTerm,
+        tillattTerm = tillattTerm.first ?: originalConcept.tillattTerm,
+        frarådetTerm = frarådetTerm.first ?: originalConcept.frarådetTerm,
+        definisjon = definisjon.first ?: originalConcept.definisjon,
+        definisjonForAllmennheten = definisjonForAllmennheten.first ?: originalConcept.definisjonForAllmennheten,
+        definisjonForSpesialister = definisjonForSpesialister.first ?: originalConcept.definisjonForSpesialister,
+        merknad = merknad.first ?: originalConcept.merknad,
+        eksempel = eksempel.first ?: originalConcept.eksempel,
+        fagområde = fagområde.first ?: originalConcept.fagområde,
+        omfang = omfang.first ?: originalConcept.omfang,
+        gyldigFom = gyldigFom.first ?: originalConcept.gyldigFom,
+        gyldigTom = gyldigTom.first ?: originalConcept.gyldigTom,
+        kontaktpunkt = kontaktPunkt.first ?: originalConcept.kontaktpunkt,
+        seOgså = seOgså.first ?: originalConcept.seOgså,
+        erstattesAv = erstattesAv.first ?: originalConcept.erstattesAv,
+        begrepsRelasjon = begrepsRelasjon.first ?: originalConcept.begrepsRelasjon
     )
 
     val issues = listOf(
@@ -57,16 +63,19 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         anbefaltTerm.second,
         tillattTerm.second,
         frarådetTerm.second,
-        definisjon?.second ?: emptyList(),
-        definisjonForAllmennheten?.second ?: emptyList(),
-        definisjonForSpesialister?.second ?: emptyList(),
+        definisjon.second,
+        definisjonForAllmennheten.second,
+        definisjonForSpesialister.second,
         merknad.second,
         eksempel.second,
         fagområde.second,
         omfang.second,
         gyldigFom.second,
         gyldigTom.second,
-        kontaktPunkt.second
+        kontaktPunkt.second,
+        seOgså.second,
+        erstattesAv.second,
+        begrepsRelasjon.second
     ).flatten()
 
     val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
@@ -109,77 +118,58 @@ private fun Resource.extractVersjonsnr(): Pair<SemVer?, List<Issue>> {
 }
 
 private fun Resource.extractStatusUri(): Pair<String?, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val status = EUVOC.status
-
-    val uri = getProperty(status)
-        ?.`object`
-        ?.asUriResourceOrNull()
-        ?.uri
-
-    if (uri == null) return null to issues
-
-    if (!uri.isValidURI()) {
-        issues.add(Issue(IssueType.ERROR, "${status.localName}: Invalid URI '$uri'"))
-    }
-
-    return uri to issues
+    return extractUri(EUVOC.status)
 }
 
 private fun Resource.extractAnbefaltTerm(): Pair<Term?, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
     val prefLabel = SKOS.prefLabel
+    val (localizedStrings, localizedStringsIssues) = extractLocalizedStrings(prefLabel)
 
-    val literals = extractLocalizedStrings(prefLabel, issues)
+    val issues = localizedStringsIssues.toMutableList()
 
-    if (literals.isEmpty()) {
-        issues.add(Issue(IssueType.ERROR, "${prefLabel.localName}: Required property"))
-        return null to issues
+    val term = if (localizedStrings != null) {
+        Term(localizedStrings)
+    } else {
+        issues += Issue(IssueType.ERROR, "${prefLabel.localName}: Required property")
+        null
     }
 
-    return Term(literals) to issues
+    return term to issues
 }
 
-private fun Resource.extractTillattTerm(): Pair<Map<String, List<String>>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val literals = extractLocalizedStringsAsGrouping(SKOS.altLabel, issues)
-
-    return literals to issues
+private fun Resource.extractTillattTerm(): Pair<Map<String, List<String>>?, List<Issue>> {
+    return extractLocalizedStringsAsGrouping(SKOS.altLabel)
 }
 
-private fun Resource.extractFrarådetTerm(): Pair<Map<String, List<String>>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val literals = extractLocalizedStringsAsGrouping(SKOS.hiddenLabel, issues)
-
-    return literals to issues
+private fun Resource.extractFrarådetTerm(): Pair<Map<String, List<String>>?, List<Issue>> {
+    return extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
 }
 
-private fun Resource.extractDefinisjon(): Pair<Definisjon?, List<Issue>>? {
+private fun Resource.extractDefinisjon(): Pair<Definisjon?, List<Issue>> {
     return listProperties(EUVOC.xlDefinition)
         .asSequence()
         .mapNotNull { it.`object`.asResourceOrNull() }
-        .filterNot { it.hasProperty(DCTerms.audience) }
-        .firstNotNullOfOrNull { it.extractDefinition() }
+        .firstOrNull { !it.hasProperty(DCTerms.audience) }
+        ?.extractDefinition()
+        ?: Pair(null, emptyList())
 }
 
-private fun Resource.extractDefinisjonForAllmennheten(): Pair<Definisjon?, List<Issue>>? {
+private fun Resource.extractDefinisjonForAllmennheten(): Pair<Definisjon?, List<Issue>> {
     return listProperties(EUVOC.xlDefinition)
         .asSequence()
         .mapNotNull { it.`object`.asResourceOrNull() }
-        .filter { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.public) }
-        .firstNotNullOfOrNull { it.extractDefinition() }
+        .firstOrNull { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.public) }
+        ?.extractDefinition()
+        ?: Pair(null, emptyList())
 }
 
-private fun Resource.extractDefinisjonForSpesialister(): Pair<Definisjon?, List<Issue>>? {
+private fun Resource.extractDefinisjonForSpesialister(): Pair<Definisjon?, List<Issue>> {
     return listProperties(EUVOC.xlDefinition)
         .asSequence()
         .mapNotNull { it.`object`.asResourceOrNull() }
-        .filter { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.specialist) }
-        .firstNotNullOfOrNull { it.extractDefinition() }
+        .firstOrNull { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.specialist) }
+        ?.extractDefinition()
+        ?: Pair(null, emptyList())
 }
 
 private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
@@ -236,38 +226,31 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
 
     val value = RDF.value
 
-    val literals = extractLocalizedStrings(value, issues)
+    val (localizedStrings, localizedStringsIssues) = extractLocalizedStrings(value)
+    issues += localizedStringsIssues
 
-    if (literals.isEmpty()) {
-        issues.add(Issue(IssueType.ERROR, "${xlDefinition.localName}: Missing '${value.localName}'"))
-        return null to issues
+    val definition = localizedStrings?.let {
+        Definisjon(tekst = it, kildebeskrivelse = sourceDescription)
+    } ?: run {
+        issues.add(
+            Issue(IssueType.ERROR, "${xlDefinition.localName}: Missing '${value.localName}'")
+        )
+        null
     }
 
-    return Definisjon(tekst = literals, kildebeskrivelse = sourceDescription) to issues
+    return definition to issues
 }
 
-private fun Resource.extractMerknad(): Pair<Map<String, String>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val literals = extractLocalizedStrings(SKOS.scopeNote, issues)
-
-    return literals to issues
+private fun Resource.extractMerknad(): Pair<Map<String, String>?, List<Issue>> {
+    return extractLocalizedStrings(SKOS.scopeNote)
 }
 
-private fun Resource.extractEksempel(): Pair<Map<String, String>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val literals = extractLocalizedStrings(SKOS.example, issues)
-
-    return literals to issues
+private fun Resource.extractEksempel(): Pair<Map<String, String>?, List<Issue>> {
+    return extractLocalizedStrings(SKOS.example)
 }
 
-private fun Resource.extractFagområde(): Pair<Map<String, List<String>>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val literals = extractLocalizedStringsAsGrouping(DCTerms.subject, issues)
-
-    return literals to issues
+private fun Resource.extractFagområde(): Pair<Map<String, List<String>>?, List<Issue>> {
+    return extractLocalizedStringsAsGrouping(DCTerms.subject)
 }
 
 private fun Resource.extractOmfang(): Pair<URITekst?, List<Issue>> {
@@ -289,49 +272,11 @@ private fun Resource.extractOmfang(): Pair<URITekst?, List<Issue>> {
 }
 
 private fun Resource.extractGyldigFom(): Pair<LocalDate?, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val startDate = EUVOC.startDate
-
-    val date = getProperty(startDate)
-        ?.`object`
-        ?.asLiteralOrNull()
-        ?.string
-        ?.takeIf { it.isNotBlank() }
-
-    date?.let {
-        return try {
-            LocalDate.parse(it) to issues
-        } catch (e: DateTimeParseException) {
-            issues.add(Issue(IssueType.ERROR, "${startDate.localName}: Invalid date format '$it'"))
-            null to issues
-        }
-    }
-
-    return null to issues
+    return extractDate(EUVOC.startDate)
 }
 
 private fun Resource.extractGyldigTom(): Pair<LocalDate?, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-
-    val endDate = EUVOC.endDate
-
-    val date = getProperty(endDate)
-        ?.`object`
-        ?.asLiteralOrNull()
-        ?.string
-        ?.takeIf { it.isNotBlank() }
-
-    date?.let {
-        return try {
-            LocalDate.parse(it) to issues
-        } catch (e: DateTimeParseException) {
-            issues.add(Issue(IssueType.ERROR, "${endDate.localName}: Invalid date format '$it'"))
-            null to issues
-        }
-    }
-
-    return null to issues
+    return extractDate(EUVOC.endDate)
 }
 
 private fun Resource.extractKontaktPunkt(): Pair<Kontaktpunkt?, List<Issue>> {
@@ -395,8 +340,125 @@ private fun Resource.extractKontaktPunkt(): Pair<Kontaktpunkt?, List<Issue>> {
     return null to issues
 }
 
-private fun Resource.extractLocalizedStrings(property: Property, issues: MutableList<Issue>): Map<String, String> {
-    return listProperties(property)
+private fun Resource.extractSeOgså(): Pair<List<String>?, List<Issue>> {
+    return extractUris(RDFS.seeAlso)
+}
+
+private fun Resource.extractErstattesAv(): Pair<List<String>?, List<Issue>> {
+    return extractUris(DCTerms.isReplacedBy)
+}
+
+private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>?, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+
+    val associativeConceptRelations = this.listProperties(SKOSNO.isFromConceptIn)
+        .toList()
+        .mapNotNull { it.`object`.asResourceOrNull() }
+        .filter { it.hasProperty(RDF.type, SKOSNO.AssociativeConceptRelation) }
+        .mapNotNull {
+            val (localizedStrings, localizedStringsIssues) = it.extractLocalizedStrings(SKOSNO.relationRole)
+            issues += localizedStringsIssues
+
+            val toConcept = it.getProperty(SKOSNO.hasToConcept)
+                ?.`object`
+                ?.asUriResourceOrNull()
+                ?.toString()
+
+            BegrepsRelasjon(relasjon = "assosiativ", beskrivelse = localizedStrings, relatertBegrep = toConcept)
+                .takeIf { localizedStrings != null && toConcept != null }
+        }
+
+    val partitiveConceptRelations = this.listProperties(SKOSNO.hasPartitiveConceptRelation)
+        .toList()
+        .mapNotNull { it.`object`.asResourceOrNull() }
+        .filter { it.hasProperty(RDF.type, SKOSNO.PartitiveConceptRelation) }
+        .mapNotNull {
+            val (localizedStrings, localizedStringsIssues) = it.extractLocalizedStrings(DCTerms.description)
+            issues += localizedStringsIssues
+
+            when {
+                it.hasProperty(SKOSNO.hasPartitiveConcept) -> {
+                    val partitiveConcept = it.getProperty(SKOSNO.hasPartitiveConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "partitiv",
+                        relasjonsType = "omfatter",
+                        inndelingskriterium = localizedStrings,
+                        relatertBegrep = partitiveConcept
+                    ).takeIf { partitiveConcept != null }
+                }
+
+                it.hasProperty(SKOSNO.hasComprehensiveConcept) -> {
+                    val comprehensiveConcept = it.getProperty(SKOSNO.hasComprehensiveConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "partitiv",
+                        relasjonsType = "erDelAv",
+                        inndelingskriterium = localizedStrings,
+                        relatertBegrep = comprehensiveConcept
+                    ).takeIf { comprehensiveConcept != null }
+                }
+
+                else -> null
+            }
+        }
+
+    val genericConceptRelations = this.listProperties(SKOSNO.hasGenericConceptRelation)
+        .toList()
+        .mapNotNull { it.`object`.asResourceOrNull() }
+        .filter { it.hasProperty(RDF.type, SKOSNO.GenericConceptRelation) }
+        .mapNotNull {
+            val (localizedStrings, localizedStringsIssues) = it.extractLocalizedStrings(DCTerms.description)
+            issues += localizedStringsIssues
+
+            when {
+                it.hasProperty(SKOSNO.hasGenericConcept) -> {
+                    val genericConcept = it.getProperty(SKOSNO.hasGenericConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "generisk",
+                        relasjonsType = "overordnet",
+                        inndelingskriterium = localizedStrings,
+                        relatertBegrep = genericConcept
+                    ).takeIf { genericConcept != null }
+                }
+
+                it.hasProperty(SKOSNO.hasSpecificConcept) -> {
+                    val specificConcept = it.getProperty(SKOSNO.hasSpecificConcept)
+                        ?.`object`
+                        ?.asUriResourceOrNull()
+                        ?.toString()
+
+                    BegrepsRelasjon(
+                        relasjon = "generisk",
+                        relasjonsType = "underordnet",
+                        inndelingskriterium = localizedStrings,
+                        relatertBegrep = specificConcept
+                    ).takeIf { specificConcept != null }
+                }
+
+                else -> null
+            }
+        }
+
+    return listOf(associativeConceptRelations, partitiveConceptRelations, genericConceptRelations)
+        .flatten()
+        .takeIf { it.isNotEmpty() } to issues
+}
+
+private fun Resource.extractLocalizedStrings(property: Property): Pair<Map<String, String>?, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+
+    val literals = listProperties(property)
         .toList()
         .mapNotNull { it.`object`.asLiteralOrNull() }
         .filter {
@@ -412,13 +474,15 @@ private fun Resource.extractLocalizedStrings(property: Property, issues: Mutable
             true
         }
         .associate { it.language to it.string }
+        .takeIf { it.isNotEmpty() }
+
+    return literals to issues
 }
 
-private fun Resource.extractLocalizedStringsAsGrouping(
-    property: Property,
-    issues: MutableList<Issue>
-): Map<String, List<String>> {
-    return listProperties(property)
+private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Pair<Map<String, List<String>>?, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+
+    val literals = listProperties(property)
         .toList()
         .mapNotNull { it.`object`.asLiteralOrNull() }
         .filter {
@@ -435,6 +499,68 @@ private fun Resource.extractLocalizedStringsAsGrouping(
         }
         .groupBy { it.language }
         .mapValues { (_, literals) -> literals.map { it.string } }
+        .takeIf { it.isNotEmpty() }
+
+    return literals to issues
+}
+
+private fun Resource.extractUri(property: Property): Pair<String?, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+
+    val uri = getProperty(property)
+        ?.`object`
+        ?.asUriResourceOrNull()
+        ?.uri
+
+    if (uri == null) return null to issues
+
+    if (!uri.isValidURI()) {
+        issues.add(Issue(IssueType.ERROR, "${property.localName}: Invalid URI '$uri'"))
+    }
+
+    return uri to issues
+}
+
+private fun Resource.extractUris(property: Property): Pair<List<String>?, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+
+    val uris = listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asUriResourceOrNull()?.uri }
+        .filter {
+            if (!uri.isValidURI()) {
+                issues.add(Issue(IssueType.ERROR, "${property.localName}: Invalid URI '$uri'"))
+
+                return@filter false
+            }
+
+            true
+        }
+
+    if (uris.isEmpty()) return null to issues
+
+    return uris to issues
+}
+
+private fun Resource.extractDate(property: Property): Pair<LocalDate?, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+
+    val date = getProperty(property)
+        ?.`object`
+        ?.asLiteralOrNull()
+        ?.string
+        ?.takeIf { it.isNotBlank() }
+
+    date?.let {
+        return try {
+            LocalDate.parse(it) to issues
+        } catch (e: DateTimeParseException) {
+            issues.add(Issue(IssueType.ERROR, "${property.localName}: Invalid date format '$it'"))
+            null to issues
+        }
+    }
+
+    return null to issues
 }
 
 private fun RDFNode.asResourceOrNull(): Resource? {
