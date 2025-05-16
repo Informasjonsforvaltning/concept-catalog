@@ -15,7 +15,7 @@ import java.io.StringReader
 import java.time.LocalDate
 
 @Tag("unit")
-class RdfImportTests {
+class RDFImportTests {
 
     @Test
     fun `should extract versjonsnr`() {
