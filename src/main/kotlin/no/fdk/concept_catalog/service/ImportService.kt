@@ -123,7 +123,7 @@ class ImportService(
 
     private fun rollbackProcessedConcepts(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
         for (extractionRecord in extractionRecords) {
-            val internalId = extractionRecord.internalId ?: continue
+            val internalId = extractionRecord.internalId
 
             try {
                 conceptRepository.deleteById(internalId)

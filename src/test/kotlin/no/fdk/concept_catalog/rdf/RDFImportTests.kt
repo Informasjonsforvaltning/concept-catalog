@@ -1,34 +1,21 @@
 package no.fdk.concept_catalog.rdf
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.service.createNewConcept
-import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import java.time.LocalDate
 
 @Tag("unit")
-class RdfImportTests {
-    lateinit var model: Model
-
-    private val objectMapper: ObjectMapper = jacksonObjectMapper()
-        .registerModule(JavaTimeModule())
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-
-    @BeforeEach
-    fun setup() {
-        model = ModelFactory.createDefaultModel()
-    }
+class RDFImportTests {
 
     @Test
     fun `should extract versjonsnr`() {
@@ -43,16 +30,12 @@ class RdfImportTests {
                     owl:versionInfo       "1.0.0" .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(SemVer(1, 0, 0), conceptExtraction.concept.versjonsnr)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(4, result.operations.size)
+            assertEquals(3, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.REPLACE && it.path == "/versjonsnr/major" && it.value == 1
@@ -77,11 +60,7 @@ class RdfImportTests {
                     owl:versionInfo       "1" .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
@@ -105,11 +84,7 @@ class RdfImportTests {
                     euvoc:status          <http://publications.europa.eu/resource/authority/concept-status/CURRENT> .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(
             "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
@@ -136,16 +111,12 @@ class RdfImportTests {
                     skos:prefLabel        "anbefaltTerm"@nb .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(Term(navn = mapOf("nb" to "anbefaltTerm")), conceptExtraction.concept.anbefaltTerm)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.operations.size)
+            assertEquals(1, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/anbefaltTerm" && it.value == mapOf("navn" to mapOf("nb" to "anbefaltTerm"))
@@ -163,11 +134,7 @@ class RdfImportTests {
                     rdf:type              skos:Concept .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
@@ -190,16 +157,12 @@ class RdfImportTests {
                     skos:altLabel         "tillattTerm"@nb .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(mapOf("nb" to listOf("tillattTerm")), conceptExtraction.concept.tillattTerm)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/tillattTerm/nb" && it.value == listOf("tillattTerm")
@@ -219,16 +182,12 @@ class RdfImportTests {
                     skos:hiddenLabel      "frarådetTerm"@nb .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(mapOf("nb" to listOf("frarådetTerm")), conceptExtraction.concept.frarådetTerm)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/frarådetTerm/nb" && it.value == listOf("frarådetTerm")
@@ -258,11 +217,7 @@ class RdfImportTests {
                           ] .
         """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(
             Definisjon(
@@ -278,7 +233,7 @@ class RdfImportTests {
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/definisjon" && it.value == mapOf(
@@ -324,11 +279,7 @@ class RdfImportTests {
                               ] .
             """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(
             Definisjon(
@@ -340,7 +291,7 @@ class RdfImportTests {
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/definisjonForAllmennheten"
@@ -371,11 +322,7 @@ class RdfImportTests {
                               ] .
             """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(
             Definisjon(
@@ -387,7 +334,7 @@ class RdfImportTests {
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/definisjonForSpesialister"
@@ -416,11 +363,7 @@ class RdfImportTests {
                               ] .
             """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
@@ -443,16 +386,12 @@ class RdfImportTests {
                         skos:scopeNote        "merknad"@nb .
             """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(mapOf("nb" to "merknad"), conceptExtraction.concept.merknad)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/merknad/nb"
@@ -472,11 +411,7 @@ class RdfImportTests {
                         skos:scopeNote        "merknad uten språktag" .
             """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
@@ -499,16 +434,12 @@ class RdfImportTests {
                             skos:example          "eksempel"@nb .
                 """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(mapOf("nb" to "eksempel"), conceptExtraction.concept.eksempel)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/eksempel/nb"
@@ -529,16 +460,12 @@ class RdfImportTests {
                             dct:subject           "fagområde"@nb .
                 """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(mapOf("nb" to listOf("fagområde")), conceptExtraction.concept.fagområde)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/fagområde/nb"
@@ -560,16 +487,12 @@ class RdfImportTests {
 
                 """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(URITekst(uri = "https://example.com/omfang", tekst = "omfang"), conceptExtraction.concept.omfang)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/omfang"
@@ -591,16 +514,12 @@ class RdfImportTests {
                                 euvoc:startDate       "2020-12-31"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(LocalDate.of(2020, 12, 31), conceptExtraction.concept.gyldigFom)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/gyldigFom"
@@ -622,11 +541,7 @@ class RdfImportTests {
                                 euvoc:startDate       "2020"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
@@ -651,16 +566,12 @@ class RdfImportTests {
                                 euvoc:endDate         "2025-12-31"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(LocalDate.of(2025, 12, 31), conceptExtraction.concept.gyldigTom)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/gyldigTom"
@@ -682,11 +593,7 @@ class RdfImportTests {
                                 euvoc:endDate         "2025"^^xsd:date .
                     """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
@@ -716,16 +623,12 @@ class RdfImportTests {
                                       ].
                     """.trimIndent()
 
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
-
-        val resource = model.getResource("https://example.com/concept")
-        val conceptExtraction = resource.extract(concept, objectMapper)
+        val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(Kontaktpunkt(harEpost = "organization@example.com"), conceptExtraction.concept.kontaktpunkt)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(3, result.operations.size)
+            assertEquals(2, result.operations.size)
 
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/kontaktpunkt" && it.value == mapOf(
@@ -740,5 +643,201 @@ class RdfImportTests {
                 it.type == IssueType.WARNING && it.message.startsWith("contactPoint")
             })
         }
+    }
+
+    @Test
+    fun `should extract seOgså`() {
+        val turtle = """
+                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                        @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+                        <https://example.com/concept>
+                                rdf:type              skos:Concept ;
+                                skos:prefLabel        "anbefaltTerm"@nb ;
+                                rdfs:seeAlso          <https://example.com/seeAlsoConcept> .
+                    """.trimIndent()
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        assertEquals(listOf("https://example.com/seeAlsoConcept"), conceptExtraction.concept.seOgså)
+
+        conceptExtraction.extractionRecord.extractResult.let { result ->
+            assertEquals(2, result.operations.size)
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/seOgså/0"
+            })
+        }
+    }
+
+    @Test
+    fun `should extract erstattesAv`() {
+        val turtle = """
+                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                        @prefix dct:   <http://purl.org/dc/terms/> .
+                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+                        <https://example.com/concept>
+                                rdf:type              skos:Concept ;
+                                skos:prefLabel        "anbefaltTerm"@nb ;
+                                dct:isReplacedBy      <https://example.com/isReplacedByConcept> .
+                    """.trimIndent()
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        assertEquals(listOf("https://example.com/isReplacedByConcept"), conceptExtraction.concept.erstattesAv)
+
+        conceptExtraction.extractionRecord.extractResult.let { result ->
+            assertEquals(2, result.operations.size)
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/erstattesAv/0"
+            })
+        }
+    }
+
+    @Test
+    fun `should extract begrepsRelasjon`() {
+        val turtle = """
+                        @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                        @prefix dct:    <http://purl.org/dc/terms/> .
+                        @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+                        @prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
+
+                        <https://example.com/concept>
+                                rdf:type              skos:Concept ;
+                                skos:prefLabel        "anbefaltTerm"@nb ;
+                                skosno:isFromConceptIn 
+                                      [ 
+                                        rdf:type                        skosno:AssociativeConceptRelation ;
+                                        skosno:hasToConcept             <https://example.com/topConcept> ; 
+                                        skosno:relationRole             "muliggjør"@nb
+                                      ] ;
+                                skosno:hasPartitiveConceptRelation    
+                                      [ 
+                                        rdf:type                        skosno:PartitiveConceptRelation ;
+                                        dct:description                 "inndelingskriterium"@nb ;
+                                        skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
+                                      ] ;
+                                skosno:hasPartitiveConceptRelation    
+                                      [ 
+                                        rdf:type                        skosno:PartitiveConceptRelation ;
+                                        dct:description                 "inndelingskriterium"@nb ;
+                                        skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
+                                      ] ;
+                                skosno:hasGenericConceptRelation      
+                                      [ 
+                                        rdf:type                        skosno:GenericConceptRelation ;
+                                        dct:description                 "inndelingskriterium"@nb ;
+                                        skosno:hasGenericConcept        <https://example.com/genericConcept>
+                                      ] ;
+                                skosno:hasGenericConceptRelation     
+                                      [ 
+                                        rdf:type                        skosno:GenericConceptRelation ;
+                                        dct:description                 "inndelingskriterium"@nb ;
+                                        skosno:hasSpecificConcept       <https://example.com/specificConcept>
+                                      ] .
+                    """.trimIndent()
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        conceptExtraction.concept.begrepsRelasjon!!.let { relations ->
+            assertEquals(5, relations.size)
+
+            relations.first { it.relasjon == "assosiativ" }
+                .let { associative ->
+                    assertEquals("https://example.com/topConcept", associative.relatertBegrep)
+
+                    associative.beskrivelse!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "muliggjør")
+                    }
+                }
+
+            relations.first { it.relasjon == "partitiv" && it.relasjonsType == "omfatter" }
+                .let { partitive ->
+                    assertEquals("https://example.com/partitiveConcept", partitive.relatertBegrep)
+
+                    partitive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
+
+            relations.first { it.relasjon == "partitiv" && it.relasjonsType == "erDelAv" }
+                .let { comprehensive ->
+                    assertEquals("https://example.com/comprehensiveConcept", comprehensive.relatertBegrep)
+
+                    comprehensive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
+
+            relations.first { it.relasjon == "generisk" && it.relasjonsType == "overordnet" }
+                .let { comprehensive ->
+                    assertEquals("https://example.com/genericConcept", comprehensive.relatertBegrep)
+
+                    comprehensive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
+
+            relations.first { it.relasjon == "generisk" && it.relasjonsType == "underordnet" }
+                .let { comprehensive ->
+                    assertEquals("https://example.com/specificConcept", comprehensive.relatertBegrep)
+
+                    comprehensive.inndelingskriterium!!.let {
+                        assertEquals(1, it.size)
+                        assertTrue(it.containsKey("nb"))
+                        assertEquals(it.getValue("nb"), "inndelingskriterium")
+                    }
+                }
+        }
+
+        conceptExtraction.extractionRecord.extractResult.let { result ->
+            assertEquals(6, result.operations.size)
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/0"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/1"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/2"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/3"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/4"
+            })
+        }
+    }
+
+    private fun createConceptExtraction(turtle: String): ConceptExtraction {
+        val model = ModelFactory.createDefaultModel()
+        model.read(StringReader(turtle), null, Lang.TURTLE.name)
+
+        val resource = model.getResource("https://example.com/concept")
+
+        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
+
+        val objectMapper = jacksonObjectMapper()
+            .registerModule(JavaTimeModule())
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+
+        return resource.extract(concept, objectMapper)
     }
 }

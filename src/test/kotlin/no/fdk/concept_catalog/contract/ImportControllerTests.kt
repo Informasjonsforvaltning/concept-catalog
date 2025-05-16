@@ -305,6 +305,7 @@ class ImportControllerTests : ContractTestsBase() {
             @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
             @prefix dct:   <http://purl.org/dc/terms/> .
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
             @prefix dcat:  <http://www.w3.org/ns/dcat#> .
             @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
             @prefix relationship-with-source-type: <https://data.norge.no/vocabulary/relationship-with-source-type#> .
@@ -323,6 +324,8 @@ class ImportControllerTests : ContractTestsBase() {
                     skosno:valueRange     "omfang"@nb ;
                     euvoc:startDate       "2020-12-31"^^xsd:date ;
                     euvoc:endDate         "2030-12-31"^^xsd:date ;
+                    rdfs:seeAlso          <https://example.com/seeAlsoConcept> ;
+                    dct:isReplacedBy      <https://example.com/isReplacedByConcept> ;
                     dcat:contactPoint     
                           [ 
                             rdf:type                vcard:Organization ;
@@ -349,6 +352,36 @@ class ImportControllerTests : ContractTestsBase() {
                             rdf:value                       "definisjon for allmennheten"@nb ;
                             dct:audience                    audience-type:public ;
                             skosno:relationshipWithSource   relationship-with-source-type:derived-from-source ;
+                          ] ;
+                    skosno:isFromConceptIn 
+                          [ 
+                            rdf:type                        skosno:AssociativeConceptRelation ;
+                            skosno:hasToConcept             <https://example.com/topConcept> ; 
+                            skosno:relationRole             "muliggjør"@nb ;
+                          ] ;
+                    skosno:hasPartitiveConceptRelation    
+                          [ 
+                            rdf:type                        skosno:PartitiveConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
+                          ] ;
+                    skosno:hasPartitiveConceptRelation    
+                          [ 
+                            rdf:type                        skosno:PartitiveConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
+                          ] ;
+                    skosno:hasGenericConceptRelation      
+                          [ 
+                            rdf:type                        skosno:GenericConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasGenericConcept        <https://example.com/genericConcept>
+                          ] ;
+                    skosno:hasGenericConceptRelation     
+                          [ 
+                            rdf:type                        skosno:GenericConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasSpecificConcept       <https://example.com/specificConcept>
                           ] .
         """.trimIndent()
 

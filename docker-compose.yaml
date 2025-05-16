@@ -19,7 +19,7 @@ services:
       - "15672:15672"
 
   catalog-history-service:
-    image: eu.gcr.io/digdir-fdk-infra/catalog-history-service:latest
+    image: ghcr.io/informasjonsforvaltning/catalog-history-service:staging_latest
     environment:
       - MONGO_USERNAME=admin
       - MONGO_PASSWORD=admin

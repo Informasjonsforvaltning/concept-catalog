@@ -33,7 +33,7 @@ Start MongoDB, RabbitMQ, Elasticsearch and the application (either through your 
 
 ```sh
 docker compose up -d
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run -Dspring-boot.run.profiles=develop
 ```
 
 ### API Documentation (OpenAPI)

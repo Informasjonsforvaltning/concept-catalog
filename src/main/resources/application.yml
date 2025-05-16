@@ -42,7 +42,7 @@ application:
 ---
 spring:
   config.activate.on-profile: develop
-  data.mongodb.uri: mongodb://admin:admin@localhost:27017/datasetCatalog?authSource=admin&authMechanism=SCRAM-SHA-1
+  data.mongodb.uri: mongodb://admin:admin@localhost:27017/conceptCatalog?authSource=admin&authMechanism=SCRAM-SHA-1
   security.oauth2.resourceserver.jwt.jwk-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
   rabbitmq.host: 127.0.0.1
 application:
@@ -52,8 +52,6 @@ application:
     password: elasticpwd
     host: localhost:9200
     ssl: false
-    storePath: path
-    storePass: pass
 
 ---
 spring:
