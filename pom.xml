@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.4</version>
+        <version>3.4.5</version>
         <relativePath/>
     </parent>
 
@@ -29,8 +29,8 @@
         <!--end standard properties-->
 
         <kotlin.version>2.1.20</kotlin.version>
-        <testcontainers.version>1.20.6</testcontainers.version>
-        <jena.version>5.3.0</jena.version>
+        <testcontainers.version>1.21.0</testcontainers.version>
+        <jena.version>5.4.0</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
     </properties>
 
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.8.6</version>
+            <version>2.8.8</version>
         </dependency>
 
         <!-- Security -->
@@ -195,7 +195,7 @@
         <dependency>
             <groupId>org.wiremock.integrations</groupId>
             <artifactId>wiremock-spring-boot</artifactId>
-            <version>3.9.0</version>
+            <version>3.10.0</version>
         </dependency>
     </dependencies>
 
