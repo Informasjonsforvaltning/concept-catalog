@@ -745,7 +745,7 @@ class RdfImportTests {
         conceptExtraction.concept.begrepsRelasjon!!.let { relations ->
             assertEquals(5, relations.size)
 
-            relations.find { it.relasjon == "assosiativ" }!!
+            relations.first { it.relasjon == "assosiativ" }
                 .let { associative ->
                     assertEquals("https://example.com/topConcept", associative.relatertBegrep)
 
@@ -756,7 +756,7 @@ class RdfImportTests {
                     }
                 }
 
-            relations.find { it.relasjon == "partitiv" && it.relasjonsType == "omfatter" }!!
+            relations.first { it.relasjon == "partitiv" && it.relasjonsType == "omfatter" }
                 .let { partitive ->
                     assertEquals("https://example.com/partitiveConcept", partitive.relatertBegrep)
 
@@ -767,7 +767,7 @@ class RdfImportTests {
                     }
                 }
 
-            relations.find { it.relasjon == "partitiv" && it.relasjonsType == "erDelAv" }!!
+            relations.first { it.relasjon == "partitiv" && it.relasjonsType == "erDelAv" }
                 .let { comprehensive ->
                     assertEquals("https://example.com/comprehensiveConcept", comprehensive.relatertBegrep)
 
@@ -778,7 +778,7 @@ class RdfImportTests {
                     }
                 }
 
-            relations.find { it.relasjon == "generisk" && it.relasjonsType == "overordnet" }!!
+            relations.first { it.relasjon == "generisk" && it.relasjonsType == "overordnet" }
                 .let { comprehensive ->
                     assertEquals("https://example.com/genericConcept", comprehensive.relatertBegrep)
 
@@ -789,7 +789,7 @@ class RdfImportTests {
                     }
                 }
 
-            relations.find { it.relasjon == "generisk" && it.relasjonsType == "underordnet" }!!
+            relations.first { it.relasjon == "generisk" && it.relasjonsType == "underordnet" }
                 .let { comprehensive ->
                     assertEquals("https://example.com/specificConcept", comprehensive.relatertBegrep)
 
@@ -799,6 +799,30 @@ class RdfImportTests {
                         assertEquals(it.getValue("nb"), "inndelingskriterium")
                     }
                 }
+        }
+
+        conceptExtraction.extractionRecord.extractResult.let { result ->
+            assertEquals(6, result.operations.size)
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/0"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/1"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/2"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/3"
+            })
+
+            assertTrue(result.operations.any {
+                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/4"
+            })
         }
     }
 

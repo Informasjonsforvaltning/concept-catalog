@@ -39,22 +39,22 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val updatedConcept = originalConcept.copy(
         versjonsnr = versjonsnr.first ?: originalConcept.versjonsnr,
         statusURI = statusUri.first ?: originalConcept.statusURI,
-        anbefaltTerm = anbefaltTerm.first ?: originalConcept.anbefaltTerm,
-        tillattTerm = tillattTerm.first ?: originalConcept.tillattTerm,
-        frarådetTerm = frarådetTerm.first ?: originalConcept.frarådetTerm,
-        definisjon = definisjon.first ?: originalConcept.definisjon,
-        definisjonForAllmennheten = definisjonForAllmennheten.first ?: originalConcept.definisjonForAllmennheten,
-        definisjonForSpesialister = definisjonForSpesialister.first ?: originalConcept.definisjonForSpesialister,
-        merknad = merknad.first ?: originalConcept.merknad,
-        eksempel = eksempel.first ?: originalConcept.eksempel,
-        fagområde = fagområde.first ?: originalConcept.fagområde,
-        omfang = omfang.first ?: originalConcept.omfang,
-        gyldigFom = gyldigFom.first ?: originalConcept.gyldigFom,
-        gyldigTom = gyldigTom.first ?: originalConcept.gyldigTom,
-        kontaktpunkt = kontaktPunkt.first ?: originalConcept.kontaktpunkt,
-        seOgså = seOgså.first ?: originalConcept.seOgså,
-        erstattesAv = erstattesAv.first ?: originalConcept.erstattesAv,
-        begrepsRelasjon = begrepsRelasjon.first ?: originalConcept.begrepsRelasjon
+        anbefaltTerm = anbefaltTerm.first,
+        tillattTerm = tillattTerm.first,
+        frarådetTerm = frarådetTerm.first,
+        definisjon = definisjon.first,
+        definisjonForAllmennheten = definisjonForAllmennheten.first,
+        definisjonForSpesialister = definisjonForSpesialister.first,
+        merknad = merknad.first,
+        eksempel = eksempel.first,
+        fagområde = fagområde.first,
+        omfang = omfang.first,
+        gyldigFom = gyldigFom.first,
+        gyldigTom = gyldigTom.first,
+        kontaktpunkt = kontaktPunkt.first,
+        seOgså = seOgså.first,
+        erstattesAv = erstattesAv.first,
+        begrepsRelasjon = begrepsRelasjon.first
     )
 
     val issues = listOf(
@@ -127,7 +127,7 @@ private fun Resource.extractAnbefaltTerm(): Pair<Term?, List<Issue>> {
 
     val issues = localizedStringsIssues.toMutableList()
 
-    val term = if (localizedStrings != null) {
+    val term = if (localizedStrings.isNotEmpty()) {
         Term(localizedStrings)
     } else {
         issues += Issue(IssueType.ERROR, "${prefLabel.localName}: Required property")
@@ -137,11 +137,11 @@ private fun Resource.extractAnbefaltTerm(): Pair<Term?, List<Issue>> {
     return term to issues
 }
 
-private fun Resource.extractTillattTerm(): Pair<Map<String, List<String>>?, List<Issue>> {
+private fun Resource.extractTillattTerm(): Pair<Map<String, List<String>>, List<Issue>> {
     return extractLocalizedStringsAsGrouping(SKOS.altLabel)
 }
 
-private fun Resource.extractFrarådetTerm(): Pair<Map<String, List<String>>?, List<Issue>> {
+private fun Resource.extractFrarådetTerm(): Pair<Map<String, List<String>>, List<Issue>> {
     return extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
 }
 
@@ -229,27 +229,23 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
     val (localizedStrings, localizedStringsIssues) = extractLocalizedStrings(value)
     issues += localizedStringsIssues
 
-    val definition = localizedStrings?.let {
-        Definisjon(tekst = it, kildebeskrivelse = sourceDescription)
-    } ?: run {
-        issues.add(
-            Issue(IssueType.ERROR, "${xlDefinition.localName}: Missing '${value.localName}'")
-        )
-        null
+    if (localizedStrings.isEmpty()) {
+        issues.add(Issue(IssueType.ERROR, "${xlDefinition.localName}: Missing '${value.localName}'"))
+        return null to issues
     }
 
-    return definition to issues
+    return Definisjon(tekst = localizedStrings, kildebeskrivelse = sourceDescription) to issues
 }
 
-private fun Resource.extractMerknad(): Pair<Map<String, String>?, List<Issue>> {
+private fun Resource.extractMerknad(): Pair<Map<String, String>, List<Issue>> {
     return extractLocalizedStrings(SKOS.scopeNote)
 }
 
-private fun Resource.extractEksempel(): Pair<Map<String, String>?, List<Issue>> {
+private fun Resource.extractEksempel(): Pair<Map<String, String>, List<Issue>> {
     return extractLocalizedStrings(SKOS.example)
 }
 
-private fun Resource.extractFagområde(): Pair<Map<String, List<String>>?, List<Issue>> {
+private fun Resource.extractFagområde(): Pair<Map<String, List<String>>, List<Issue>> {
     return extractLocalizedStringsAsGrouping(DCTerms.subject)
 }
 
@@ -340,15 +336,15 @@ private fun Resource.extractKontaktPunkt(): Pair<Kontaktpunkt?, List<Issue>> {
     return null to issues
 }
 
-private fun Resource.extractSeOgså(): Pair<List<String>?, List<Issue>> {
+private fun Resource.extractSeOgså(): Pair<List<String>, List<Issue>> {
     return extractUris(RDFS.seeAlso)
 }
 
-private fun Resource.extractErstattesAv(): Pair<List<String>?, List<Issue>> {
+private fun Resource.extractErstattesAv(): Pair<List<String>, List<Issue>> {
     return extractUris(DCTerms.isReplacedBy)
 }
 
-private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>?, List<Issue>> {
+private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<Issue>> {
     val issues = mutableListOf<Issue>()
 
     val associativeConceptRelations = this.listProperties(SKOSNO.isFromConceptIn)
@@ -365,7 +361,7 @@ private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>?, List
                 ?.toString()
 
             BegrepsRelasjon(relasjon = "assosiativ", beskrivelse = localizedStrings, relatertBegrep = toConcept)
-                .takeIf { localizedStrings != null && toConcept != null }
+                .takeIf { localizedStrings.isNotEmpty() && toConcept != null }
         }
 
     val partitiveConceptRelations = this.listProperties(SKOSNO.hasPartitiveConceptRelation)
@@ -452,10 +448,10 @@ private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>?, List
 
     return listOf(associativeConceptRelations, partitiveConceptRelations, genericConceptRelations)
         .flatten()
-        .takeIf { it.isNotEmpty() } to issues
+        .let { it to issues }
 }
 
-private fun Resource.extractLocalizedStrings(property: Property): Pair<Map<String, String>?, List<Issue>> {
+private fun Resource.extractLocalizedStrings(property: Property): Pair<Map<String, String>, List<Issue>> {
     val issues = mutableListOf<Issue>()
 
     val literals = listProperties(property)
@@ -474,12 +470,11 @@ private fun Resource.extractLocalizedStrings(property: Property): Pair<Map<Strin
             true
         }
         .associate { it.language to it.string }
-        .takeIf { it.isNotEmpty() }
 
     return literals to issues
 }
 
-private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Pair<Map<String, List<String>>?, List<Issue>> {
+private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Pair<Map<String, List<String>>, List<Issue>> {
     val issues = mutableListOf<Issue>()
 
     val literals = listProperties(property)
@@ -499,7 +494,6 @@ private fun Resource.extractLocalizedStringsAsGrouping(property: Property): Pair
         }
         .groupBy { it.language }
         .mapValues { (_, literals) -> literals.map { it.string } }
-        .takeIf { it.isNotEmpty() }
 
     return literals to issues
 }
@@ -512,16 +506,14 @@ private fun Resource.extractUri(property: Property): Pair<String?, List<Issue>> 
         ?.asUriResourceOrNull()
         ?.uri
 
-    if (uri == null) return null to issues
-
-    if (!uri.isValidURI()) {
+    if (uri != null && !uri.isValidURI()) {
         issues.add(Issue(IssueType.ERROR, "${property.localName}: Invalid URI '$uri'"))
     }
 
     return uri to issues
 }
 
-private fun Resource.extractUris(property: Property): Pair<List<String>?, List<Issue>> {
+private fun Resource.extractUris(property: Property): Pair<List<String>, List<Issue>> {
     val issues = mutableListOf<Issue>()
 
     val uris = listProperties(property)
@@ -536,8 +528,6 @@ private fun Resource.extractUris(property: Property): Pair<List<String>?, List<I
 
             true
         }
-
-    if (uris.isEmpty()) return null to issues
 
     return uris to issues
 }
