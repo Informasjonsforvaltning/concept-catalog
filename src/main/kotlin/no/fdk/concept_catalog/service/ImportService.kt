@@ -62,9 +62,6 @@ class ImportService(
             logger.warn("Errors occurred during RDF import for catalog $catalogId")
             logger.warn("Concepts extracted: ${conceptExtractions.size}")
             logger.warn("Concept Extraction with errors: ${conceptExtractions.hasError}")
-            conceptExtractions.allExtractionRecords.forEach { record ->
-                logger.warn("Extraction Record: ${record.extractResult}")
-            }
 
             saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
         } else {
