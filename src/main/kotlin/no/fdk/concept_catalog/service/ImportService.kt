@@ -27,6 +27,7 @@ import java.util.*
 class ImportService(
     private val historyService: HistoryService,
     private val conceptRepository: ConceptRepository,
+    private val conceptService: ConceptService,
     private val importResultRepository: ImportResultRepository,
     private val objectMapper: ObjectMapper
 ) {
