@@ -168,6 +168,9 @@ class ImportService(
         val savedConcept = conceptRepository.save(concept)
         logger.info("Updated concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
 
+        conceptService.updateCurrentConceptForOriginalId(savedConcept.originaltBegrep)
+        logger.info("Updated ElasticSearch for concept: ${savedConcept.id} in catalog $catalogId by user ${user.id}")
+
         updateHistory(savedConcept, operations, user, jwt)
 
         return conceptExtraction.extractionRecord

@@ -35,7 +35,7 @@ class ConceptService(
     private val mapper: ObjectMapper
 ) {
 
-    private fun updateCurrentConceptForOriginalId(originalId: String) {
+    fun updateCurrentConceptForOriginalId(originalId: String) {
         val allVersions = conceptRepository.getByOriginaltBegrep(originalId)
         val newCurrent = allVersions.maxByOrNull { it.versjonsnr }
 
