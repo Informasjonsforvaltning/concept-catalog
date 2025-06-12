@@ -49,14 +49,6 @@ class ConceptService(
         }
     }
 
-    fun updateCurrentConceptsForExtractions(extractions: List<ConceptExtraction>) {
-        extractions
-            .mapNotNull { it.concept.originaltBegrep }
-            .distinct()
-            .onEach { updateCurrentConceptForOriginalId(it) }
-
-    }
-
     fun deleteConcept(concept: BegrepDBO) {
         conceptRepository.delete(concept)
             .also { logger.debug("deleted concept ${concept.id}") }
