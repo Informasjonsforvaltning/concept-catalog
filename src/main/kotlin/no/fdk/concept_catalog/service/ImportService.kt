@@ -106,7 +106,8 @@ class ImportService(
         try {
             for (extraction in conceptExtractions) {
                 val updatedRecord = updateConcept(catalogId, extraction, user, jwt)
-                processedRecords.add(updatedRecord)
+                updatedRecord.takeIf { it.allOperations.isNotEmpty() }
+                    ?.let {processedRecords.add(it)}
             }
         } catch (ex: Exception) {
             logger.error("Error during RDF processing. Rolling back all processed concepts.", ex)
