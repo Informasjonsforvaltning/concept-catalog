@@ -136,8 +136,12 @@ class RDFImportTests {
 
         val conceptExtraction = createConceptExtraction(turtle)
 
+        val noJsonPatches = conceptExtraction.extractionRecord.extractResult.operations
+
+        assertTrue (0 == noJsonPatches.size)
+
         conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(1, result.issues.size)
+            assertEquals(2, result.issues.size)
 
             assertTrue(result.issues.any {
                 it.type == IssueType.ERROR && it.message.startsWith("prefLabel")

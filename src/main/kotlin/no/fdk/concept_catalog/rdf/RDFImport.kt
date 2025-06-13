@@ -57,8 +57,10 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         begrepsRelasjon = begrepsRelasjon.first
     )
 
-    val issues = listOf(
-        versjonsnr.second,
+    val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
+
+    val issues = mutableListOf<Issue>().apply {
+        listOf(versjonsnr.second,
         statusUri.second,
         anbefaltTerm.second,
         tillattTerm.second,
@@ -76,9 +78,13 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         seOgså.second,
         erstattesAv.second,
         begrepsRelasjon.second
-    ).flatten()
+        ).flatten().forEach { add(it) }
 
-    val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
+        if (operations.isEmpty())
+            add(
+                Issue (IssueType.ERROR, "No JsonPatchOperations detected in the concept")
+            )
+    }
 
     val extractResult = ExtractResult(operations, issues)
 

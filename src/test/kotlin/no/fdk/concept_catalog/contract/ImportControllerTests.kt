@@ -9,6 +9,8 @@ import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
+import no.fdk.concept_catalog.model.Paginated
+import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 @Tag("contract")
 class ImportControllerTests : ContractTestsBase() {
@@ -406,5 +409,24 @@ class ImportControllerTests : ContractTestsBase() {
         val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
         assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
+
+        val begreperResponse = authorizedRequest(
+            path = "/begreper/search?orgNummer=123456789",
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.POST,
+            body = objectMapper.writeValueAsString(
+                SearchOperation(query = "")
+            )
+        )
+
+        // get number of concepts in the response
+        val searchHits: Paginated = objectMapper.readValue(
+            begreperResponse.body,
+            Paginated::class.java
+        )
+
+        assertEquals(HttpStatus.OK, begreperResponse.statusCode)
+        assertNotEquals(0, searchHits?.hits?.size)
+
     }
 }
