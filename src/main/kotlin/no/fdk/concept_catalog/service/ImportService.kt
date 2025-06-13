@@ -119,9 +119,8 @@ class ImportService(
                 ex
             )
         }
-        val status = if (processedRecords.isEmpty()) ImportResultStatus.FAILED else ImportResultStatus.COMPLETED
 
-        return saveImportResult(catalogId, processedRecords, status)
+        return saveImportResult(catalogId, processedRecords, ImportResultStatus.COMPLETED)
     }
 
     private fun rollbackProcessedConcepts(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
