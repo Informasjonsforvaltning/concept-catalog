@@ -3,11 +3,9 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.repository.ImportResultRepository
-import no.fdk.concept_catalog.utils.Access
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
-import no.fdk.concept_catalog.utils.JwtToken
 import org.apache.jena.riot.Lang
 import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.jwt.Jwt
@@ -86,9 +84,6 @@ class ImportServiceTest {
         vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
         ] .
         """.trimIndent()
-
-
-
         val catalogId = "123456789"
         val lang = Lang.TURTLE
         val user = User(id = "1924782563", name = "TEST USER", email = null)
@@ -115,10 +110,5 @@ class ImportServiceTest {
 
         assertNotNull(importResultFailed)
         assertEquals(ImportResultStatus.COMPLETED, importResultFailed.status)
-
-
-
-
-
     }
 }
