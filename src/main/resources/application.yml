@@ -6,7 +6,13 @@ logging:
   level.org.springframework.web: WARN
 spring:
   data.mongodb:
-    uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017/concept-catalogue?authSource=admin&authMechanism=SCRAM-SHA-1
+    host: ${MONGODB_HOST}
+    username: ${MONGODB_USER}
+    password: ${MONGODB_PASSWORD}
+    authentication-database: ${MONGODB_AUTH}
+    replica-set-name: ${MONGODB_REPLICASET}
+    port: 27017
+    database: conceptCatalog
     auto-index-creation: true
   security.oauth2.resourceserver.jwt:
     jwk-set-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk/protocol/openid-connect/certs
@@ -42,7 +48,12 @@ application:
 ---
 spring:
   config.activate.on-profile: develop
-  data.mongodb.uri: mongodb://admin:admin@localhost:27017/conceptCatalog?authSource=admin&authMechanism=SCRAM-SHA-1
+  data.mongodb:
+    host: localhost
+    username: admin
+    password: admin
+    authentication-database: admin
+    replica-set-name: null
   security.oauth2.resourceserver.jwt.jwk-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
   rabbitmq.host: 127.0.0.1
 application:
@@ -56,6 +67,12 @@ application:
 ---
 spring:
   config.activate.on-profile: contract-test
+  data.mongodb:
+    host: localhost
+    username: testuser
+    password: testpassword
+    authentication-database: admin
+    replica-set-name: null
   security.oauth2.resourceserver.jwt.jwk-set-uri: http://localhost:6000/auth/realms/fdk/protocol/openid-connect/certs
 application:
   historyServiceUri: http://localhost:6000

@@ -2,7 +2,7 @@ package no.fdk.concept_catalog
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.ImportResult
@@ -47,9 +47,9 @@ open class ContractTestsBase {
     fun setUp() {
         stubFor(get(urlPathEqualTo("/auth/realms/fdk/protocol/openid-connect/certs")).willReturn(okJson(JwkStore.get())))
 
-        mongoOperations.remove(Query(), Begrep::class.java)
-        mongoOperations.remove(Query(), ChangeRequest::class.java)
-        mongoOperations.remove(Query(), ImportResult::class.java)
+        mongoOperations.findAllAndRemove<BegrepDBO>(Query(), "concepts")
+        mongoOperations.findAllAndRemove<ChangeRequest>(Query(), "changeRequests")
+        mongoOperations.findAllAndRemove<ImportResult>(Query(), "importResults")
 
         elasticsearchOperations.delete(
             DeleteQuery.builder(org.springframework.data.elasticsearch.core.query.Query.findAll()).build(),

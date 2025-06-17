@@ -302,7 +302,7 @@ class ConceptService(
 
     fun getAllPublisherIds(): List<String> {
         return mongoOperations
-            .query(Begrep::class.java)
+            .query(BegrepDBO::class.java)
             .distinct("ansvarligVirksomhet.id")
             .`as`(String::class.java)
             .all()
