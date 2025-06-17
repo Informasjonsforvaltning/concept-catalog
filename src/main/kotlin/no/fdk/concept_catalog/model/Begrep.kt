@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.time.LocalDate
 
-@Document(collection = "begrep")
+@Document(collection = "concepts")
 @CompoundIndexes(value = [
     CompoundIndex(name = "ansvarlig_virksomhet", def = "{'ansvarligVirksomhet.id' : 1}"),
     CompoundIndex(name = "ansvarlig_virksomhet_status", def = "{'ansvarligVirksomhet.id' : 1, 'status': 1}"),

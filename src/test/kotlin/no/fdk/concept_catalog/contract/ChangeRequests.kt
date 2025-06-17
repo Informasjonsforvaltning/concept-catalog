@@ -153,7 +153,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun getChangeRequestByConceptId() {
-            mongoOperations.insertAll(listOf(BEGREP_2, CHANGE_REQUEST_4, CHANGE_REQUEST_6))
+            mongoOperations.insertAll(listOf(BEGREP_2.toDBO(), CHANGE_REQUEST_4, CHANGE_REQUEST_6))
 
             val responseWrite = authorizedRequest(
                 "/123456789/endringsforslag?concept=${BEGREP_2.id}",
@@ -172,7 +172,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun getChangeRequestByConceptIdAndStatus() {
-            mongoOperations.insertAll(listOf(BEGREP_2, CHANGE_REQUEST_4))
+            mongoOperations.insertAll(listOf(BEGREP_2.toDBO(), CHANGE_REQUEST_4))
 
             val responseWrite = authorizedRequest(
                 "/123456789/endringsforslag?concept=${BEGREP_2.id}&status=open",
