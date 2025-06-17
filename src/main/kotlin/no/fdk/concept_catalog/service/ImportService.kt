@@ -60,6 +60,12 @@ class ImportService(
 
         return if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
             logger.warn("Errors occurred during RDF import for catalog $catalogId")
+            logger.warn("Concepts extracted: ${conceptExtractions.size}")
+            logger.warn("Concept Extraction with errors: ${conceptExtractions.hasError}")
+            conceptExtractions.allExtractionRecords.forEach { record ->
+                logger.warn("Extraction Record: ${record.extractResult}")
+            }
+
             saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
         } else {
             processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
@@ -118,6 +124,8 @@ class ImportService(
                 ex
             )
         }
+
+        conceptService.updateCurrentConceptsForExtractions(conceptExtractions)
 
         return saveImportResult(catalogId, processedRecords, ImportResultStatus.COMPLETED)
     }
