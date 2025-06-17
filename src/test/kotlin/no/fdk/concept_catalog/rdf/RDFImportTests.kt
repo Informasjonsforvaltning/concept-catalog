@@ -127,11 +127,35 @@ class RDFImportTests {
     @Test
     fun `should fail to extract anbefaltTerm`() {
         val turtle = """
-            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-            
-            <https://example.com/concept>
-                    rdf:type              skos:Concept .
+            @prefix schema: <http://schema.org/> .
+        @prefix dct:   <http://purl.org/dc/terms/> .
+        @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+        @prefix skosno: <http://difi.no/skosno#> .
+        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+        @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+        @prefix dcat:  <http://www.w3.org/ns/dcat#> .
+        @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
+
+        <http://test/begrep/9c33fd2b-2964-11e6-b2bc-96405985e0fa>
+         a                              skos:Concept ;
+          skos:prefLabel "nytt begrep 9"@nb ;
+          skosno:betydningsbeskrivelse  [ a                       skosno:Definisjon ;
+            rdfs:label              "kostnader til oppmåling av regnskapsbasert fastsetting av boligeiendom for innrapportering av arealopplysninger ved formuesverdsettelse av boligen"@nb ;
+            skosno:forholdTilKilde  <basertPåKilde> ;
+            dct:source              [ rdfs:label  "RF-1189 rettledningen punkt 2.7"@nb ]
+          ] ;
+          skosno:datastrukturterm        "kostnadTilOppmåling"@nb ;
+          dct:identifier                 "9c33fd2b-2964-11e6-b2bc-96405985e0fa" ;
+          dct:modified                   "2017-09-04"^^xsd:date ;
+          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/974761076> ;
+          dct:subject                    "Formues- og inntektsskatt"@nb ;
+          dcat:contactPoint              [ a                       vcard:Organization ;
+            vcard:hasEmail          <mailto:test@skatteetaten.no> ;
+            vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
+          ] .
         """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
