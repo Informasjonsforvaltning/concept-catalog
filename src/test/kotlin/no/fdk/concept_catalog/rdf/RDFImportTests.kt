@@ -133,9 +133,6 @@ class RDFImportTests {
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
             
-            <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
-                    dct:replaces  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old> .
-            
             <https://example.com/concept>
                     rdf:type            skos:Concept ;
                     rdfs:seeAlso        <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
@@ -151,7 +148,6 @@ class RDFImportTests {
         assertEquals (5, jsonPatches.size)
 
         val allIssues = conceptExtraction.extractionRecord.extractResult.issues
-
         assertEquals(1, allIssues.size)
 
         assertTrue ( allIssues.any {
