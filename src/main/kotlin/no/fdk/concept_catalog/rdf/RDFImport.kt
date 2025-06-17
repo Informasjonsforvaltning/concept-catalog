@@ -57,6 +57,13 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         begrepsRelasjon = begrepsRelasjon.first
     )
 
+    val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
+    val noOperations: List<Issue> = if (operations.isEmpty())
+        listOf(
+            Issue (IssueType.ERROR, "No JsonPatchOperations detected in the concept")
+        )
+    else emptyList()
+
     val issues = listOf(
         versjonsnr.second,
         statusUri.second,
@@ -75,10 +82,9 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         kontaktPunkt.second,
         seOgså.second,
         erstattesAv.second,
-        begrepsRelasjon.second
+        begrepsRelasjon.second,
+        noOperations
     ).flatten()
-
-    val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
 
     val extractResult = ExtractResult(operations, issues)
 

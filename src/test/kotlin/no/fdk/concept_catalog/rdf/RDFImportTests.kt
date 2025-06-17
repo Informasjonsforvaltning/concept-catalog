@@ -127,22 +127,32 @@ class RDFImportTests {
     @Test
     fun `should fail to extract anbefaltTerm`() {
         val turtle = """
-            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix dct:   <http://purl.org/dc/terms/> .
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
             
             <https://example.com/concept>
-                    rdf:type              skos:Concept .
+                    rdf:type            skos:Concept ;
+                    rdfs:seeAlso        <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
+                    dct:isReplacedBy    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
+                    euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
+                    skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
+                    skos:hiddenLabel    "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb .
         """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
-        conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(1, result.issues.size)
+        val jsonPatches = conceptExtraction.extractionRecord.extractResult.operations
+        assertEquals (5, jsonPatches.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.ERROR && it.message.startsWith("prefLabel")
-            })
-        }
+        val allIssues = conceptExtraction.extractionRecord.extractResult.issues
+        assertEquals(1, allIssues.size)
+
+        assertTrue ( allIssues.any {
+            it.type == IssueType.ERROR && it.message.startsWith("prefLabel")
+        }, "Expected an issue with prefLabel extraction error" )
     }
 
     @Test
