@@ -127,50 +127,36 @@ class RDFImportTests {
     @Test
     fun `should fail to extract anbefaltTerm`() {
         val turtle = """
-        @prefix schema: <http://schema.org/> .
-        @prefix dct:   <http://purl.org/dc/terms/> .
-        @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
-        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-        @prefix skosno: <http://difi.no/skosno#> .
-        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-        @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-        @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
-        @prefix dcat:  <http://www.w3.org/ns/dcat#> .
-        @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
-
-        <http://test/begrep/9c33fd2b-2964-11e6-b2bc-96405985e0fa>
-         a                              skos:Concept ;
-          skos:prefLabel "nytt begrep 9"@nb ;
-          skosno:betydningsbeskrivelse  [ a                       skosno:Definisjon ;
-            rdfs:label              "kostnader til oppmåling av regnskapsbasert fastsetting av boligeiendom for innrapportering av arealopplysninger ved formuesverdsettelse av boligen"@nb ;
-            skosno:forholdTilKilde  <basertPåKilde> ;
-            dct:source              [ rdfs:label  "RF-1189 rettledningen punkt 2.7"@nb ]
-          ] ;
-          skosno:datastrukturterm        "kostnadTilOppmåling"@nb ;
-          dct:identifier                 "9c33fd2b-2964-11e6-b2bc-96405985e0fa" ;
-          dct:modified                   "2017-09-04"^^xsd:date ;
-          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/974761076> ;
-          dct:subject                    "Formues- og inntektsskatt"@nb ;
-          dcat:contactPoint              [ a                       vcard:Organization ;
-            vcard:hasEmail          <mailto:test@skatteetaten.no> ;
-            vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
-          ] .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix dct:   <http://purl.org/dc/terms/> .
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
+            
+            <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322>
+                    dct:replaces  <https://concept-catalog.fellesdatakatalog.digdir.no/collections/123456789/concepts/id0-old> .
+            
+            <https://example.com/concept>
+                    rdf:type            skos:Concept ;
+                    rdfs:seeAlso        <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
+                    dct:isReplacedBy    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
+                    euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
+                    skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
+                    skos:hiddenLabel    "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb .
         """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
-        val noJsonPatches = conceptExtraction.extractionRecord.extractResult.operations
+        val jsonPatches = conceptExtraction.extractionRecord.extractResult.operations
+        assertEquals (5, jsonPatches.size)
 
-        assertTrue (0 == noJsonPatches.size)
+        val allIssues = conceptExtraction.extractionRecord.extractResult.issues
 
-        conceptExtraction.extractionRecord.extractResult.let { result ->
-            assertEquals(2, result.issues.size)
+        assertEquals(1, allIssues.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.ERROR && it.message.startsWith("prefLabel")
-            })
-        }
+        assertTrue ( allIssues.any {
+            it.type == IssueType.ERROR && it.message.startsWith("prefLabel")
+        }, "Expected an issue with prefLabel extraction error" )
     }
 
     @Test
