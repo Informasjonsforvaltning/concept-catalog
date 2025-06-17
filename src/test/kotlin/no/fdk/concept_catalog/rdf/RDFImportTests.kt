@@ -127,7 +127,7 @@ class RDFImportTests {
     @Test
     fun `should fail to extract anbefaltTerm`() {
         val turtle = """
-            @prefix schema: <http://schema.org/> .
+        @prefix schema: <http://schema.org/> .
         @prefix dct:   <http://purl.org/dc/terms/> .
         @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
         @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
