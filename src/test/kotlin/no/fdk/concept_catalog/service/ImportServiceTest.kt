@@ -48,7 +48,7 @@ class ImportServiceTest {
 
 
     @Test
-    fun `should not upload the same RDF multiple times`() {
+    fun `should fail when the same RDF is uploaded multiple times`() {
 
         val turtle = """
         @prefix schema: <http://schema.org/> .
