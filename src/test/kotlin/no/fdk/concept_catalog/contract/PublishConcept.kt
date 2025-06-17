@@ -3,6 +3,10 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.Paginated
+import no.fdk.concept_catalog.model.SearchFilter
+import no.fdk.concept_catalog.model.SearchFilters
+import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
@@ -101,13 +105,34 @@ class PublishConcept : ContractTestsBase() {
 
         assertNotNull(result.publiseringsTidspunkt)
 
-        assertEquals(
-            BEGREP_TO_BE_UPDATED.copy(
-                erPublisert = true,
-                sistPublisertId = null,
-                publiseringsTidspunkt = result.publiseringsTidspunkt
-            ), result
+        val expected = BEGREP_TO_BE_UPDATED.copy(
+            erPublisert = true,
+            sistPublisertId = null,
+            publiseringsTidspunkt = result.publiseringsTidspunkt
         )
+
+        assertEquals(expected, result)
+
+        // Elastic has been updated after publish
+
+        val searchResponse = authorizedRequest(
+            "/begreper/search?orgNummer=${BEGREP_TO_BE_UPDATED.ansvarligVirksomhet.id}",
+
+            mapper.writeValueAsString(
+                SearchOperation(
+                    "",
+                    filters = SearchFilters(originalId = SearchFilter(listOf(BEGREP_TO_BE_UPDATED.originaltBegrep!!)))
+                )
+            ),
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
+        )
+
+        val searchResult: Paginated = mapper.readValue(searchResponse.body as String)
+
+        val searchExpected = expected.copy(sistPublisertId = BEGREP_TO_BE_UPDATED.id)
+
+        assertEquals(searchExpected, searchResult.hits.first())
     }
 
     @Test

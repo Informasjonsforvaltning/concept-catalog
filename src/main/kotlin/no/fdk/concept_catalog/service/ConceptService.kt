@@ -414,6 +414,7 @@ class ConceptService(
 
         return conceptRepository.save(published)
             .also { updateRelationsToNonInternal(it) }
+            .also { updateCurrentConceptForOriginalId(it.originaltBegrep) }
             .toDTO()
     }
 
