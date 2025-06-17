@@ -64,25 +64,25 @@ class ImportServiceTest {
         @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
 
         <http://test/begrep/9c33fd2b-2964-11e6-b2bc-96405985e0fa>
-        a                              skos:Concept ;
-        skos:prefLabel "nytt begrep 9"@nb ;
-        skosno:betydningsbeskrivelse  [ a                       skosno:Definisjon ;
-        rdfs:label              "kostnader til oppmåling av regnskapsbasert fastsetting av boligeiendom for innrapportering av arealopplysninger ved formuesverdsettelse av boligen"@nb ;
-        skosno:forholdTilKilde  <basertPåKilde> ;
-        dct:source              [ rdfs:label  "RF-1189 rettledningen punkt 2.7"@nb ]
-        ] ;
-        skosno:datastrukturterm        "kostnadTilOppmåling"@nb ;
-        dct:identifier                 "9c33fd2b-2964-11e6-b2bc-96405985e0fa" ;
-        dct:modified                   "2017-09-04"^^xsd:date ;
-        dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/974761076> ;
-        dct:subject                    "Formues- og inntektsskatt"@nb ;
-        skosxl:prefLabel               [ a                   skosxl:Label ;
-        skosxl:literalForm  "kostnad til oppmåling"@nb
-        ] ;
-        dcat:contactPoint              [ a                       vcard:Organization ;
-        vcard:hasEmail          <mailto:test@skatteetaten.no> ;
-        vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
-        ] .
+         a                              skos:Concept ;
+          skos:prefLabel "nytt begrep 9"@nb ;
+          skosno:betydningsbeskrivelse  [ a                       skosno:Definisjon ;
+            rdfs:label              "kostnader til oppmåling av regnskapsbasert fastsetting av boligeiendom for innrapportering av arealopplysninger ved formuesverdsettelse av boligen"@nb ;
+            skosno:forholdTilKilde  <basertPåKilde> ;
+            dct:source              [ rdfs:label  "RF-1189 rettledningen punkt 2.7"@nb ]
+          ] ;
+          skosno:datastrukturterm        "kostnadTilOppmåling"@nb ;
+          dct:identifier                 "9c33fd2b-2964-11e6-b2bc-96405985e0fa" ;
+          dct:modified                   "2017-09-04"^^xsd:date ;
+          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/974761076> ;
+          dct:subject                    "Formues- og inntektsskatt"@nb ;
+          skosxl:prefLabel               [ a                   skosxl:Label ;
+            skosxl:literalForm  "kostnad til oppmåling"@nb
+          ] ;
+          dcat:contactPoint              [ a                       vcard:Organization ;
+            vcard:hasEmail          <mailto:test@skatteetaten.no> ;
+            vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
+          ] .
         """.trimIndent()
         val catalogId = "123456789"
         val lang = Lang.TURTLE
