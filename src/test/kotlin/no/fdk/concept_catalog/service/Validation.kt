@@ -42,4 +42,16 @@ class Validation {
         assertTrue { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(9, 10, 1))) }
     }
 
+    @Test
+    fun `Is valid when any definition is defined for the concept`() {
+        whenever(conceptRepository.getByOriginaltBegrep("id5"))
+            .thenReturn(listOf(BEGREP_5.toDBO()))
+
+        val validVersion = BEGREP_5.copy(versjonsnr = SemVer(1, 0, 1))
+
+        assertFalse { conceptService.isPublishedAndNotValid(validVersion) }
+        assertFalse { conceptService.isPublishedAndNotValid(validVersion.copy(definisjonForAllmennheten = BEGREP_5.definisjon, definisjon = null)) }
+        assertFalse { conceptService.isPublishedAndNotValid(validVersion.copy(definisjonForSpesialister = BEGREP_5.definisjon, definisjon = null)) }
+    }
+
 }
