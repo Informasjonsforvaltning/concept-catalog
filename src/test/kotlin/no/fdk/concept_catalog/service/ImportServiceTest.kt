@@ -13,22 +13,15 @@ import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.kotlin.any
-import org.mockito.kotlin.find
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 import kotlin.test.fail
 
 
@@ -139,18 +132,8 @@ class ImportServiceTest {
             status = ImportResultStatus.COMPLETED
         )
 
-        /*whenever(importResultRepository.save(any())).thenAnswer { invocation ->
-            invocation.arguments[0] as ImportResult
-        }*/
-
         whenever(importResultRepository.findById(importResultId))
             .thenReturn(Optional.of(importResult))
-
-        /*assertNotNull(importResultRepository.save(importResult))
-
-        val foundImportResult = importResultRepository.findById(importResultId)
-        assertFalse(foundImportResult.isEmpty)*/
-
 
         assertThrows(ResponseStatusException::class.java) {
             importService.deleteImportResult(catalogId, UUID.randomUUID().toString())
