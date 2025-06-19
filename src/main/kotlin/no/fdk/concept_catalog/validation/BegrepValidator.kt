@@ -39,9 +39,15 @@ fun Begrep.isValid(): Boolean = when {
     anbefaltTerm == null -> false
     anbefaltTerm.navn.isNullOrEmpty() -> false
     !isValidTranslationsMap(anbefaltTerm.navn) -> false
-    definisjon == null -> false
-    definisjon.tekst.isNullOrEmpty() -> false
-    !isValidTranslationsMap(definisjon.tekst) -> false
+    definisjon == null
+        && definisjonForAllmennheten == null
+        && definisjonForSpesialister == null -> false
+    definisjon?.tekst.isNullOrEmpty()
+        && definisjonForAllmennheten?.tekst.isNullOrEmpty()
+        && definisjonForSpesialister?.tekst.isNullOrEmpty() -> false
+    !isValidTranslationsMapOrNull(definisjon?.tekst)
+        && !isValidTranslationsMapOrNull(definisjon?.tekst)
+        && !isValidTranslationsMapOrNull(definisjon?.tekst) -> false
     !ansvarligVirksomhet.isValid() -> false
     !isValidValidityPeriod(gyldigFom, gyldigTom) -> false
     else -> true
@@ -64,6 +70,11 @@ private fun Virksomhet.isValid(): Boolean = when {
     id.isBlank() -> false
     !id.isOrganizationNumber() -> false
     else -> true
+}
+
+private fun isValidTranslationsMapOrNull(translations: Map<String, Any>?): Boolean = when {
+    translations == null -> true
+    else -> isValidTranslationsMap(translations)
 }
 
 private fun isValidTranslationsMap(translations: Map<String, Any>): Boolean = when {
