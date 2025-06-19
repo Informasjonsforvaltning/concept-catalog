@@ -11,6 +11,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.jwt.Jwt
 import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
+import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -22,8 +23,10 @@ import java.time.LocalDateTime
 import java.util.Optional
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.fail
-
+import org.mockito.ArgumentCaptor
+import org.mockito.kotlin.capture
 
 @Tag("unit")
 class ImportServiceTest {
@@ -57,6 +60,10 @@ class ImportServiceTest {
     @Test
     fun `should fail when the same RDF is uploaded multiple times`() {
 
+        val catalogId = "123456789"
+        val externalId = "9c33fd2b-2964-11e6-b2bc-96405985e0fa"
+        val conceptUri = "http://test/begrep/$externalId"
+
         val turtle = """
         @prefix schema: <http://schema.org/> .
         @prefix dct:   <http://purl.org/dc/terms/> .
@@ -70,7 +77,7 @@ class ImportServiceTest {
         @prefix dcat:  <http://www.w3.org/ns/dcat#> .
         @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
 
-        <http://test/begrep/9c33fd2b-2964-11e6-b2bc-96405985e0fa>
+        <$conceptUri>
          a                              skos:Concept ;
           skos:prefLabel "nytt begrep 9"@nb ;
           skosno:betydningsbeskrivelse  [ a                       skosno:Definisjon ;
@@ -79,9 +86,9 @@ class ImportServiceTest {
             dct:source              [ rdfs:label  "RF-1189 rettledningen punkt 2.7"@nb ]
           ] ;
           skosno:datastrukturterm        "kostnadTilOppmåling"@nb ;
-          dct:identifier                 "9c33fd2b-2964-11e6-b2bc-96405985e0fa" ;
+          dct:identifier                 "$externalId" ;
           dct:modified                   "2017-09-04"^^xsd:date ;
-          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/974761076> ;
+          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/$catalogId> ;
           dct:subject                    "Formues- og inntektsskatt"@nb ;
           skosxl:prefLabel               [ a                   skosxl:Label ;
             skosxl:literalForm  "kostnad til oppmåling"@nb
@@ -91,9 +98,14 @@ class ImportServiceTest {
             vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
           ] .
         """.trimIndent()
-        val catalogId = "123456789"
+
         val lang = Lang.TURTLE
         val user = User(id = "1924782563", name = "TEST USER", email = null)
+
+        val begrepCaptor = ArgumentCaptor.forClass(BegrepDBO::class.java)
+        whenever(conceptRepository.save(capture(begrepCaptor))).thenAnswer {
+            begrepCaptor.value
+        }
 
         val importResultSuccess = importService.importRdf(
             catalogId = catalogId,
@@ -105,6 +117,23 @@ class ImportServiceTest {
 
         assertNotNull(importResultSuccess)
         assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
+        assertFalse(importResultSuccess.extractionRecords.isEmpty())
+
+        val internalId = importResultSuccess.extractionRecords.first().internalId
+        val begrep = begrepCaptor.value
+        val originaltBegrep = begrep.originaltBegrep
+
+        whenever(
+            importResultRepository.findFirstByStatusAndExtractionRecordsExternalId(
+                ImportResultStatus.COMPLETED,
+                conceptUri
+            )
+        ).thenReturn(
+            importResultSuccess
+        )
+
+        whenever(conceptRepository.findById(internalId)).thenReturn(Optional.of(begrep))
+        whenever(conceptRepository.getByOriginaltBegrep(originaltBegrep)).thenReturn(listOf(begrep))
 
 
         val importResultFailed = importService.importRdf(
@@ -116,7 +145,7 @@ class ImportServiceTest {
         )
 
         assertNotNull(importResultFailed)
-        assertEquals(ImportResultStatus.COMPLETED, importResultFailed.status)
+        assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
     }
 
     @Test
