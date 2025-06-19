@@ -13,8 +13,12 @@ import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.kotlin.any
+import org.springframework.web.server.ResponseStatusException
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.test.assertEquals
 
 
@@ -110,5 +114,29 @@ class ImportServiceTest {
 
         assertNotNull(importResultFailed)
         assertEquals(ImportResultStatus.COMPLETED, importResultFailed.status)
+    }
+
+    @Test
+    fun `should throw exception if catalog id is wrong or ImportResultId is not found`() {
+        val catalogId = "123456789"
+        var importResultId = UUID.randomUUID().toString()
+
+        // Save a dummy ImportResult to simulate the scenario
+        var importResult = ImportResult(
+            id = importResultId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.COMPLETED
+        )
+
+        importResultRepository.save(importResult)
+
+        assertThrows(ResponseStatusException::class.java) {
+            importService.deleteImportResult(catalogId, UUID.randomUUID().toString())
+        }
+
+        assertThrows(ResponseStatusException::class.java) {
+            importService.deleteImportResult(catalogId.plus('0') , importResultId)
+        }
     }
 }
