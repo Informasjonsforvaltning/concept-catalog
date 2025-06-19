@@ -13,13 +13,23 @@ import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.kotlin.any
+import org.mockito.kotlin.find
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
+import java.util.Optional
 import java.util.UUID
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 
 @Tag("unit")
@@ -121,15 +131,26 @@ class ImportServiceTest {
         val catalogId = "123456789"
         var importResultId = UUID.randomUUID().toString()
 
-        // Save a dummy ImportResult to simulate the scenario
-        var importResult = ImportResult(
+
+        val importResult = ImportResult(
             id = importResultId,
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.COMPLETED
         )
 
-        importResultRepository.save(importResult)
+        /*whenever(importResultRepository.save(any())).thenAnswer { invocation ->
+            invocation.arguments[0] as ImportResult
+        }*/
+
+        whenever(importResultRepository.findById(importResultId))
+            .thenReturn(Optional.of(importResult))
+
+        /*assertNotNull(importResultRepository.save(importResult))
+
+        val foundImportResult = importResultRepository.findById(importResultId)
+        assertFalse(foundImportResult.isEmpty)*/
+
 
         assertThrows(ResponseStatusException::class.java) {
             importService.deleteImportResult(catalogId, UUID.randomUUID().toString())
@@ -137,6 +158,14 @@ class ImportServiceTest {
 
         assertThrows(ResponseStatusException::class.java) {
             importService.deleteImportResult(catalogId.plus('0') , importResultId)
+        }
+
+        assertDoesNotThrow {
+            try {
+                importService.deleteImportResult(catalogId, importResultId)
+            } catch (e: ResponseStatusException) {
+                fail("it should not throw exception when catalogId and ImportResultId are correct")
+            }
         }
     }
 }
