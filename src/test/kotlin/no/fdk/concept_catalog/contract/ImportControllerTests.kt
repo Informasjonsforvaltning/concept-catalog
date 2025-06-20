@@ -15,6 +15,8 @@ import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -427,6 +429,69 @@ class ImportControllerTests : ContractTestsBase() {
 
         assertEquals(HttpStatus.OK, begreperResponse.statusCode)
         assertNotEquals(0, searchHits?.hits?.size)
+
+    }
+
+    @Test
+    fun `should find ImportResult and should remove it`() {
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+
+        val turtle = """
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix dct:   <http://purl.org/dc/terms/> .
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
+            
+            <https://example.com/concept>
+                    rdf:type            skos:Concept ;
+                    rdfs:seeAlso        <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
+                    dct:isReplacedBy    <http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322> ;
+                    euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
+                    skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
+                    skos:hiddenLabel    "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb .
+        """.trimIndent()
+
+        val responseTester: (Int) -> List<ImportResult> = { resultsSize ->
+            val importResultsResponse = authorizedRequest(
+                path = "/import/123456789/results",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET,
+            )
+
+            assertEquals(HttpStatus.OK, importResultsResponse.statusCode)
+
+            val importResults: List<ImportResult> = objectMapper.readValue(
+                importResultsResponse.body,
+                object : TypeReference<List<ImportResult>>() {}
+            )
+
+            assertEquals(resultsSize, importResults.size)
+
+            importResults
+        }
+
+        authorizedRequest(
+            path = "/import/123456789",
+            body = turtle,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+        var importResults: List<ImportResult> = responseTester(1)
+
+        val importResultId = importResults.map { it.id }.first()
+
+        val deleteImportResult = authorizedRequest(
+            path = "/import/123456789/results/$importResultId",
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.DELETE
+        )
+
+        assertEquals(HttpStatus.NO_CONTENT, deleteImportResult.statusCode)
+
+        responseTester(0)
 
     }
 }

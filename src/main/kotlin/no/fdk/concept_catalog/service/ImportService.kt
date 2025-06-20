@@ -74,6 +74,16 @@ class ImportService(
         return importResultRepository.findByIdOrNull(statusId)
     }
 
+    fun deleteImportResult(catalogId: String, resultId: String) {
+        val result = importResultRepository.findByIdOrNull(resultId)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $resultId not found")
+
+        result.takeIf { result.catalogId == catalogId }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $resultId not found in Catalog with id: $catalogId")
+
+        importResultRepository.delete(result)
+    }
+
     private fun extractConcepts(
         conceptsByUri: Map<String, Resource>, catalogId: String, user: User
     ): List<ConceptExtraction> {

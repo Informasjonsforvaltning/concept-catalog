@@ -93,4 +93,25 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             }
         }
     }
+
+    @DeleteMapping(
+        value = ["/results/{id}"]
+    ) fun deleteResult(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+        @PathVariable id: String): ResponseEntity<Void> {
+
+        val user = endpointPermissions.getUser(jwt)
+
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> importService.deleteImportResult(catalogId, id).let {
+                ResponseEntity
+                    .noContent()
+                    .build()
+            }
+        }
+    }
 }
