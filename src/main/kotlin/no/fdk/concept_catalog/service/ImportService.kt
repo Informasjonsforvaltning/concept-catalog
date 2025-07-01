@@ -302,7 +302,7 @@ class ImportService(
         conceptService.saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
             .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
 
-        return saveImportResult(catalogId, emptyList(), ImportResultStatus.COMPLETED)
+        return saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.COMPLETED)
     }
 
     fun BegrepDBO.validateMinimumVersion(): Boolean =
