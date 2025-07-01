@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.rdf.extract
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.repository.ImportResultRepository
+import no.fdk.concept_catalog.validation.validateSchema
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.rdf.model.Resource
@@ -12,6 +13,7 @@ import org.apache.jena.riot.Lang
 import org.apache.jena.shared.JenaException
 import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.SKOS
+import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -197,6 +199,118 @@ class ImportService(
             throw ex
         }
     }
+
+    fun importConcepts(concepts: List<Begrep>, user: User, jwt: Jwt): ImportResult {
+        concepts.forEach { concept -> logger.info("OriginalBegrep: ${concept?.originaltBegrep}") }
+        concepts.map { it.ansvarligVirksomhet.id }
+            .distinct()
+            .forEach { conceptService.publishNewCollectionIfFirstSavedConcept(it) }
+
+        val invalidVersionsList = mutableListOf<BegrepDBO>()
+        val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
+        val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
+        val newConceptsAndOperations = concepts
+            /// TODO here this is where a json patch operation should be created search by original begrep
+            .map { it to createNewConcept(it.ansvarligVirksomhet, user).updateLastChangedAndByWhom(user) }
+            .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
+            .mapValues {
+                createPatchOperations(it.value, it.key, objectMapper)
+            }
+            .onEach {
+                it.value.forEach { patch -> logger.info("Operations ${patch}") }
+                val issues = mutableListOf<Issue>()
+                if(it.value.isEmpty())
+                    issues.add(
+                        Issue(
+                            type = IssueType.ERROR,
+                            message = "No JsonPatchOperations detected in the concept"
+                        )
+                    )
+
+                if (!it.key.validateMinimumVersion()) {
+                    invalidVersionsList.add(it.key)
+                    issues.add(
+                        Issue (
+                            type = IssueType.ERROR,
+                            message = "Invalid version ${it.key.versjonsnr}. Version must be minimum 0.1.0"
+                        )
+                    )
+                }
+
+                val validation = it.key.validateSchema()
+                if (!validation.isValid) {
+                    validationResultsMap[it.key] = validation.results()
+                    validation.results().items()
+                        .forEach { result ->
+                            issues.add(
+                                Issue(
+                                    type = IssueType.ERROR,
+                                    message = result.message()
+                                )
+                            )
+                        }
+                }
+
+                extractionRecordMap[it.key] = ExtractionRecord(
+                    externalId = it.key.originaltBegrep,
+                    internalId = it.key.id,
+                    extractResult = ExtractResult(
+                        operations = it.value,
+                        issues = issues
+                    )
+                )
+            }
+
+        val conceptExtractions = extractionRecordMap.map { (concept, record) ->
+            ConceptExtraction(
+                concept = concept,
+                extractionRecord = record
+            )
+        }
+
+        val catalogId = concepts.firstOrNull()?.ansvarligVirksomhet?.id
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No organization found for concepts")
+
+        if(conceptExtractions.isEmpty()) {
+            logger.warn("No concepts found in the imported file import")
+            return saveImportResult(catalogId, emptyList(), ImportResultStatus.FAILED)
+        }
+
+        if (conceptExtractions.hasError) {
+            val badRequest = ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                validationResultsMap.entries.mapIndexed { index, entry ->
+                    "Concept ${index}"
+                        .plus(entry.key.anbefaltTerm?.navn?.let { " - $it" } ?: "")
+                        .plus("\n")
+                        .plus(entry.value.toString())
+                        .plus("\n\n")
+                }.joinToString("\n") +
+                        invalidVersionsList.mapIndexed { index, entry ->
+                            "Concept ${index}"
+                                .plus(entry.anbefaltTerm?.navn?.let { " - $it" } ?: "")
+                                .plus("\n")
+                                .plus("Invalid version ${entry.versjonsnr}. Version must be minimum 0.1.0")
+                                .plus("\n\n")
+                        }.joinToString("\n")
+            )
+            logger.error("validation of some concepts failed, aborting create", badRequest)
+            return saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
+            throw badRequest
+        }
+
+        conceptService.saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
+            .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
+
+        return saveImportResult(catalogId, emptyList(), ImportResultStatus.COMPLETED)
+    }
+
+    fun BegrepDBO.validateMinimumVersion(): Boolean =
+        when {
+            versjonsnr < SemVer(0, 1, 0) -> false
+            else -> true
+        }
+
 }
 
 private val logger: Logger = LoggerFactory.getLogger(ImportService::class.java)

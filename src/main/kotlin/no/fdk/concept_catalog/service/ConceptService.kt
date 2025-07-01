@@ -268,7 +268,7 @@ class ConceptService(
         return patched
     }
 
-    private fun saveConceptsAndUpdateHistory(
+    fun saveConceptsAndUpdateHistory(
         conceptsAndOperations: Map<BegrepDBO, List<JsonPatchOperation>>,
         user: User,
         jwt: Jwt
@@ -366,7 +366,7 @@ class ConceptService(
         )
     }
 
-    private fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
+    fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
             conceptRepository.countBegrepByAnsvarligVirksomhetId(it)
         }

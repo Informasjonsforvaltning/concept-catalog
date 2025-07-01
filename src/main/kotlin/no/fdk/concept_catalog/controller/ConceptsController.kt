@@ -6,6 +6,7 @@ import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ChangeRequestService
 import no.fdk.concept_catalog.service.ConceptService
+import no.fdk.concept_catalog.service.ImportService
 import no.fdk.concept_catalog.service.statusFromString
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
+import java.net.URI
 
 private val logger = LoggerFactory.getLogger(ConceptsController::class.java)
 
@@ -25,7 +27,8 @@ class ConceptsController(
     private val endpointPermissions: EndpointPermissions,
     private val conceptService: ConceptService,
     private val changeRequestService: ChangeRequestService,
-    private val elasticUpdater: ElasticUpdater
+    private val elasticUpdater: ElasticUpdater,
+    private val importService: ImportService
 ) {
     @PostMapping(
         value = [""],
@@ -69,6 +72,32 @@ class ConceptsController(
                 logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
                 conceptService.createConcepts(concepts, user, jwt)
                 return ResponseEntity<Unit>(HttpStatus.CREATED)
+            }
+        }
+    }
+
+    @PostMapping(
+        value = ["/importCsv"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun importBegreper(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestBody concepts: List<Begrep>
+    ): ResponseEntity<Unit> {
+        val user = endpointPermissions.getUser(jwt)
+        val catalogId = concepts.firstOrNull()?.ansvarligVirksomhet?.id
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            catalogId == null -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, it.ansvarligVirksomhet.id) } ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                logger.info("creating ${concepts.size} concepts for ${concepts.firstOrNull()?.ansvarligVirksomhet?.id}")
+                val importResult = importService.importConcepts(concepts, user, jwt)
+                return ResponseEntity.created(URI("/import/$catalogId/results/${importResult.id}"))
+                    .build()
             }
         }
     }
