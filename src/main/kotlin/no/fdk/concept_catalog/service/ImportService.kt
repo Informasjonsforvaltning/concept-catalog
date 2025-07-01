@@ -14,6 +14,7 @@ import org.apache.jena.shared.JenaException
 import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.SKOS
 import org.openapi4j.core.validation.ValidationResults
+import org.openapi4j.core.validation.ValidationSeverity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
@@ -201,7 +202,6 @@ class ImportService(
     }
 
     fun importConcepts(concepts: List<Begrep>, user: User, jwt: Jwt): ImportResult {
-        concepts.forEach { concept -> logger.info("OriginalBegrep: ${concept?.originaltBegrep}") }
         concepts.map { it.ansvarligVirksomhet.id }
             .distinct()
             .forEach { conceptService.publishNewCollectionIfFirstSavedConcept(it) }
@@ -210,12 +210,9 @@ class ImportService(
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
         val newConceptsAndOperations = concepts
-            /// TODO here this is where a json patch operation should be created search by original begrep
             .map { it to createNewConcept(it.ansvarligVirksomhet, user).updateLastChangedAndByWhom(user) }
             .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
-            .mapValues {
-                createPatchOperations(it.value, it.key, objectMapper)
-            }
+            .mapValues { createPatchOperations(it.value, it.key, objectMapper) }
             .onEach {
                 it.value.forEach { patch -> logger.info("Operations ${patch}") }
                 val issues = mutableListOf<Issue>()
@@ -238,9 +235,18 @@ class ImportService(
                 }
 
                 val validation = it.key.validateSchema()
+                validation.results().items(ValidationSeverity.WARNING)
+                    .forEach { validation ->
+                        issues.add(
+                            Issue(
+                                type = IssueType.WARNING,
+                                message = validation.message()
+                            )
+                        )
+                    }
                 if (!validation.isValid) {
                     validationResultsMap[it.key] = validation.results()
-                    validation.results().items()
+                    validation.results().items(ValidationSeverity.ERROR)
                         .forEach { result ->
                             issues.add(
                                 Issue(
@@ -269,40 +275,21 @@ class ImportService(
         }
 
         val catalogId = concepts.firstOrNull()?.ansvarligVirksomhet?.id
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No organization found for concepts")
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No organization found for the imported concepts")
 
-        if(conceptExtractions.isEmpty()) {
-            logger.warn("No concepts found in the imported file import")
-            return saveImportResult(catalogId, emptyList(), ImportResultStatus.FAILED)
+        return when {
+            conceptExtractions.isEmpty() -> {
+                logger.warn("No concepts found in the imported file")
+                saveImportResult(catalogId, emptyList(), ImportResultStatus.FAILED)
+            }
+            conceptExtractions.hasError -> saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
+
+            else -> {
+                conceptService.saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
+                    .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
+                saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.COMPLETED)
+            }
         }
-
-        if (conceptExtractions.hasError) {
-            val badRequest = ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                validationResultsMap.entries.mapIndexed { index, entry ->
-                    "Concept ${index}"
-                        .plus(entry.key.anbefaltTerm?.navn?.let { " - $it" } ?: "")
-                        .plus("\n")
-                        .plus(entry.value.toString())
-                        .plus("\n\n")
-                }.joinToString("\n") +
-                        invalidVersionsList.mapIndexed { index, entry ->
-                            "Concept ${index}"
-                                .plus(entry.anbefaltTerm?.navn?.let { " - $it" } ?: "")
-                                .plus("\n")
-                                .plus("Invalid version ${entry.versjonsnr}. Version must be minimum 0.1.0")
-                                .plus("\n\n")
-                        }.joinToString("\n")
-            )
-            logger.error("validation of some concepts failed, aborting create", badRequest)
-            return saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
-            throw badRequest
-        }
-
-        conceptService.saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
-            .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
-
-        return saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.COMPLETED)
     }
 
     fun BegrepDBO.validateMinimumVersion(): Boolean =
