@@ -210,11 +210,14 @@ class ImportService(
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
         val newConceptsAndOperations = concepts
-            .map { it to createNewConcept(it.ansvarligVirksomhet, user).updateLastChangedAndByWhom(user) }
+            .map {
+                it to (
+                        findLatestConceptByUri(it.originaltBegrep!!) ?: createNewConcept(it.ansvarligVirksomhet, user)
+                ).updateLastChangedAndByWhom(user)
+            }
             .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
             .mapValues { createPatchOperations(it.value, it.key, objectMapper) }
             .onEach {
-                it.value.forEach { patch -> logger.info("Operations ${patch}") }
                 val issues = mutableListOf<Issue>()
                 if(it.value.isEmpty())
                     issues.add(

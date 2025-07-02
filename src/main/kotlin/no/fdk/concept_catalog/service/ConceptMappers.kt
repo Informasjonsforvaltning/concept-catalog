@@ -51,6 +51,7 @@ fun BegrepDBO.toDTO(): Begrep =
 
 fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
     copy(
+        originaltBegrep = dto.originaltBegrep ?: originaltBegrep,
         status = dto.status,
         statusURI = dto.statusURI,
         versjonsnr = dto.versjonsnr ?: versjonsnr,
