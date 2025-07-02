@@ -25,7 +25,7 @@ class ConceptsController(
     private val endpointPermissions: EndpointPermissions,
     private val conceptService: ConceptService,
     private val changeRequestService: ChangeRequestService,
-    private val elasticUpdater: ElasticUpdater,
+    private val elasticUpdater: ElasticUpdater
 ) {
     @PostMapping(
         value = [""],
