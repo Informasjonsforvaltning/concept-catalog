@@ -209,13 +209,18 @@ class ImportService(
         val invalidVersionsList = mutableListOf<BegrepDBO>()
         val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
+        val begrepUriMap = mutableMapOf<BegrepDBO, String>();
         val newConceptsAndOperations = concepts
             .map {
                 it to (
-                        findLatestConceptByUri(it.originaltBegrep!!) ?: createNewConcept(it.ansvarligVirksomhet, user)
+                        findLatestConceptByUri(it.uri!!) ?: createNewConcept(it.ansvarligVirksomhet, user)
                 ).updateLastChangedAndByWhom(user)
             }
-            .associate { it.second.addUpdatableFieldsFromDTO(it.first) to it.second }
+            .associate {
+                val begrepDBO = it.second.addUpdatableFieldsFromDTO(it.first) to it.second
+                begrepUriMap[begrepDBO.first] = it?.first?.uri!!
+                begrepDBO
+            }
             .mapValues { createPatchOperations(it.value, it.key, objectMapper) }
             .onEach {
                 val issues = mutableListOf<Issue>()
@@ -261,7 +266,7 @@ class ImportService(
                 }
 
                 extractionRecordMap[it.key] = ExtractionRecord(
-                    externalId = it.key.originaltBegrep,
+                    externalId = begrepUriMap[it.key] ?: it.key.id,
                     internalId = it.key.id,
                     extractResult = ExtractResult(
                         operations = it.value,

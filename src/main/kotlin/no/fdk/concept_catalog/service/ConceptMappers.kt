@@ -10,6 +10,7 @@ val NEW_CONCEPT_VERSION = SemVer(0, 1, 0)
 
 fun BegrepDBO.toDTO(): Begrep =
     Begrep(
+        uri = null,
         id,
         originaltBegrep,
         versjonsnr,
@@ -51,7 +52,7 @@ fun BegrepDBO.toDTO(): Begrep =
 
 fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
     copy(
-        originaltBegrep = dto.originaltBegrep ?: originaltBegrep,
+        //originaltBegrep = dto.originaltBegrep ?: originaltBegrep,
         status = dto.status,
         statusURI = dto.statusURI,
         versjonsnr = dto.versjonsnr ?: versjonsnr,

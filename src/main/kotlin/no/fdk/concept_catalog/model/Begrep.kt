@@ -59,6 +59,7 @@ data class BegrepDBO (
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Begrep (
+    val uri: String? = null,
     val id: String? = null,
     val originaltBegrep: String? = null,
     val versjonsnr: SemVer? = null,
