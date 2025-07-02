@@ -11,6 +11,9 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.Paginated
 import no.fdk.concept_catalog.model.SearchOperation
+import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.Term
+import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
@@ -493,5 +496,30 @@ class ImportControllerTests : ContractTestsBase() {
 
         responseTester(0)
 
+    }
+
+    @Test
+    fun `Forbidden for read access`() {
+        val catalogId = "123456789"
+
+        val BEGREP_TO_IMPORT = Begrep(
+            uri = "http://example.com/begrep/123456789",
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = emptyMap()),
+            ansvarligVirksomhet = Virksomhet(
+                id = catalogId
+            ),
+            interneFelt = null,
+            internErstattesAv = null,
+        )
+
+        val response = authorizedRequest(
+            "/import/${catalogId}/begreper",
+            mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
+            JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 }
