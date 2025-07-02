@@ -522,4 +522,30 @@ class ImportControllerTests : ContractTestsBase() {
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
+
+    @Test
+    fun `Success for org admin access`() {
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+        val catalogId = "123456789"
+
+        val BEGREP_TO_IMPORT = Begrep(
+            uri = "http://example.com/begrep/123456789",
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = emptyMap()),
+            ansvarligVirksomhet = Virksomhet(
+                id = catalogId
+            ),
+            interneFelt = null,
+            internErstattesAv = null,
+        )
+
+        val response = authorizedRequest(
+            "/import/${catalogId}/begreper",
+            mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.CREATED, response.statusCode)
+    }
 }
