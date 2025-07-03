@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.service
 
+import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.repository.ImportResultRepository
@@ -11,9 +12,14 @@ import org.mockito.kotlin.whenever
 import org.springframework.security.oauth2.jwt.Jwt
 import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
+import no.fdk.concept_catalog.elastic.CurrentConceptRepository
+import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
+import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.Term
+import no.fdk.concept_catalog.model.Virksomhet
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -27,6 +33,9 @@ import kotlin.test.assertFalse
 import kotlin.test.fail
 import org.mockito.ArgumentCaptor
 import org.mockito.kotlin.capture
+import org.mockito.kotlin.verify
+import org.springframework.data.mongodb.core.MongoOperations
+import org.mockito.kotlin.argumentCaptor
 
 @Tag("unit")
 class ImportServiceTest {
@@ -179,5 +188,107 @@ class ImportServiceTest {
                 fail("it should not throw exception when catalogId and ImportResultId are correct")
             }
         }
+    }
+
+    @Test
+    fun `should succeed when importing concepts that was not imported before`() {
+        val catalogId = "123456789"
+        val conceptUri = "http://example.com/begrep/123456789"
+        val virksomhetsUri = "http://example.com/begrep/123456789"
+        val user = User(id = catalogId, name = "TEST USER", email = null)
+        val begrepToImport = Begrep(
+            uri = conceptUri,
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
+            ansvarligVirksomhet = Virksomhet(
+                uri = virksomhetsUri,
+                id = catalogId
+            ),
+            interneFelt = null,
+            internErstattesAv = null,
+        )
+
+        whenever(conceptService.saveConceptsAndUpdateHistory(any(), any(), any()))
+            .thenReturn(listOf(begrepToImport))
+
+        val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+        assertNotNull(importResultSuccess)
+        assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
+        assertFalse(importResultSuccess.extractionRecords.isEmpty())
+
+    }
+
+    @Test
+    fun `should fail when importing same concept twice`() {
+        val catalogId = "123456789"
+        val conceptUri = "http://example.com/begrep/123456789"
+        val user = User(id = catalogId, name = "TEST USER", email = null)
+        val begrepToImport = Begrep(
+            uri = conceptUri,
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
+            ansvarligVirksomhet = Virksomhet(
+                uri = conceptUri,
+                id = catalogId
+            ),
+            interneFelt = null,
+            internErstattesAv = null,
+        )
+
+        val conceptService = ConceptService(
+            conceptRepository = conceptRepository,
+            conceptSearchService = mock<ConceptSearchService>(),
+            currentConceptRepository = mock<CurrentConceptRepository>(),
+            mongoOperations = mock<MongoOperations>(),
+            applicationProperties = ApplicationProperties("", "", ""),
+            conceptPublisher = mock<ConceptPublisher>(),
+            historyService = historyService,
+            mapper = objectMapper
+        )
+
+        val importService = ImportService(
+            historyService = historyService,
+            conceptRepository = conceptRepository,
+            conceptService = conceptService,
+            importResultRepository = importResultRepository,
+            objectMapper = objectMapper
+        )
+
+        val begrepListCaptor = argumentCaptor<Iterable<BegrepDBO>>()
+
+        val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+
+        whenever(conceptRepository.saveAll(any<Iterable<BegrepDBO>>())).thenAnswer {
+            it.arguments[0] // return the same list
+        }
+        verify(conceptRepository).saveAll(begrepListCaptor.capture())
+
+        assertNotNull(importResultSuccess)
+        assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
+        assertFalse(importResultSuccess.extractionRecords.isEmpty())
+
+        val begrepDBO: BegrepDBO? = begrepListCaptor.firstValue.firstOrNull()
+        assertNotNull(begrepDBO)
+
+        val internalId = importResultSuccess.extractionRecords.first().internalId
+        val originaltBegrep = begrepDBO.originaltBegrep
+
+        whenever(
+            importResultRepository.findFirstByStatusAndExtractionRecordsExternalId(
+                ImportResultStatus.COMPLETED,
+                conceptUri
+            )
+        ).thenReturn(importResultSuccess)
+        whenever(conceptRepository.findById(internalId))
+            .thenReturn(Optional.of(begrepDBO))
+        whenever(conceptRepository.getByOriginaltBegrep(originaltBegrep))
+            .thenReturn(listOf(begrepDBO))
+
+        val importResultFailure = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+
+        assertNotNull(importResultFailure)
+        assertEquals(ImportResultStatus.FAILED, importResultFailure.status)
     }
 }
