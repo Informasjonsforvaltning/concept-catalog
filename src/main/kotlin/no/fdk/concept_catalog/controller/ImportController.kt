@@ -69,7 +69,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
                 ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                val importResult = importService.importConcepts(concepts, user, jwt)
+                val importResult = importService.importConcepts(concepts, catalogId, user, jwt)
                 return ResponseEntity.created(URI("/import/$catalogId/results/${importResult.id}"))
                     .build()
             }

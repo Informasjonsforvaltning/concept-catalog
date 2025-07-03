@@ -201,13 +201,11 @@ class ImportService(
         }
     }
 
-    fun importConcepts(concepts: List<Begrep>, user: User, jwt: Jwt): ImportResult {
+    fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
         concepts.map { it.ansvarligVirksomhet.id }
             .distinct()
             .forEach { conceptService.publishNewCollectionIfFirstSavedConcept(it) }
 
-        val invalidVersionsList = mutableListOf<BegrepDBO>()
-        val validationResultsMap = mutableMapOf<BegrepDBO, ValidationResults>()
         val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
         val begrepUriMap = mutableMapOf<BegrepDBO, String>();
         val newConceptsAndOperations = concepts
@@ -223,47 +221,9 @@ class ImportService(
             }
             .mapValues { createPatchOperations(it.value, it.key, objectMapper) }
             .onEach {
-                val issues = mutableListOf<Issue>()
-                if(it.value.isEmpty())
-                    issues.add(
-                        Issue(
-                            type = IssueType.ERROR,
-                            message = "No JsonPatchOperations detected in the concept"
-                        )
-                    )
-
-                if (!it.key.validateMinimumVersion()) {
-                    invalidVersionsList.add(it.key)
-                    issues.add(
-                        Issue (
-                            type = IssueType.ERROR,
-                            message = "Invalid version ${it.key.versjonsnr}. Version must be minimum 0.1.0"
-                        )
-                    )
-                }
-
-                val validation = it.key.validateSchema()
-                validation.results().items(ValidationSeverity.WARNING)
-                    .forEach { validation ->
-                        issues.add(
-                            Issue(
-                                type = IssueType.WARNING,
-                                message = validation.message()
-                            )
-                        )
-                    }
-                if (!validation.isValid) {
-                    validationResultsMap[it.key] = validation.results()
-                    validation.results().items(ValidationSeverity.ERROR)
-                        .forEach { result ->
-                            issues.add(
-                                Issue(
-                                    type = IssueType.ERROR,
-                                    message = result.message()
-                                )
-                            )
-                        }
-                }
+                logger.info("Original Begrep ${it.key.originaltBegrep}, anbefalt term: ${it.key.anbefaltTerm}")
+                it.value.forEach { patch -> logger.info("Operations ${patch}") }
+                val issues: List<Issue> = extractIssues(it.key, it.value)
 
                 extractionRecordMap[it.key] = ExtractionRecord(
                     externalId = begrepUriMap[it.key] ?: it.key.id,
@@ -273,6 +233,7 @@ class ImportService(
                         issues = issues
                     )
                 )
+
             }
 
         val conceptExtractions = extractionRecordMap.map { (concept, record) ->
@@ -282,9 +243,6 @@ class ImportService(
             )
         }
 
-        val catalogId = concepts.firstOrNull()?.ansvarligVirksomhet?.id
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No organization found for the imported concepts")
-
         return when {
             conceptExtractions.isEmpty() -> {
                 logger.warn("No concepts found in the imported file")
@@ -293,11 +251,59 @@ class ImportService(
             conceptExtractions.hasError -> saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
 
             else -> {
+                //processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
                 conceptService.saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
-                    .also { logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}") }
+                    .takeIf { it.isNotEmpty() }
+                    ?.also {
+                        logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}")
+                    }
                 saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.COMPLETED)
             }
         }
+    }
+
+    private fun extractIssues(begrepDBO: BegrepDBO, patchOerations: List<JsonPatchOperation>): List<Issue> {
+        val issues = mutableListOf<Issue>()
+        if (patchOerations.isEmpty())
+            issues.add(
+                Issue(
+                    type = IssueType.ERROR,
+                    message = "No JsonPatchOperations detected in the concept"
+                )
+            )
+
+        if (!begrepDBO.validateMinimumVersion()) {
+            issues.add(
+                Issue(
+                    type = IssueType.ERROR,
+                    message = "Invalid version ${begrepDBO.versjonsnr}. Version must be minimum 0.1.0"
+                )
+            )
+        }
+
+        val validation = begrepDBO.validateSchema()
+        validation.results().items(ValidationSeverity.WARNING)
+            .forEach { validation ->
+                issues.add(
+                    Issue(
+                        type = IssueType.WARNING,
+                        message = validation.message()
+                    )
+                )
+            }
+        if (!validation.isValid) {
+            validation.results().items(ValidationSeverity.ERROR)
+                .forEach { result ->
+                    issues.add(
+                        Issue(
+                            type = IssueType.ERROR,
+                            message = result.message()
+                        )
+                    )
+                }
+        }
+
+        return issues
     }
 
     fun BegrepDBO.validateMinimumVersion(): Boolean =
