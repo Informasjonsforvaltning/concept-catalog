@@ -251,7 +251,6 @@ class ImportService(
             conceptExtractions.hasError -> saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
 
             else -> {
-                //processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
                 conceptService.saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
                     .takeIf { it.isNotEmpty() }
                     ?.also {
