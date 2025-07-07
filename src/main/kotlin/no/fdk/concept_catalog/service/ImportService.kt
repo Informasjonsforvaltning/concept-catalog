@@ -13,7 +13,6 @@ import org.apache.jena.riot.Lang
 import org.apache.jena.shared.JenaException
 import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.SKOS
-import org.openapi4j.core.validation.ValidationResults
 import org.openapi4j.core.validation.ValidationSeverity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -97,7 +96,7 @@ class ImportService(
         }
     }
 
-    private fun saveImportResult(
+    fun saveImportResult(
         catalogId: String, extractionRecords: List<ExtractionRecord>, status: ImportResultStatus
     ): ImportResult {
         return importResultRepository.save(
@@ -109,30 +108,6 @@ class ImportService(
                 extractionRecords = extractionRecords
             )
         )
-    }
-
-    private fun processAndSaveConcepts(
-        catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt
-    ): ImportResult {
-        val processedRecords = mutableListOf<ExtractionRecord>()
-
-        try {
-            for (extraction in conceptExtractions) {
-                val updatedRecord = updateConcept(catalogId, extraction, user, jwt)
-                processedRecords.add(updatedRecord)
-            }
-        } catch (ex: Exception) {
-            logger.error("Error during RDF processing. Rolling back all processed concepts.", ex)
-            rollbackProcessedConcepts(processedRecords, jwt)
-
-            throw ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unexpected error. Changes rolled back.",
-                ex
-            )
-        }
-
-        return saveImportResult(catalogId, processedRecords, ImportResultStatus.COMPLETED)
     }
 
     private fun rollbackProcessedConcepts(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
@@ -167,24 +142,56 @@ class ImportService(
             ?.internalId
     }
 
-    private fun updateConcept(
-        catalogId: String, conceptExtraction: ConceptExtraction, user: User, jwt: Jwt
-    ): ExtractionRecord {
-        val operations = conceptExtraction.extractionRecord.allOperations
+    private fun processAndSaveConcepts(
+        catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt
+    ): ImportResult {
 
-        val concept = conceptExtraction.concept
-            .updateLastChangedAndByWhom(user)
-            .apply { if (erPublisert) createNewRevision() }
+        val updatedExtractionsHistory = mutableListOf<ExtractionRecord>();
+        val concepts = mutableListOf<BegrepDBO>()
 
-        val savedConcept = conceptRepository.save(concept)
-        logger.info("Updated concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
+        // update history for all concepts and revert all done if any error occurs
+        conceptExtractions.forEach { it ->
+            val operations = it.extractionRecord.allOperations
+            val concept = it.concept
+                .updateLastChangedAndByWhom(user)
+                .apply { if (erPublisert) createNewRevision() }
+            try {
+                updateHistory(concept, operations, user, jwt)
+                updatedExtractionsHistory.add(it.extractionRecord)
+                concepts.add(concept)
+            } catch (ex: Exception) {
+                logger.error("Failed to update history for concept: ${concept.id}", ex)
+                logger.error("Rolling back all concepts with updated history due to error")
+                logger.error("Stopping import for all concepts")
+                rollbackHistoryUpdates(updatedExtractionsHistory, jwt)
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update history. Import failed", ex)
+            }
+        }
 
-        conceptService.updateCurrentConceptForOriginalId(savedConcept.originaltBegrep)
-        logger.info("Updated ElasticSearch for concept: ${savedConcept.id} in catalog $catalogId by user ${user.id}")
+        // After history is updated safely for all concepts, save them in the DB and update elastic search
+        concepts.forEach { concept ->
+            val savedConcept = conceptRepository.save(concept)
+            conceptService.updateCurrentConceptForOriginalId(savedConcept.originaltBegrep)
+        }
 
-        updateHistory(savedConcept, operations, user, jwt)
+        return saveImportResult(catalogId,
+            conceptExtractions.map { it.extractionRecord },
+            ImportResultStatus.COMPLETED)
+    }
 
-        return conceptExtraction.extractionRecord
+    private fun rollbackHistoryUpdates(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
+
+        extractionRecords.forEach { extractionRecord ->
+            val internalId = extractionRecord.internalId
+
+            try {
+                historyService.removeHistoryUpdate(internalId, jwt)
+                logger.info("Rolled back history updates for concept $internalId was successful")
+            } catch (ex: Exception) {
+                logger.error("Failed to rollback history updates concept $internalId", ex)
+            }
+        }
+
     }
 
     private fun updateHistory(
@@ -195,7 +202,6 @@ class ImportService(
             logger.info("Updated history for concept: ${concept.id}")
         } catch (ex: Exception) {
             logger.error("Failed to update history for concept: ${concept.id}", ex)
-            conceptRepository.deleteById(concept.id)
 
             throw ex
         }
