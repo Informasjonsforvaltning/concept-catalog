@@ -110,21 +110,6 @@ class ImportService(
         )
     }
 
-    private fun rollbackProcessedConcepts(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
-        for (extractionRecord in extractionRecords) {
-            val internalId = extractionRecord.internalId
-
-            try {
-                conceptRepository.deleteById(internalId)
-                historyService.removeHistoryUpdate(internalId, jwt)
-
-                logger.info("Rolled back concept $internalId successfully")
-            } catch (ex: Exception) {
-                logger.error("Failed to rollback concept $internalId", ex)
-            }
-        }
-    }
-
     private fun findLatestConceptByUri(uri: String): BegrepDBO? {
         return findExistingConceptId(uri)
             ?.let { conceptRepository.findByIdOrNull(it) }
@@ -179,7 +164,7 @@ class ImportService(
             ImportResultStatus.COMPLETED)
     }
 
-    private fun rollbackHistoryUpdates(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
+    fun rollbackHistoryUpdates(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
 
         extractionRecords.forEach { extractionRecord ->
             val internalId = extractionRecord.internalId
@@ -194,7 +179,7 @@ class ImportService(
 
     }
 
-    private fun updateHistory(
+    fun updateHistory(
         concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt,
     ) {
         try {
@@ -267,7 +252,7 @@ class ImportService(
         }
     }
 
-    private fun extractIssues(begrepDBO: BegrepDBO, patchOerations: List<JsonPatchOperation>): List<Issue> {
+    fun extractIssues(begrepDBO: BegrepDBO, patchOerations: List<JsonPatchOperation>): List<Issue> {
         val issues = mutableListOf<Issue>()
         if (patchOerations.isEmpty())
             issues.add(
@@ -287,15 +272,6 @@ class ImportService(
         }
 
         val validation = begrepDBO.validateSchema()
-        validation.results().items(ValidationSeverity.WARNING)
-            .forEach { validation ->
-                issues.add(
-                    Issue(
-                        type = IssueType.WARNING,
-                        message = validation.message()
-                    )
-                )
-            }
         if (!validation.isValid) {
             validation.results().items(ValidationSeverity.ERROR)
                 .forEach { result ->
