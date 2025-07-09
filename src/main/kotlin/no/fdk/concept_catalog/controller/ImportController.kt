@@ -53,7 +53,6 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
     }
 
     @PostMapping(
-        value = ["/begreper"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
