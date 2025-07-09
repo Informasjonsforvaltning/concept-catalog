@@ -195,7 +195,7 @@ class ImportServiceTest {
         val virksomhetsUri = "http://example.com/begrep/123456789"
         val user = User(id = catalogId, name = "TEST USER", email = null)
         val begrepToImport = Begrep(
-            uri = conceptUri,
+            id = conceptUri,
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
             anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
@@ -223,7 +223,7 @@ class ImportServiceTest {
         val conceptUri = "http://example.com/begrep/123456789"
         val user = User(id = catalogId, name = "TEST USER", email = null)
         val begrepToImport = Begrep(
-            uri = conceptUri,
+            id = conceptUri,
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
             anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
@@ -300,7 +300,7 @@ class ImportServiceTest {
         val importResultFailure = importService.importConcepts(
             concepts = listOf(createNewConcept(BEGREP_TO_BE_CREATED.ansvarligVirksomhet, user)
                 .toDTO()
-                .copy(uri = conceptUri)
+                .copy(id = conceptUri)
             ),
             catalogId = "123456789", user, jwt)
 

@@ -10,7 +10,6 @@ val NEW_CONCEPT_VERSION = SemVer(0, 1, 0)
 
 fun BegrepDBO.toDTO(): Begrep =
     Begrep(
-        uri = null,
         id,
         originaltBegrep,
         versjonsnr,

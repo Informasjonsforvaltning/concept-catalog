@@ -503,7 +503,7 @@ class ImportControllerTests : ContractTestsBase() {
         val catalogId = "123456789"
 
         val BEGREP_TO_IMPORT = Begrep(
-            uri = "http://example.com/begrep/123456789",
+            id = "http://example.com/begrep/123456789",
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
             anbefaltTerm = Term(navn = emptyMap()),
@@ -529,7 +529,7 @@ class ImportControllerTests : ContractTestsBase() {
         val catalogId = "123456789"
 
         val BEGREP_TO_IMPORT = Begrep(
-            uri = "http://example.com/begrep/123456789",
+            id = "http://example.com/begrep/123456789",
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
             anbefaltTerm = Term(navn = emptyMap()),
