@@ -241,14 +241,7 @@ class ImportService(
             }
             conceptExtractions.hasError -> saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
 
-            else -> {
-                conceptService.saveConceptsAndUpdateHistory(newConceptsAndOperations, user, jwt)
-                    .takeIf { it.isNotEmpty() }
-                    ?.also {
-                        logger.debug("created ${it.size} new concepts for ${it.first().ansvarligVirksomhet.id}")
-                    }
-                saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.COMPLETED)
-            }
+            else -> processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
         }
     }
 

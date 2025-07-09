@@ -254,20 +254,20 @@ class ImportServiceTest {
             objectMapper = objectMapper
         )
 
-        val begrepListCaptor = argumentCaptor<Iterable<BegrepDBO>>()
+        val begrepCaptor = argumentCaptor<BegrepDBO>()
 
         val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
 
         whenever(conceptRepository.saveAll(any<Iterable<BegrepDBO>>())).thenAnswer {
             it.arguments[0] // return the same list
         }
-        verify(conceptRepository).saveAll(begrepListCaptor.capture())
+        verify(conceptRepository).save(begrepCaptor.capture())
 
         assertNotNull(importResultSuccess)
         assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
         assertFalse(importResultSuccess.extractionRecords.isEmpty())
 
-        val begrepDBO: BegrepDBO? = begrepListCaptor.firstValue.firstOrNull()
+        val begrepDBO: BegrepDBO? = begrepCaptor.firstValue
         assertNotNull(begrepDBO)
 
         val internalId = importResultSuccess.extractionRecords.first().internalId
