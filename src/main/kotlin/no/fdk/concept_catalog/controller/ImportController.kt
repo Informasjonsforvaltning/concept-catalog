@@ -1,11 +1,10 @@
 package no.fdk.concept_catalog.controller
 
-import no.fdk.concept_catalog.model.ImportBegrepDTO
+import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
-import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -60,11 +59,10 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
     fun importBegreper(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @RequestBody concepts: List<ImportBegrepDTO>
+        @RequestBody concepts: List<Begrep>
     ): ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            concepts.any { it.uri == null } -> ResponseEntity(HttpStatus.BAD_REQUEST)
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, it.ansvarligVirksomhet.id) } ->
                 ResponseEntity(HttpStatus.FORBIDDEN)

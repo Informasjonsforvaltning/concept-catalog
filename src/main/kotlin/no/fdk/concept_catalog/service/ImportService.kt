@@ -192,7 +192,7 @@ class ImportService(
         }
     }
 
-    fun importConcepts(concepts: List<ImportBegrepDTO>, catalogId: String, user: User, jwt: Jwt): ImportResult {
+    fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
         concepts.map { it.ansvarligVirksomhet.id }
             .distinct()
             .forEach { conceptService.publishNewCollectionIfFirstSavedConcept(it) }
@@ -206,7 +206,7 @@ class ImportService(
                 ).updateLastChangedAndByWhom(user)
             }
             .associate {
-                val begrepDBO = it.second.addUpdatableFieldsFromImportDTO(it.first) to it.second
+                val begrepDBO = it.second.addUpdatableFieldsFromDTO(it.first) to it.second
                 begrepUriMap[begrepDBO.first] = it?.first?.uri!!
                 begrepDBO
             }
