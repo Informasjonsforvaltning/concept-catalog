@@ -102,7 +102,7 @@ class ImportControllerTests : ContractTestsBase() {
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
-            contentType = MediaType.valueOf("application/json")
+            contentType = MediaType.APPLICATION_ATOM_XML
         )
 
         assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, response.statusCode)
@@ -515,7 +515,7 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         val response = authorizedRequest(
-            "/import/${catalogId}/begreper",
+            "/import/${catalogId}",
             mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
@@ -541,7 +541,7 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         val response = authorizedRequest(
-            "/import/${catalogId}/begreper",
+            "/import/${catalogId}",
             mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
