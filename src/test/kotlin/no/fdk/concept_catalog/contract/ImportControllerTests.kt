@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.ImportBegrepDTO
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.Paginated
@@ -502,7 +503,7 @@ class ImportControllerTests : ContractTestsBase() {
     fun `Forbidden for read access`() {
         val catalogId = "123456789"
 
-        val BEGREP_TO_IMPORT = Begrep(
+        val BEGREP_TO_IMPORT = ImportBegrepDTO(
             uri = "http://example.com/begrep/123456789",
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
@@ -524,11 +525,35 @@ class ImportControllerTests : ContractTestsBase() {
     }
 
     @Test
+    fun `Should fail if any concept has no URI`() {
+        val catalogId = "123456789"
+
+        val BEGREP_TO_IMPORT = ImportBegrepDTO(
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = emptyMap()),
+            ansvarligVirksomhet = Virksomhet(
+                id = catalogId
+            ),
+            interneFelt = null,
+            internErstattesAv = null,
+        )
+
+        val response = authorizedRequest(
+            "/import/${catalogId}",
+            mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
+            JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+    }
+
+    @Test
     fun `Success for org admin access`() {
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
         val catalogId = "123456789"
 
-        val BEGREP_TO_IMPORT = Begrep(
+        val BEGREP_TO_IMPORT = ImportBegrepDTO(
             uri = "http://example.com/begrep/123456789",
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",

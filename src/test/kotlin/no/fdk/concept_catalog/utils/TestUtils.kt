@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.utils
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.CurrentConcept
+import no.fdk.concept_catalog.model.ImportBegrepDTO
 import no.fdk.concept_catalog.rdf.rdfResponse
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
@@ -52,6 +53,48 @@ fun Begrep.toDBO(): BegrepDBO =
         interneFelt,
         internErstattesAv
     )
+
+fun ImportBegrepDTO.toDTO(): Begrep =
+    Begrep(
+        id,
+        originaltBegrep,
+        versjonsnr,
+        sistPublisertId = null,
+        revisjonAv,
+        status,
+        statusURI,
+        erPublisert,
+        publiseringsTidspunkt,
+        anbefaltTerm,
+        tillattTerm,
+        frarådetTerm,
+        definisjon,
+        definisjonForAllmennheten,
+        definisjonForSpesialister,
+        merknad,
+        merkelapp,
+        ansvarligVirksomhet,
+        eksempel,
+        fagområde,
+        fagområdeKoder?.filterNotNull(),
+        omfang,
+        kontaktpunkt,
+        gyldigFom,
+        gyldigTom,
+        endringslogelement,
+        opprettet,
+        opprettetAv,
+        seOgså,
+        internSeOgså,
+        erstattesAv,
+        assignedUser,
+        abbreviatedLabel,
+        begrepsRelasjon,
+        internBegrepsRelasjon,
+        interneFelt,
+        internErstattesAv
+    )
+
 
 class TestResponseReader {
     private fun resourceAsReader(resourceName: String): Reader {

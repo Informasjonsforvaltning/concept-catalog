@@ -13,8 +13,8 @@ import org.springframework.security.oauth2.jwt.Jwt
 import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
-import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.BegrepDBO
+import no.fdk.concept_catalog.model.ImportBegrepDTO
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.IssueType
@@ -25,6 +25,7 @@ import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_CREATED
+import no.fdk.concept_catalog.utils.toDTO
 import org.springframework.http.HttpStatus
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.assertThrows
@@ -194,7 +195,7 @@ class ImportServiceTest {
         val conceptUri = "http://example.com/begrep/123456789"
         val virksomhetsUri = "http://example.com/begrep/123456789"
         val user = User(id = catalogId, name = "TEST USER", email = null)
-        val begrepToImport = Begrep(
+        val begrepToImport = ImportBegrepDTO(
             uri = conceptUri,
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
@@ -208,7 +209,7 @@ class ImportServiceTest {
         )
 
         whenever(conceptService.saveConceptsAndUpdateHistory(any(), any(), any()))
-            .thenReturn(listOf(begrepToImport))
+            .thenReturn(listOf(begrepToImport).map { it.toDTO() })
 
         val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
         assertNotNull(importResultSuccess)
@@ -222,7 +223,7 @@ class ImportServiceTest {
         val catalogId = "123456789"
         val conceptUri = "http://example.com/begrep/123456789"
         val user = User(id = catalogId, name = "TEST USER", email = null)
-        val begrepToImport = Begrep(
+        val begrepToImport = ImportBegrepDTO(
             uri = conceptUri,
             status = Status.UTKAST,
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
@@ -299,7 +300,7 @@ class ImportServiceTest {
 
         val importResultFailure = importService.importConcepts(
             concepts = listOf(createNewConcept(BEGREP_TO_BE_CREATED.ansvarligVirksomhet, user)
-                .toDTO()
+                .toImportDTO()
                 .copy(uri = conceptUri)
             ),
             catalogId = "123456789", user, jwt)

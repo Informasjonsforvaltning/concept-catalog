@@ -10,6 +10,47 @@ val NEW_CONCEPT_VERSION = SemVer(0, 1, 0)
 
 fun BegrepDBO.toDTO(): Begrep =
     Begrep(
+        id,
+        originaltBegrep,
+        versjonsnr,
+        sistPublisertId = null,
+        revisjonAv,
+        status,
+        statusURI,
+        erPublisert,
+        publiseringsTidspunkt,
+        anbefaltTerm,
+        tillattTerm,
+        frarådetTerm,
+        definisjon,
+        definisjonForAllmennheten,
+        definisjonForSpesialister,
+        merknad,
+        merkelapp,
+        ansvarligVirksomhet,
+        eksempel,
+        fagområde,
+        fagområdeKoder?.filterNotNull(),
+        omfang,
+        kontaktpunkt,
+        gyldigFom,
+        gyldigTom,
+        endringslogelement,
+        opprettet,
+        opprettetAv,
+        seOgså,
+        internSeOgså,
+        erstattesAv,
+        assignedUser,
+        abbreviatedLabel,
+        begrepsRelasjon,
+        internBegrepsRelasjon,
+        interneFelt,
+        internErstattesAv
+    )
+
+fun BegrepDBO.toImportDTO(): ImportBegrepDTO =
+    ImportBegrepDTO(
         uri = null,
         id,
         originaltBegrep,
@@ -79,6 +120,37 @@ fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
         internBegrepsRelasjon = dto.internBegrepsRelasjon,
         interneFelt = dto.interneFelt,
         internErstattesAv = dto.internErstattesAv
+    )
+
+fun BegrepDBO.addUpdatableFieldsFromImportDTO(importDto: ImportBegrepDTO) =
+    copy(
+        status = importDto.status,
+        statusURI = importDto.statusURI,
+        versjonsnr = importDto.versjonsnr ?: versjonsnr,
+        anbefaltTerm = importDto.anbefaltTerm,
+        tillattTerm = importDto.tillattTerm,
+        frarådetTerm = importDto.frarådetTerm,
+        definisjon = importDto.definisjon,
+        definisjonForAllmennheten = importDto.definisjonForAllmennheten,
+        definisjonForSpesialister = importDto.definisjonForSpesialister,
+        merknad = importDto.merknad,
+        merkelapp = importDto.merkelapp,
+        eksempel = importDto.eksempel,
+        fagområde = importDto.fagområde,
+        fagområdeKoder = importDto.fagområdeKoder,
+        omfang = importDto.omfang,
+        kontaktpunkt = importDto.kontaktpunkt,
+        gyldigFom = importDto.gyldigFom,
+        gyldigTom = importDto.gyldigTom,
+        seOgså = importDto.seOgså,
+        internSeOgså = importDto.internSeOgså,
+        erstattesAv = importDto.erstattesAv,
+        assignedUser = importDto.assignedUser,
+        abbreviatedLabel = importDto.abbreviatedLabel,
+        begrepsRelasjon = importDto.begrepsRelasjon,
+        internBegrepsRelasjon = importDto.internBegrepsRelasjon,
+        interneFelt = importDto.interneFelt,
+        internErstattesAv = importDto.internErstattesAv
     )
 
 fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =

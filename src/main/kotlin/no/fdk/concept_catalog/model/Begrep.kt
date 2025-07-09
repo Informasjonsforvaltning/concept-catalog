@@ -59,6 +59,48 @@ data class BegrepDBO (
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Begrep (
+    val id: String? = null,
+    val originaltBegrep: String? = null,
+    val versjonsnr: SemVer? = null,
+    val sistPublisertId: String? = null,
+    val revisjonAv: String? = null,
+    val status: Status? = null,
+    val statusURI: String? = null,
+    val erPublisert: Boolean = false,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
+    val publiseringsTidspunkt: Instant? = null,
+    val anbefaltTerm: Term? = null,
+    val tillattTerm: Map<String, List<String>>? = HashMap(),
+    val frarådetTerm: Map<String, List<String>>? = HashMap(),
+    val definisjon: Definisjon? = null,
+    val definisjonForAllmennheten: Definisjon? = null,
+    val definisjonForSpesialister: Definisjon? = null,
+    val merknad: Map<String, String>? = HashMap(),
+    val merkelapp: List<String>? = ArrayList(),
+    val ansvarligVirksomhet: Virksomhet,
+    val eksempel: Map<String, String>? = HashMap(),
+    val fagområde: Map<String, List<String>>? = HashMap(),
+    val fagområdeKoder: List<String>? = ArrayList(),
+    val omfang: URITekst? = null,
+    val kontaktpunkt: Kontaktpunkt? = null,
+    val gyldigFom: LocalDate? = null,
+    val gyldigTom: LocalDate? = null,
+    val endringslogelement: Endringslogelement? = null,
+    val opprettet: Instant? = null,
+    val opprettetAv: String? = null,
+    val seOgså: List<String>? = ArrayList(),
+    val internSeOgså: List<String>? = null,
+    val erstattesAv: List<String>? = ArrayList(),
+    val assignedUser: String? = null,
+    val abbreviatedLabel: String? = null,
+    val begrepsRelasjon: List<BegrepsRelasjon>? = ArrayList(),
+    val internBegrepsRelasjon: List<BegrepsRelasjon>? = null,
+    val interneFelt: Map<String, InterntFelt>? = null,
+    val internErstattesAv: List<String>? = null,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ImportBegrepDTO (
     val uri: String? = null,
     val id: String? = null,
     val originaltBegrep: String? = null,
