@@ -44,6 +44,7 @@ import org.mockito.kotlin.verify
 import org.springframework.data.mongodb.core.MongoOperations
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.spy
 import kotlin.test.assertTrue
 
 @Tag("unit")
@@ -450,6 +451,122 @@ class ImportServiceTest {
             )
         }
 
+    }
+
+    @Test
+    fun `should fail to rollback when exception is thrown updating DB`() {
+        val catalogId = "123456789"
+        val externalId = "9c33fd2b-2964-11e6-b2bc-96405985e0fa"
+        val conceptUri = "http://test/begrep/$externalId"
+        val turtle = """
+        @prefix schema: <http://schema.org/> .
+        @prefix dct:   <http://purl.org/dc/terms/> .
+        @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+        @prefix dcat:  <http://www.w3.org/ns/dcat#> .
+        @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
+
+        <$conceptUri>
+         a                              skos:Concept ;
+          skos:prefLabel "nytt begrep 9"@nb ;
+          dct:identifier                 "$externalId" ;
+          dct:modified                   "2017-09-04"^^xsd:date ;
+          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/$catalogId> ;
+          dct:subject                    "Formues- og inntektsskatt"@nb ;
+          dcat:contactPoint              [ a                       vcard:Organization ;
+            vcard:hasEmail          <mailto:test@skatteetaten.no> ;
+            vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
+          ] .
+        """.trimIndent()
+
+        val lang = Lang.TURTLE
+        val user = User(id = "1924782563", name = "TEST USER", email = null)
+
+        val importService = spy(ImportService(
+            historyService = historyService,
+            conceptRepository = conceptRepository,
+            conceptService = conceptService,
+            importResultRepository = importResultRepository,
+            objectMapper = objectMapper
+        ))
+
+        doThrow(RuntimeException("Updating DB failed"))
+            .whenever(conceptRepository)
+            .save<BegrepDBO>(any())
+
+        val exception = assertThrows<ResponseStatusException> {
+            importService.importRdf(
+                catalogId = catalogId,
+                concepts = turtle,
+                lang = lang,
+                user = user,
+                jwt = jwt
+            )
+        }
+
+        verify(importService).rollbackHistoryUpdates(any(), any())
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
+    }
+
+    @Test
+    fun `should fail to rollback when exception is thrown updating elastic`() {
+        val catalogId = "123456789"
+        val externalId = "9c33fd2b-2964-11e6-b2bc-96405985e0fa"
+        val conceptUri = "http://test/begrep/$externalId"
+        val turtle = """
+        @prefix schema: <http://schema.org/> .
+        @prefix dct:   <http://purl.org/dc/terms/> .
+        @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+        @prefix dcat:  <http://www.w3.org/ns/dcat#> .
+        @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
+
+        <$conceptUri>
+         a                              skos:Concept ;
+          skos:prefLabel "nytt begrep 9"@nb ;
+          dct:identifier                 "$externalId" ;
+          dct:modified                   "2017-09-04"^^xsd:date ;
+          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/$catalogId> ;
+          dct:subject                    "Formues- og inntektsskatt"@nb ;
+          dcat:contactPoint              [ a                       vcard:Organization ;
+            vcard:hasEmail          <mailto:test@skatteetaten.no> ;
+            vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
+          ] .
+        """.trimIndent()
+
+        val lang = Lang.TURTLE
+        val user = User(id = "1924782563", name = "TEST USER", email = null)
+
+        val importService = spy(ImportService(
+            historyService = historyService,
+            conceptRepository = conceptRepository,
+            conceptService = conceptService,
+            importResultRepository = importResultRepository,
+            objectMapper = objectMapper
+        ))
+
+        doThrow(RuntimeException("Updating DB failed"))
+            .whenever(conceptRepository)
+            .save<BegrepDBO>(any())
+
+        val exception = assertThrows<ResponseStatusException> {
+            importService.importRdf(
+                catalogId = catalogId,
+                concepts = turtle,
+                lang = lang,
+                user = user,
+                jwt = jwt
+            )
+        }
+
+        verify(importService).rollbackHistoryUpdates(any(), any())
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
     }
 
 }
