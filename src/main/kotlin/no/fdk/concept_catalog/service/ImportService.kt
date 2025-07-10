@@ -146,8 +146,7 @@ class ImportService(
                 concepts.add(concept)
             } catch (ex: Exception) {
                 logger.error("Failed to update history for concept: ${concept.id}", ex)
-                logger.error("Rolling back all concepts with updated history due to error")
-                logger.error("Stopping import for all concepts")
+                logger.error("Stopping import for all concepts and rolling back all concepts with updated history due to error")
                 rollbackHistoryUpdates(updatedExtractionsHistory, jwt)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update history. Import failed", ex)
             }
@@ -155,8 +154,15 @@ class ImportService(
 
         // After history is updated safely for all concepts, save them in the DB and update elastic search
         concepts.forEach { concept ->
-            val savedConcept = conceptRepository.save(concept)
-            conceptService.updateCurrentConceptForOriginalId(savedConcept.originaltBegrep)
+            try {
+                val savedConcept = conceptRepository.save(concept)
+                conceptService.updateCurrentConceptForOriginalId(savedConcept.originaltBegrep)
+            } catch (ex: Exception) {
+                logger.error("Failed to save concept: ${concept.id}", ex)
+                logger.error("Stopping import for all concepts and rolling back all concepts in updated history and DB due to error")
+                rollbackHistoryUpdates(updatedExtractionsHistory, jwt)
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
+            }
         }
 
         return saveImportResult(catalogId,
