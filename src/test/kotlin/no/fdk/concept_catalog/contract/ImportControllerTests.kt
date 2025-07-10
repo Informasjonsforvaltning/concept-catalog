@@ -509,9 +509,7 @@ class ImportControllerTests : ContractTestsBase() {
             anbefaltTerm = Term(navn = emptyMap()),
             ansvarligVirksomhet = Virksomhet(
                 id = catalogId
-            ),
-            interneFelt = null,
-            internErstattesAv = null,
+            )
         )
 
         val response = authorizedRequest(
@@ -535,9 +533,7 @@ class ImportControllerTests : ContractTestsBase() {
             anbefaltTerm = Term(navn = emptyMap()),
             ansvarligVirksomhet = Virksomhet(
                 id = catalogId
-            ),
-            interneFelt = null,
-            internErstattesAv = null,
+            )
         )
 
         val response = authorizedRequest(
@@ -547,5 +543,50 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         assertEquals(HttpStatus.CREATED, response.statusCode)
+    }
+
+    @Test
+    fun `Should fail if any concept has no URI`() {
+        val catalogId = "123456789"
+
+        val BEGREP_TO_IMPORT = Begrep(
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = emptyMap()),
+            ansvarligVirksomhet = Virksomhet(
+                id = catalogId
+            )
+        )
+
+        val response = authorizedRequest(
+            "/import/${catalogId}",
+            mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+    }
+
+    @Test
+    fun `User is unauthorized to save concept for organization he does not have access for`() {
+        val catalogId = "123456789"
+
+        val BEGREP_TO_IMPORT = Begrep(
+            id = "http://example.com/begrep/123456789",
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = emptyMap()),
+            ansvarligVirksomhet = Virksomhet(
+                id = "987654321" // different organization ID from catalogId
+            )
+        )
+
+        val response = authorizedRequest(
+            "/import/${catalogId}",
+            mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+        )
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 }

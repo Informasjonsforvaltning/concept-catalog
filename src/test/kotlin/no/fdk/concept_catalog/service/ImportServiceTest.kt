@@ -207,9 +207,6 @@ class ImportServiceTest {
             internErstattesAv = null,
         )
 
-        whenever(conceptService.saveConceptsAndUpdateHistory(any(), any(), any()))
-            .thenReturn(listOf(begrepToImport))
-
         val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
         assertNotNull(importResultSuccess)
         assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
@@ -258,7 +255,7 @@ class ImportServiceTest {
 
         val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
 
-        whenever(conceptRepository.saveAll(any<Iterable<BegrepDBO>>())).thenAnswer {
+        whenever(conceptRepository.save(any<BegrepDBO>())).thenAnswer {
             it.arguments[0] // return the same list
         }
         verify(conceptRepository).save(begrepCaptor.capture())

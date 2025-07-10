@@ -63,9 +63,11 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
     ): ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
+            concepts.any { it.id == null } -> ResponseEntity(HttpStatus.BAD_REQUEST)
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, it.ansvarligVirksomhet.id) } ->
+            concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) } ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
+            concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.UNAUTHORIZED)
 
             else -> {
                 val importResult = importService.importConcepts(concepts, catalogId, user, jwt)

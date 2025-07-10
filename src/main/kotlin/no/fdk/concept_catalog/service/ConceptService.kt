@@ -268,7 +268,7 @@ class ConceptService(
         return patched
     }
 
-    fun saveConceptsAndUpdateHistory(
+    private fun saveConceptsAndUpdateHistory(
         conceptsAndOperations: Map<BegrepDBO, List<JsonPatchOperation>>,
         user: User,
         jwt: Jwt
