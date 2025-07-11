@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.ExtractionRecord
 import no.fdk.concept_catalog.rdf.extract
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.repository.ImportResultRepository
@@ -20,6 +21,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
@@ -131,7 +133,9 @@ class ImportService(
         catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt
     ): ImportResult {
 
-        val updatedExtractionsHistory = mutableListOf<ExtractionRecord>();
+        val updatedExtractionsHistory = mutableListOf<ExtractionRecord>()
+        val savedConceptsDB = mutableListOf<BegrepDBO>();
+        val savedConceptsElastic = mutableListOf<BegrepDBO>();
         val concepts = mutableListOf<BegrepDBO>()
 
         // update history for all concepts and revert all done if any error occurs
@@ -147,20 +151,33 @@ class ImportService(
             } catch (ex: Exception) {
                 logger.error("Failed to update history for concept: ${concept.id}", ex)
                 logger.error("Stopping import for all concepts and rolling back all concepts with updated history due to error")
-                rollbackHistoryUpdates(updatedExtractionsHistory, jwt)
+                rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
+                    savedConceptsElastic, jwt)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update history. Import failed", ex)
             }
         }
 
         // After history is updated safely for all concepts, save them in the DB and update elastic search
-        concepts.forEach { concept ->
+        try {
+            savedConceptsDB.addAll(saveAllConceptsDB(concepts))
+        } catch (ex: Exception) {
+            logger.error("Failed to save concepts in DB", ex)
+            logger.error("Stopping import for all concepts and rolling back all concepts in updated history and DB due to error")
+            rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
+                savedConceptsElastic, jwt)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
+        }
+
+        savedConceptsDB.forEach { concept ->
             try {
-                val savedConcept = conceptRepository.save(concept)
-                conceptService.updateCurrentConceptForOriginalId(savedConcept.originaltBegrep)
+                conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
+                savedConceptsElastic.add(concept)
+                throw Exception()
             } catch (ex: Exception) {
-                logger.error("Failed to save concept: ${concept.id}", ex)
-                logger.error("Stopping import for all concepts and rolling back all concepts in updated history and DB due to error")
-                rollbackHistoryUpdates(updatedExtractionsHistory, jwt)
+                logger.error("Failed to save concept in Elastic: ${concept.id}", ex)
+                logger.error("Stopping import for all concepts and rolling back all concepts in updated history, DB, and Elastic due to error")
+                rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
+                    savedConceptsElastic, jwt)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
             }
         }
@@ -168,6 +185,44 @@ class ImportService(
         return saveImportResult(catalogId,
             conceptExtractions.map { it.extractionRecord },
             ImportResultStatus.COMPLETED)
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    fun saveAllConceptsDB(concepts: List<BegrepDBO>): List<BegrepDBO> {
+        return conceptRepository.saveAll(concepts)
+    }
+
+    fun rollBackUpdates(updatedExtractionsHistory: List<ExtractionRecord>, savedConceptsDB: List<BegrepDBO>,
+                        savedConceptsElastic: List<BegrepDBO>, jwt: Jwt) {
+        rollbackHistoryUpdates(updatedExtractionsHistory, jwt)
+
+        try {
+            rollBackDbUpdates(savedConceptsDB)
+        } catch (ex: Exception) {
+            logger.error("Failed to rollback saved concepts from DB", ex)
+        }
+
+        try {
+            rollBackElasticUpdates(savedConceptsElastic)
+        } catch (ex: Exception) {
+            logger.error("Failed to rollback saved concepts from Elastic", ex)
+        }
+
+    }
+
+    fun rollBackElasticUpdates(savedConceptsElastic: List<BegrepDBO>) {
+        savedConceptsElastic.forEach { concept ->
+            try {
+                conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
+            } catch (ex: Exception) {
+                logger.error("Failed to rollback elastic updates for concept ${concept.id}", ex)
+            }
+        }
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    fun rollBackDbUpdates(savedConceptsDB: List<BegrepDBO>) {
+        conceptRepository.deleteAll(savedConceptsDB)
     }
 
     fun rollbackHistoryUpdates(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
