@@ -38,8 +38,6 @@ import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.fail
-import org.mockito.ArgumentCaptor
-import org.mockito.kotlin.capture
 import org.mockito.kotlin.verify
 import org.springframework.data.mongodb.core.MongoOperations
 import org.mockito.kotlin.argumentCaptor
@@ -110,9 +108,9 @@ class ImportServiceTest {
         val lang = Lang.TURTLE
         val user = User(id = "1924782563", name = "TEST USER", email = null)
 
-        val begrepCaptor = ArgumentCaptor.forClass(BegrepDBO::class.java)
-        whenever(conceptRepository.save(capture(begrepCaptor))).thenAnswer {
-            begrepCaptor.value
+        val begrepCaptor = argumentCaptor<Iterable<BegrepDBO>>()//ArgumentCaptor.forClass(BegrepDBO::class.java)
+        whenever(conceptRepository.saveAll(begrepCaptor.capture())).thenAnswer {
+            begrepCaptor.firstValue
         }
 
         val importResultSuccess = importService.importRdf(
@@ -128,8 +126,11 @@ class ImportServiceTest {
         assertFalse(importResultSuccess.extractionRecords.isEmpty())
 
         val internalId = importResultSuccess.extractionRecords.first().internalId
-        val begrep = begrepCaptor.value
-        val originaltBegrep = begrep.originaltBegrep
+        val begrep: BegrepDBO? = begrepCaptor?.firstValue?.firstOrNull()
+        val originaltBegrep = begrep?.originaltBegrep
+
+        assertNotNull(begrep)
+        assertNotNull(originaltBegrep)
 
         whenever(
             importResultRepository.findFirstByStatusAndExtractionRecordsExternalId(
@@ -252,20 +253,20 @@ class ImportServiceTest {
             objectMapper = objectMapper
         )
 
-        val begrepCaptor = argumentCaptor<BegrepDBO>()
+        val begrepCaptor = argumentCaptor<Iterable<BegrepDBO>>()
 
         val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
 
-        whenever(conceptRepository.save(any<BegrepDBO>())).thenAnswer {
+        whenever(conceptRepository.saveAll(any<Iterable<BegrepDBO>>())).thenAnswer {
             it.arguments[0] // return the same list
         }
-        verify(conceptRepository).save(begrepCaptor.capture())
+        verify(conceptRepository).saveAll(begrepCaptor.capture())
 
         assertNotNull(importResultSuccess)
         assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
         assertFalse(importResultSuccess.extractionRecords.isEmpty())
 
-        val begrepDBO: BegrepDBO? = begrepCaptor.firstValue
+        val begrepDBO: BegrepDBO? = begrepCaptor.firstValue.firstOrNull()
         assertNotNull(begrepDBO)
 
         val internalId = importResultSuccess.extractionRecords.first().internalId
@@ -495,7 +496,7 @@ class ImportServiceTest {
 
         doThrow(RuntimeException("Updating DB failed"))
             .whenever(conceptRepository)
-            .save<BegrepDBO>(any())
+            .saveAll(any<Iterable<BegrepDBO>>())
 
         val exception = assertThrows<ResponseStatusException> {
             importService.importRdf(
@@ -553,7 +554,7 @@ class ImportServiceTest {
 
         doThrow(RuntimeException("Updating DB failed"))
             .whenever(conceptRepository)
-            .save<BegrepDBO>(any())
+            .saveAll(any<Iterable<BegrepDBO>>())
 
         val exception = assertThrows<ResponseStatusException> {
             importService.importRdf(

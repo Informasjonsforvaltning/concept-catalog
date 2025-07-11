@@ -172,7 +172,6 @@ class ImportService(
             try {
                 conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
                 savedConceptsElastic.add(concept)
-                throw Exception()
             } catch (ex: Exception) {
                 logger.error("Failed to save concept in Elastic: ${concept.id}", ex)
                 logger.error("Stopping import for all concepts and rolling back all concepts in updated history, DB, and Elastic due to error")
