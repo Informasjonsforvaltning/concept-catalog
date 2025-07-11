@@ -587,6 +587,6 @@ class ImportControllerTests : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
-        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 }
