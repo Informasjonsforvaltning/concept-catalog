@@ -67,7 +67,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) } ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
-            concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
                 val importResult = importService.importConcepts(concepts, catalogId, user, jwt)
