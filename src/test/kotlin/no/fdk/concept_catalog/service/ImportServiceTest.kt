@@ -15,6 +15,7 @@ import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.BegrepDBO
+import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.IssueType
@@ -29,6 +30,7 @@ import org.springframework.http.HttpStatus
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.kotlin.any
 import org.springframework.web.server.ResponseStatusException
@@ -43,6 +45,8 @@ import org.springframework.data.mongodb.core.MongoOperations
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.spy
+import java.io.IOException
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @Tag("unit")
@@ -568,6 +572,98 @@ class ImportServiceTest {
 
         verify(importService).rollbackHistoryUpdates(any(), any())
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
+    }
+
+    @Test
+    fun `should throw response exceptions and roll back if Elastic fails`() {
+        val catalogId = "123456789"
+        val conceptUri = "http://example.com/begrep/123456789"
+        val virksomhetsUri = "http://example.com/begrep/123456789"
+        val user = User(id = catalogId, name = "TEST USER", email = null)
+        val begrepToImport = Begrep(
+            id = conceptUri,
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
+            ansvarligVirksomhet = Virksomhet(
+                uri = virksomhetsUri,
+                id = catalogId
+            )
+        )
+
+        val importService = spy(
+            ImportService(
+                historyService = historyService,
+                conceptRepository = conceptRepository,
+                conceptService = conceptService,
+                importResultRepository = importResultRepository,
+                objectMapper = objectMapper
+            )
+        )
+
+        doThrow(RuntimeException("Fail Elastic"))
+            .whenever(conceptService)
+            .updateCurrentConceptForOriginalId(any<String>())
+
+        var importResultUnknown: ImportResult? = null
+
+        val exception = assertThrows<ResponseStatusException> {
+            importResultUnknown = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+        }
+
+        verify(conceptService).updateCurrentConceptForOriginalId(any<String>())
+        verify(importService).rollBackUpdates(any(), any(),
+            any(), any())
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
+        assertNull(importResultUnknown)
+
+    }
+
+    @Test
+    fun `Should throw response exceptions and roll back if DB fails to update`() {
+        val catalogId = "123456789"
+        val conceptUri = "http://example.com/begrep/123456789"
+        val virksomhetsUri = "http://example.com/begrep/123456789"
+        val user = User(id = catalogId, name = "TEST USER", email = null)
+        val begrepToImport = Begrep(
+            id = conceptUri,
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
+            ansvarligVirksomhet = Virksomhet(
+                uri = virksomhetsUri,
+                id = catalogId
+            )
+        )
+
+        val importService = spy(
+            ImportService(
+                historyService = historyService,
+                conceptRepository = conceptRepository,
+                conceptService = conceptService,
+                importResultRepository = importResultRepository,
+                objectMapper = objectMapper
+            )
+        )
+
+        doThrow(RuntimeException("Fail DB"))
+            .whenever(conceptRepository)
+            .saveAll(any<Iterable<BegrepDBO>>())
+
+        var importResultUnknown: ImportResult? = null
+
+        val exception = assertThrows<ResponseStatusException> {
+            importResultUnknown = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+        }
+
+        verify(importService).saveAllConceptsDB(any())
+        verify(importService).rollBackUpdates(any(), any(),
+            any(), any())
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
+        assertNull(importResultUnknown)
+
     }
 
 }

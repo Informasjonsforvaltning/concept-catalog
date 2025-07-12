@@ -168,7 +168,7 @@ class ImportService(
             throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
         }
 
-        savedConceptsDB.forEach { concept ->
+        concepts.forEach { concept ->
             try {
                 conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
                 savedConceptsElastic.add(concept)
