@@ -191,12 +191,12 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
         hasProperty(
             relationshipWithSource,
             RELATIONSHIP.directFromSource
-        ) -> ForholdTilKildeEnum.SITATFRAKILDE
+        ) -> ForholdTilKildeEnum.BASERTPAAKILDE
 
         hasProperty(
             relationshipWithSource,
             RELATIONSHIP.derivedFromSource
-        ) -> ForholdTilKildeEnum.BASERTPAAKILDE
+        ) -> ForholdTilKildeEnum.SITATFRAKILDE
 
         else -> {
             issues.add(
