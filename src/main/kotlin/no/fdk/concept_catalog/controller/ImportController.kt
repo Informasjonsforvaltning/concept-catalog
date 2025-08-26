@@ -19,6 +19,104 @@ import java.net.URI
 @RequestMapping(value = ["/import/{catalogId}"])
 class ImportController(private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
 
+    @PutMapping(value = ["/{importId}/cancel"])
+    fun cancelImport(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+        @PathVariable importId: String
+    ): ResponseEntity<String> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                importService.cancelImport(importId)
+                return ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .build()
+            }
+        }
+    }
+
+    @PutMapping(value = ["/{importId}/confirm"])
+    fun confirmImport(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+        @PathVariable importId: String
+    ): ResponseEntity<String> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                importService.confirmImportAndSave(catalogId, importId, user, jwt)
+                return ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .build()
+            }
+        }
+    }
+
+    @GetMapping(
+        value = ["/createImportId"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+    )
+    fun createImportId(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String
+    ): ResponseEntity<String> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                val importResult = importService.createImportResult(catalogId)
+                return ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importResult.id}"))
+                    .build()
+            }
+        }
+    }
+
+    @PostMapping(
+        value = ["/{importId}"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
+            "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
+    )
+    fun import(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestHeader(HttpHeaders.CONTENT_TYPE) contentType: String,
+        @PathVariable catalogId: String,
+        @PathVariable importId: String,
+        @RequestBody concepts: String
+    ): ResponseEntity<Void> {
+        val user = endpointPermissions.getUser(jwt)
+
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                val importStatus = importService.importAndProcessRdf(
+                    catalogId = catalogId,
+                    importId = importId,
+                    concepts = concepts,
+                    lang = jenaLangFromHeader(contentType),
+                    user = user,
+                    jwt = jwt
+                )
+
+                return ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importStatus.id}"))
+                    .build()
+            }
+        }
+    }
+
     @PostMapping(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",

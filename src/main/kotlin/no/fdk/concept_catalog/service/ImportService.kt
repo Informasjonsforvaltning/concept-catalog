@@ -35,6 +35,104 @@ class ImportService(
     private val importResultRepository: ImportResultRepository,
     private val objectMapper: ObjectMapper
 ) {
+
+    fun cancelImport(importId: String) {
+
+        val importResult = importResultRepository.findById(importId)
+            .orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
+            }
+
+        importResultRepository.save(
+            importResult.copy(
+                status = ImportResultStatus.CANCELLED
+            )
+        )
+    }
+
+    fun confirmImportAndSave(catalogId: String, importId: String, user: User, jwt: Jwt) {
+        val importResult = importResultRepository.findById(importId)
+            .orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
+            }
+
+        processAndSaveConcepts(catalogId,
+            importResult.conceptExtraction ?: emptyList(),
+            user, jwt, importId)
+
+    }
+
+    fun importAndProcessRdf(
+        catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
+    ): ImportResult {
+        val model: Model
+
+        try {
+            Thread.sleep(7000)
+            model = ModelFactory.createDefaultModel().apply {
+                read(StringReader(concepts), null, lang.name)
+            }
+        } catch (ex: JenaException) {
+            logger.error("Error parsing RDF import", ex)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message, ex)
+        } catch (ex: Exception) {
+            logger.error("Unexpected error during RDF import", ex)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
+        }
+
+        val conceptsByUri = model.listResourcesWithProperty(RDF.type, SKOS.Concept)
+            .asSequence()
+            .filter { it.isURIResource }
+            .associateBy { it.uri }
+
+        if (conceptsByUri.isEmpty()) {
+            logger.warn("No concepts found in RDF import for catalog $catalogId")
+            checkIfAlreadyCancelled(importId)
+            return saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(), ImportResultStatus.FAILED, importId)
+        }
+
+        val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user)
+
+        return if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
+            logger.warn("Errors occurred during RDF import for catalog $catalogId")
+            checkIfAlreadyCancelled(importId)
+            saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED, importId)
+        } else {
+            logger.info("Number of concepts extracted: ${conceptExtractions.size} for catalog $catalogId")
+            checkIfAlreadyCancelled(importId)
+            return saveImportResultWithConceptExtractions(
+                catalogId= catalogId,
+                conceptExtractions = conceptExtractions,
+                status = ImportResultStatus.PENDING_CONFIRMATION,
+                importId = importId
+            )
+        }
+
+    }
+
+    private fun checkIfAlreadyCancelled(importId: String) {
+        val importResult = importResultRepository.findById(importId)
+            .orElseThrow {
+                ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
+            }
+
+        if (importResult.status == ImportResultStatus.CANCELLED) {
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Import with id: $importId is already cancelled")
+        }
+    }
+
+    fun createImportResult(catalogId: String): ImportResult {
+        val importResult = ImportResult(
+            id = UUID.randomUUID().toString(),
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+        return importResultRepository.save(importResult)
+    }
+
+
     fun importRdf(catalogId: String, concepts: String, lang: Lang, user: User, jwt: Jwt): ImportResult {
         val model: Model
 
@@ -57,14 +155,14 @@ class ImportService(
 
         if (conceptsByUri.isEmpty()) {
             logger.warn("No concepts found in RDF import for catalog $catalogId")
-            return saveImportResult(catalogId, emptyList(), ImportResultStatus.FAILED)
+            return saveImportResultWithExtractionRecords(catalogId, emptyList(), ImportResultStatus.FAILED)
         }
 
         val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user)
 
         return if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
             logger.warn("Errors occurred during RDF import for catalog $catalogId")
-            saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
+            saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
         } else {
             processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
         }
@@ -98,12 +196,27 @@ class ImportService(
         }
     }
 
-    fun saveImportResult(
-        catalogId: String, extractionRecords: List<ExtractionRecord>, status: ImportResultStatus
+    fun saveImportResultWithConceptExtractions(
+        catalogId: String, conceptExtractions: List<ConceptExtraction>, status: ImportResultStatus, importId: String? = null
     ): ImportResult {
         return importResultRepository.save(
             ImportResult(
-                id = UUID.randomUUID().toString(),
+                id = importId?: UUID.randomUUID().toString(),
+                created = LocalDateTime.now(),
+                catalogId = catalogId,
+                status = status,
+                extractionRecords = conceptExtractions.allExtractionRecords,
+                conceptExtraction = conceptExtractions
+            )
+        )
+    }
+
+    fun saveImportResultWithExtractionRecords(
+        catalogId: String, extractionRecords: List<ExtractionRecord>,
+        status: ImportResultStatus, importId:String? = null): ImportResult {
+        return importResultRepository.save(
+            ImportResult(
+                id = importId?: UUID.randomUUID().toString(),
                 created = LocalDateTime.now(),
                 catalogId = catalogId,
                 status = status,
@@ -130,7 +243,7 @@ class ImportService(
     }
 
     private fun processAndSaveConcepts(
-        catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt
+        catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt, importId: String? = null
     ): ImportResult {
 
         val updatedExtractionsHistory = mutableListOf<ExtractionRecord>()
@@ -181,9 +294,10 @@ class ImportService(
             }
         }
 
-        return saveImportResult(catalogId,
+        return saveImportResultWithExtractionRecords(catalogId,
             conceptExtractions.map { it.extractionRecord },
-            ImportResultStatus.COMPLETED)
+            ImportResultStatus.COMPLETED,
+            importId)
     }
 
     @Transactional(rollbackFor = [Exception::class])
@@ -297,9 +411,9 @@ class ImportService(
         return when {
             conceptExtractions.isEmpty() -> {
                 logger.warn("No concepts found in the imported file")
-                saveImportResult(catalogId, emptyList(), ImportResultStatus.FAILED)
+                saveImportResultWithExtractionRecords(catalogId, emptyList(), ImportResultStatus.FAILED)
             }
-            conceptExtractions.hasError -> saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
+            conceptExtractions.hasError -> saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
 
             else -> processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
         }
