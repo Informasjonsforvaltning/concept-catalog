@@ -255,6 +255,7 @@ class ImportService(
     fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
         concepts.map { it.ansvarligVirksomhet.id }
             .distinct()
+            .filter { conceptRepository.countBegrepByAnsvarligVirksomhetId(it) == 0L }
             .forEach { conceptService.publishNewCollectionIfFirstSavedConcept(it) }
 
         val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
