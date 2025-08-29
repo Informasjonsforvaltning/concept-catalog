@@ -253,14 +253,33 @@ class ImportService(
     }
 
     fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
-        concepts.map { it.ansvarligVirksomhet.id }
-            .distinct()
-            .filter { conceptRepository.countBegrepByAnsvarligVirksomhetId(it) == 0L }
-            .forEach { conceptService.publishNewCollectionIfFirstSavedConcept(it) }
+        conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
 
         val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
-        val begrepUriMap = mutableMapOf<BegrepDBO, String>();
-        concepts
+        val begrepUriMap = mutableMapOf<BegrepDBO, String>()
+        concepts.forEach { begrepDTO ->
+            val uuid = UUID.randomUUID().toString()
+            val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id?: uuid) ?: createNewConcept(begrepDTO.ansvarligVirksomhet, user)
+            val updatedBegrepDTO = begrepDTOWithUri.updateLastChangedAndByWhom(user)
+            val begrepDBO = updatedBegrepDTO.addUpdatableFieldsFromDTO(begrepDTO)
+            begrepUriMap[begrepDBO] = begrepDTO.id?: uuid
+
+            val patchOperations: List<JsonPatchOperation> =
+                createPatchOperations(updatedBegrepDTO, begrepDBO, objectMapper)
+
+            val issues: List<Issue> = extractIssues(begrepDBO, patchOperations)
+
+            val extractionResult = ExtractResult(operations = patchOperations, issues = issues)
+
+            logger.info("Original Begrep ${begrepDBO.originaltBegrep}, anbefalt term: ${begrepDBO.anbefaltTerm}")
+
+            extractionRecordMap[begrepDBO] = ExtractionRecord(
+                externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id?: uuid,
+                internalId = begrepDBO.id,
+                extractResult = extractionResult
+            )
+        }
+        val x = concepts
             .map {
                 it to (
                         findLatestConceptByUri(it.id!!) ?: createNewConcept(it.ansvarligVirksomhet, user)
