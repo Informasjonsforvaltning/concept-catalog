@@ -195,7 +195,7 @@ class ImportServiceTest {
     }
 
     @Test
-    fun `should succeed when importing concepts that was not imported before`() {
+    fun `should succeed when importing concepts that has not been imported before`() {
         val catalogId = "123456789"
         val conceptUri = "http://example.com/begrep/123456789"
         val virksomhetsUri = "http://example.com/begrep/123456789"
@@ -294,7 +294,7 @@ class ImportServiceTest {
     }
 
     @Test
-    fun `should have failure when no patch operations`() {
+    fun `should fail when the import result has no patch operations`() {
 
         val catalogId = "123456789"
         val conceptUri = "http://example.com/begrep/123456789"
@@ -311,7 +311,7 @@ class ImportServiceTest {
     }
 
     @Test
-    fun `should fail when no concepts`() {
+    fun `should fail when no concepts were included in the import`() {
         val catalogId = "123456789"
         val user = User(id = catalogId, name = "TEST USER", email = null)
 
