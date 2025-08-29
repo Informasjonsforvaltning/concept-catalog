@@ -255,9 +255,8 @@ class ImportService(
     fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
         conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
 
-        val extractionRecordMap = mutableMapOf<BegrepDBO, ExtractionRecord>()
         val begrepUriMap = mutableMapOf<BegrepDBO, String>()
-        concepts.forEach { begrepDTO ->
+        val extractionRecordMap: Map<BegrepDBO, ExtractionRecord> = concepts.map { begrepDTO ->
             val uuid = UUID.randomUUID().toString()
             val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id?: uuid) ?: createNewConcept(begrepDTO.ansvarligVirksomhet, user)
             val updatedBegrepDTO = begrepDTOWithUri.updateLastChangedAndByWhom(user)
@@ -273,39 +272,12 @@ class ImportService(
 
             logger.info("Original Begrep ${begrepDBO.originaltBegrep}, anbefalt term: ${begrepDBO.anbefaltTerm}")
 
-            extractionRecordMap[begrepDBO] = ExtractionRecord(
+            begrepDBO to ExtractionRecord(
                 externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id?: uuid,
                 internalId = begrepDBO.id,
                 extractResult = extractionResult
             )
-        }
-        val x = concepts
-            .map {
-                it to (
-                        findLatestConceptByUri(it.id!!) ?: createNewConcept(it.ansvarligVirksomhet, user)
-                ).updateLastChangedAndByWhom(user)
-            }
-            .associate {
-                val begrepDBO = it.second.addUpdatableFieldsFromDTO(it.first) to it.second
-                begrepUriMap[begrepDBO.first] = it?.first?.id!!
-                begrepDBO
-            }
-            .mapValues { createPatchOperations(it.value, it.key, objectMapper) }
-            .forEach {
-                logger.info("Original Begrep ${it.key.originaltBegrep}, anbefalt term: ${it.key.anbefaltTerm}")
-                it.value.forEach { patch -> logger.info("Operations ${patch}") }
-                val issues: List<Issue> = extractIssues(it.key, it.value)
-
-                extractionRecordMap[it.key] = ExtractionRecord(
-                    externalId = begrepUriMap[it.key] ?: it.key.id,
-                    internalId = it.key.id,
-                    extractResult = ExtractResult(
-                        operations = it.value,
-                        issues = issues
-                    )
-                )
-
-            }
+        }.associate { it }
 
         val conceptExtractions = extractionRecordMap.map { (concept, record) ->
             ConceptExtraction(
