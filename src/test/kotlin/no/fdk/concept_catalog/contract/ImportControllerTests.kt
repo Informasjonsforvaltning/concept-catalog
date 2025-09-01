@@ -14,16 +14,22 @@ import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.repository.ImportResultRepository
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.whenever
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
@@ -501,6 +507,7 @@ class ImportControllerTests : ContractTestsBase() {
     @Test
     fun `Forbidden for read access`() {
         val catalogId = "123456789"
+        val resultId = UUID.randomUUID().toString()
 
         val BEGREP_TO_IMPORT = Begrep(
             id = "http://example.com/begrep/123456789",
@@ -513,7 +520,7 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         val response = authorizedRequest(
-            "/import/${catalogId}",
+            "/import/${catalogId}/${resultId}",
             mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
@@ -525,6 +532,16 @@ class ImportControllerTests : ContractTestsBase() {
     fun `Success for org admin access`() {
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
         val catalogId = "123456789"
+        val resultId = UUID.randomUUID().toString()
+
+        val importResult = ImportResult(
+            id = resultId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+        importResultRepository.save(importResult)
 
         val BEGREP_TO_IMPORT = Begrep(
             id = "http://example.com/begrep/123456789",
@@ -537,9 +554,10 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         val response = authorizedRequest(
-            "/import/${catalogId}",
+            "/import/${catalogId}/${resultId}",
             mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
+            JwtToken(Access.ORG_WRITE).toString(),
+            HttpMethod.POST
         )
 
         assertEquals(HttpStatus.CREATED, response.statusCode)
@@ -548,6 +566,7 @@ class ImportControllerTests : ContractTestsBase() {
     @Test
     fun `User is unauthorized to save concept for organization he does not have access for`() {
         val catalogId = "123456789"
+        val resultId = UUID.randomUUID().toString()
 
         val BEGREP_TO_IMPORT = Begrep(
             id = "http://example.com/begrep/123456789",
@@ -560,7 +579,7 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         val response = authorizedRequest(
-            "/import/${catalogId}",
+            "/import/${catalogId}/${resultId}",
             mapper.writeValueAsString(listOf(BEGREP_TO_IMPORT)),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )

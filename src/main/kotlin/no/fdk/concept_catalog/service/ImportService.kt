@@ -68,7 +68,7 @@ class ImportService(
         val model: Model
 
         try {
-            Thread.sleep(7000)
+            //Thread.sleep(7000)
             model = ModelFactory.createDefaultModel().apply {
                 read(StringReader(concepts), null, lang.name)
             }
@@ -110,15 +110,21 @@ class ImportService(
 
     }
 
-    private fun checkIfAlreadyCancelled(importId: String) {
-        val importResult = importResultRepository.findById(importId)
+    fun checkIfAlreadyCancelled(importId: String) {
+        val id = importId ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Import ID is required")
+        val importResult = importResultRepository.findById(id)
             .orElseThrow {
                 ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
             }
 
         if (importResult.status == ImportResultStatus.CANCELLED) {
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Import with id: $importId is already cancelled")
+            throw ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Import with id: $importId is already cancelled"
+            )
         }
+
+
     }
 
     fun createImportResult(catalogId: String): ImportResult {
@@ -365,6 +371,85 @@ class ImportService(
             throw ex
         }
     }
+    fun importAndProcessConcepts(concepts: List<Begrep>, catalogId: String, user: User,
+                                 jwt: Jwt, importId: String = UUID.randomUUID().toString()): ImportResult {
+        conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
+
+        val begrepUriMap = mutableMapOf<BegrepDBO, String>()
+        var extractionRecordMap: Map<BegrepDBO, ExtractionRecord>
+        var conceptExtractions: List<ConceptExtraction>
+
+        //Thread.sleep(7000)
+        try {
+            extractionRecordMap = concepts.map { begrepDTO ->
+                checkIfAlreadyCancelled(importId)
+                val uuid = UUID.randomUUID().toString()
+                val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id ?: uuid) ?: createNewConcept(
+                    begrepDTO.ansvarligVirksomhet,
+                    user
+                )
+                val updatedBegrepDTO = begrepDTOWithUri.updateLastChangedAndByWhom(user)
+                val begrepDBO = updatedBegrepDTO.addUpdatableFieldsFromDTO(begrepDTO)
+                begrepUriMap[begrepDBO] = begrepDTO.id ?: uuid
+
+                val patchOperations: List<JsonPatchOperation> =
+                    createPatchOperations(updatedBegrepDTO, begrepDBO, objectMapper)
+
+                val issues: List<Issue> = extractIssues(begrepDBO, patchOperations)
+
+                val extractionResult = ExtractResult(operations = patchOperations, issues = issues)
+
+                logger.info("Original Begrep ${begrepDBO.originaltBegrep}, anbefalt term: ${begrepDBO.anbefaltTerm}")
+
+                begrepDBO to ExtractionRecord(
+                    externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id ?: uuid,
+                    internalId = begrepDBO.id,
+                    extractResult = extractionResult
+                )
+            }.associate {
+                checkIfAlreadyCancelled(importId)
+                it
+            }
+
+            conceptExtractions = extractionRecordMap.map { (concept, record) ->
+                checkIfAlreadyCancelled(importId)
+                ConceptExtraction(
+                    concept = concept,
+                    extractionRecord = record
+                )
+            }
+
+        } catch (responseException: ResponseStatusException) {
+            logger.error("Failed to import concepts", responseException)
+            throw responseException
+        }
+
+        return when {
+            conceptExtractions.isEmpty() -> {
+                logger.warn("No concepts found in the imported file")
+                checkIfAlreadyCancelled(importId)
+                saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(),
+                    ImportResultStatus.FAILED, importId)
+            }
+            conceptExtractions.hasError -> {
+                checkIfAlreadyCancelled(importId)
+                saveImportResultWithExtractionRecords(
+                    catalogId, conceptExtractions.allExtractionRecords,
+                    ImportResultStatus.FAILED, importId
+                )
+            }
+
+            else -> {
+                checkIfAlreadyCancelled(importId)
+                return saveImportResultWithConceptExtractions(
+                    catalogId= catalogId,
+                    importId = importId,
+                    conceptExtractions = conceptExtractions,
+                    status = ImportResultStatus.PENDING_CONFIRMATION
+                )
+            }
+        }
+    }
 
     fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
         conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
@@ -403,9 +488,10 @@ class ImportService(
         return when {
             conceptExtractions.isEmpty() -> {
                 logger.warn("No concepts found in the imported file")
-                saveImportResult(catalogId, emptyList(), ImportResultStatus.FAILED)
+                saveImportResultWithExtractionRecords(catalogId, emptyList(), ImportResultStatus.FAILED)
             }
-            conceptExtractions.hasError -> saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
+
+            conceptExtractions.hasError -> saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
 
             else -> processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
         }

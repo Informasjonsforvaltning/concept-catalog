@@ -151,12 +151,14 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
     }
 
     @PostMapping(
+        value = ["/{importId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE]
     )
     fun importBegreper(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
+        @PathVariable importId: String,
         @RequestBody concepts: List<Begrep>
     ): ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
@@ -167,8 +169,9 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                val importResult = importService.importConcepts(concepts, catalogId, user, jwt)
-                return ResponseEntity.created(URI("/import/$catalogId/results/${importResult.id}"))
+                val importResult = importService.importAndProcessConcepts(concepts, catalogId, user, jwt, importId)
+                return ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importResult.id}"))
                     .build()
             }
         }
