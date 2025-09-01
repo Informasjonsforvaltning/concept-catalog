@@ -1,5 +1,6 @@
 package no.fdk.concept_catalog.controller
 
+import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
@@ -46,6 +47,30 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
 
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importStatus.id}"))
+                    .build()
+            }
+        }
+    }
+
+    @PostMapping(
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    fun importBegreper(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+        @RequestBody concepts: List<Begrep>
+    ): ResponseEntity<Unit> {
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) } ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                val importResult = importService.importConcepts(concepts, catalogId, user, jwt)
+                return ResponseEntity.created(URI("/import/$catalogId/results/${importResult.id}"))
                     .build()
             }
         }

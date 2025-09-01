@@ -2,9 +2,11 @@ package no.fdk.concept_catalog.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.ExtractionRecord
 import no.fdk.concept_catalog.rdf.extract
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.repository.ImportResultRepository
+import no.fdk.concept_catalog.validation.validateSchema
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.rdf.model.Resource
@@ -12,12 +14,14 @@ import org.apache.jena.riot.Lang
 import org.apache.jena.shared.JenaException
 import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.SKOS
+import org.openapi4j.core.validation.ValidationSeverity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
@@ -94,7 +98,7 @@ class ImportService(
         }
     }
 
-    private fun saveImportResult(
+    fun saveImportResult(
         catalogId: String, extractionRecords: List<ExtractionRecord>, status: ImportResultStatus
     ): ImportResult {
         return importResultRepository.save(
@@ -106,45 +110,6 @@ class ImportService(
                 extractionRecords = extractionRecords
             )
         )
-    }
-
-    private fun processAndSaveConcepts(
-        catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt
-    ): ImportResult {
-        val processedRecords = mutableListOf<ExtractionRecord>()
-
-        try {
-            for (extraction in conceptExtractions) {
-                val updatedRecord = updateConcept(catalogId, extraction, user, jwt)
-                processedRecords.add(updatedRecord)
-            }
-        } catch (ex: Exception) {
-            logger.error("Error during RDF processing. Rolling back all processed concepts.", ex)
-            rollbackProcessedConcepts(processedRecords, jwt)
-
-            throw ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unexpected error. Changes rolled back.",
-                ex
-            )
-        }
-
-        return saveImportResult(catalogId, processedRecords, ImportResultStatus.COMPLETED)
-    }
-
-    private fun rollbackProcessedConcepts(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
-        for (extractionRecord in extractionRecords) {
-            val internalId = extractionRecord.internalId
-
-            try {
-                conceptRepository.deleteById(internalId)
-                historyService.removeHistoryUpdate(internalId, jwt)
-
-                logger.info("Rolled back concept $internalId successfully")
-            } catch (ex: Exception) {
-                logger.error("Failed to rollback concept $internalId", ex)
-            }
-        }
     }
 
     private fun findLatestConceptByUri(uri: String): BegrepDBO? {
@@ -164,27 +129,117 @@ class ImportService(
             ?.internalId
     }
 
-    private fun updateConcept(
-        catalogId: String, conceptExtraction: ConceptExtraction, user: User, jwt: Jwt
-    ): ExtractionRecord {
-        val operations = conceptExtraction.extractionRecord.allOperations
+    private fun processAndSaveConcepts(
+        catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt
+    ): ImportResult {
 
-        val concept = conceptExtraction.concept
-            .updateLastChangedAndByWhom(user)
-            .apply { if (erPublisert) createNewRevision() }
+        val updatedExtractionsHistory = mutableListOf<ExtractionRecord>()
+        val savedConceptsDB = mutableListOf<BegrepDBO>();
+        val savedConceptsElastic = mutableListOf<BegrepDBO>();
+        val concepts = mutableListOf<BegrepDBO>()
 
-        val savedConcept = conceptRepository.save(concept)
-        logger.info("Updated concept in catalog $catalogId by user ${user.id}: ${savedConcept.id}")
+        // update history for all concepts and revert all done if any error occurs
+        conceptExtractions.forEach { it ->
+            val operations = it.extractionRecord.allOperations
+            val concept = it.concept
+                .updateLastChangedAndByWhom(user)
+                .apply { if (erPublisert) createNewRevision() }
+            try {
+                updateHistory(concept, operations, user, jwt)
+                updatedExtractionsHistory.add(it.extractionRecord)
+                concepts.add(concept)
+            } catch (ex: Exception) {
+                logger.error("Failed to update history for concept: ${concept.id}", ex)
+                logger.error("Stopping import for all concepts and rolling back all concepts with updated history due to error")
+                rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
+                    savedConceptsElastic, jwt)
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update history. Import failed", ex)
+            }
+        }
 
-        conceptService.updateCurrentConceptForOriginalId(savedConcept.originaltBegrep)
-        logger.info("Updated ElasticSearch for concept: ${savedConcept.id} in catalog $catalogId by user ${user.id}")
+        // After history is updated safely for all concepts, save them in the DB and update elastic search
+        try {
+            savedConceptsDB.addAll(saveAllConceptsDB(concepts))
+        } catch (ex: Exception) {
+            logger.error("Failed to save concepts in DB", ex)
+            logger.error("Stopping import for all concepts and rolling back all concepts in updated history and DB due to error")
+            rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
+                savedConceptsElastic, jwt)
+            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
+        }
 
-        updateHistory(savedConcept, operations, user, jwt)
+        concepts.forEach { concept ->
+            try {
+                conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
+                savedConceptsElastic.add(concept)
+            } catch (ex: Exception) {
+                logger.error("Failed to save concept in Elastic: ${concept.id}", ex)
+                logger.error("Stopping import for all concepts and rolling back all concepts in updated history, DB, and Elastic due to error")
+                rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
+                    savedConceptsElastic, jwt)
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
+            }
+        }
 
-        return conceptExtraction.extractionRecord
+        return saveImportResult(catalogId,
+            conceptExtractions.map { it.extractionRecord },
+            ImportResultStatus.COMPLETED)
     }
 
-    private fun updateHistory(
+    @Transactional(rollbackFor = [Exception::class])
+    fun saveAllConceptsDB(concepts: List<BegrepDBO>): List<BegrepDBO> {
+        return conceptRepository.saveAll(concepts)
+    }
+
+    fun rollBackUpdates(updatedExtractionsHistory: List<ExtractionRecord>, savedConceptsDB: List<BegrepDBO>,
+                        savedConceptsElastic: List<BegrepDBO>, jwt: Jwt) {
+        rollbackHistoryUpdates(updatedExtractionsHistory, jwt)
+
+        try {
+            rollBackDbUpdates(savedConceptsDB)
+        } catch (ex: Exception) {
+            logger.error("Failed to rollback saved concepts from DB", ex)
+        }
+
+        try {
+            rollBackElasticUpdates(savedConceptsElastic)
+        } catch (ex: Exception) {
+            logger.error("Failed to rollback saved concepts from Elastic", ex)
+        }
+
+    }
+
+    fun rollBackElasticUpdates(savedConceptsElastic: List<BegrepDBO>) {
+        savedConceptsElastic.forEach { concept ->
+            try {
+                conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
+            } catch (ex: Exception) {
+                logger.error("Failed to rollback elastic updates for concept ${concept.id}", ex)
+            }
+        }
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
+    fun rollBackDbUpdates(savedConceptsDB: List<BegrepDBO>) {
+        conceptRepository.deleteAll(savedConceptsDB)
+    }
+
+    fun rollbackHistoryUpdates(extractionRecords: List<ExtractionRecord>, jwt: Jwt) {
+
+        extractionRecords.forEach { extractionRecord ->
+            val internalId = extractionRecord.internalId
+
+            try {
+                historyService.removeHistoryUpdate(internalId, jwt)
+                logger.info("Rolled back history updates for concept $internalId was successful")
+            } catch (ex: Exception) {
+                logger.error("Failed to rollback history updates concept $internalId", ex)
+            }
+        }
+
+    }
+
+    fun updateHistory(
         concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt,
     ) {
         try {
@@ -192,11 +247,97 @@ class ImportService(
             logger.info("Updated history for concept: ${concept.id}")
         } catch (ex: Exception) {
             logger.error("Failed to update history for concept: ${concept.id}", ex)
-            conceptRepository.deleteById(concept.id)
 
             throw ex
         }
     }
+
+    fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
+        conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
+
+        val begrepUriMap = mutableMapOf<BegrepDBO, String>()
+        val extractionRecordMap: Map<BegrepDBO, ExtractionRecord> = concepts.map { begrepDTO ->
+            val uuid = UUID.randomUUID().toString()
+            val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id?: uuid) ?: createNewConcept(begrepDTO.ansvarligVirksomhet, user)
+            val updatedBegrepDTO = begrepDTOWithUri.updateLastChangedAndByWhom(user)
+            val begrepDBO = updatedBegrepDTO.addUpdatableFieldsFromDTO(begrepDTO)
+            begrepUriMap[begrepDBO] = begrepDTO.id?: uuid
+
+            val patchOperations: List<JsonPatchOperation> =
+                createPatchOperations(updatedBegrepDTO, begrepDBO, objectMapper)
+
+            val issues: List<Issue> = extractIssues(begrepDBO, patchOperations)
+
+            val extractionResult = ExtractResult(operations = patchOperations, issues = issues)
+
+            logger.info("Original Begrep ${begrepDBO.originaltBegrep}, anbefalt term: ${begrepDBO.anbefaltTerm}")
+
+            begrepDBO to ExtractionRecord(
+                externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id?: uuid,
+                internalId = begrepDBO.id,
+                extractResult = extractionResult
+            )
+        }.associate { it }
+
+        val conceptExtractions = extractionRecordMap.map { (concept, record) ->
+            ConceptExtraction(
+                concept = concept,
+                extractionRecord = record
+            )
+        }
+
+        return when {
+            conceptExtractions.isEmpty() -> {
+                logger.warn("No concepts found in the imported file")
+                saveImportResult(catalogId, emptyList(), ImportResultStatus.FAILED)
+            }
+            conceptExtractions.hasError -> saveImportResult(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
+
+            else -> processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
+        }
+    }
+
+    fun extractIssues(begrepDBO: BegrepDBO, patchOerations: List<JsonPatchOperation>): List<Issue> {
+        val issues = mutableListOf<Issue>()
+        if (patchOerations.isEmpty())
+            issues.add(
+                Issue(
+                    type = IssueType.ERROR,
+                    message = "No JsonPatchOperations detected in the concept"
+                )
+            )
+
+        if (!begrepDBO.validateMinimumVersion()) {
+            issues.add(
+                Issue(
+                    type = IssueType.ERROR,
+                    message = "Invalid version ${begrepDBO.versjonsnr}. Version must be minimum 0.1.0"
+                )
+            )
+        }
+
+        val validation = begrepDBO.validateSchema()
+        if (!validation.isValid) {
+            validation.results().items(ValidationSeverity.ERROR)
+                .forEach { result ->
+                    issues.add(
+                        Issue(
+                            type = IssueType.ERROR,
+                            message = result.message()
+                        )
+                    )
+                }
+        }
+
+        return issues
+    }
+
+    fun BegrepDBO.validateMinimumVersion(): Boolean =
+        when {
+            versjonsnr < SemVer(0, 1, 0) -> false
+            else -> true
+        }
+
 }
 
 private val logger: Logger = LoggerFactory.getLogger(ImportService::class.java)
