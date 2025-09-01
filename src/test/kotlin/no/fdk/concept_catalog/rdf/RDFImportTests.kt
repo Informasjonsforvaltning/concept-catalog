@@ -295,7 +295,7 @@ class RDFImportTests {
             Definisjon(
                 tekst = mapOf("nb" to "definisjon for allmennheten"),
                 kildebeskrivelse = Kildebeskrivelse(
-                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                    forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
                 )
             ), conceptExtraction.concept.definisjonForAllmennheten
         )
@@ -338,7 +338,7 @@ class RDFImportTests {
             Definisjon(
                 tekst = mapOf("nb" to "definisjon for spesialister"),
                 kildebeskrivelse = Kildebeskrivelse(
-                    forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
                 )
             ), conceptExtraction.concept.definisjonForSpesialister
         )
