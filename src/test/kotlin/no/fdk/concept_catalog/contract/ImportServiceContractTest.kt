@@ -15,6 +15,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.mock
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.server.ResponseStatusException
@@ -27,6 +29,7 @@ import kotlin.test.assertNotNull
 
 @Tag("contract")
 class ImportServiceContractTest : ContractTestsBase() {
+    private val logger: Logger = LoggerFactory.getLogger(ImportServiceContractTest::class.java)
 
     private val historyService = mock<HistoryService>()
     private val conceptService = mock<ConceptService>()
@@ -118,17 +121,20 @@ class ImportServiceContractTest : ContractTestsBase() {
         )
 
         importResultRepository.save(importResultOngoing)
-        importService.importAndProcessConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
-
+        val importResultPending = importService.importAndProcessConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+        assertFalse { importResultPending.extractionRecords.isEmpty() }
+        assertFalse { importResultPending.conceptExtraction.isEmpty() }
         assertEquals(
             ImportResultStatus.PENDING_CONFIRMATION,
             importResultRepository.findById(importId)?.let { it.get() }?.status
         )
 
         importService.confirmImportAndSave(catalogId, importId, user, jwt)
+        val importResultCompleted = importResultRepository.findById(importId)?.let { it.get() }
 
         assertEquals(1, conceptRepository.findAll().size)
-        assertEquals(ImportResultStatus.COMPLETED, importResultRepository.findById(importId)?.let { it.get() }?.status)
+        assertNotNull(importResultCompleted)
+        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
 
         val newImportResultOngoing = importService.createImportResult(catalogId)
         val importResultFailed = importService.importAndProcessConcepts(listOf(begrepToImport), catalogId,
@@ -162,6 +168,35 @@ class ImportServiceContractTest : ContractTestsBase() {
         }.also {
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, it.statusCode)
         }
+
+    }
+
+
+    @Test
+    fun `should not cancel import if does not exist`() {
+        assertThrows<ResponseStatusException> {
+            importService.cancelImport(importId)
+        }.also {
+            assertEquals(HttpStatus.NOT_FOUND, it.statusCode)
+        }
+    }
+
+    @Test
+    fun `should cancel import`() {
+
+        val importResultInProgress = ImportResult(
+            id = importId,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultInProgress)
+
+        importService.cancelImport(importId)
+
+        assertEquals(ImportResultStatus.CANCELLED,
+            importResultRepository.findById(importId)?.let { it.get() }?.status)
 
     }
 
