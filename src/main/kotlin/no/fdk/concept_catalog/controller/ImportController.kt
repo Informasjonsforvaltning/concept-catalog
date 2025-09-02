@@ -101,42 +101,9 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                val importStatus = importService.importAndProcessRdf(
-                    catalogId = catalogId,
-                    importId = importId,
-                    concepts = concepts,
-                    lang = jenaLangFromHeader(contentType),
-                    user = user,
-                    jwt = jwt
-                )
-
-                return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importStatus.id}"))
-                    .build()
-            }
-        }
-    }
-
-    @PostMapping(
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
-            "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
-    )
-    fun import(
-        @AuthenticationPrincipal jwt: Jwt,
-        @RequestHeader(HttpHeaders.CONTENT_TYPE) contentType: String,
-        @PathVariable catalogId: String,
-        @RequestBody concepts: String
-    ): ResponseEntity<Void> {
-        val user = endpointPermissions.getUser(jwt)
-
-        return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
-
-            else -> {
                 val importStatus = importService.importRdf(
                     catalogId = catalogId,
+                    importId = importId,
                     concepts = concepts,
                     lang = jenaLangFromHeader(contentType),
                     user = user,
@@ -169,7 +136,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                val importResult = importService.importAndProcessConcepts(concepts, catalogId, user, jwt, importId)
+                val importResult = importService.importConcepts(concepts, catalogId, user, jwt, importId)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importResult.id}"))
                     .build()

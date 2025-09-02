@@ -8,7 +8,6 @@ import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
-import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.HistoryService
 import no.fdk.concept_catalog.service.ImportService
@@ -119,7 +118,7 @@ class ImportServiceContractTest : ContractTestsBase() {
 
         importResultRepository.save(importResultOngoing)
 
-        val importResultWaiting = importService.importAndProcessConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+        val importResultWaiting = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         assertNotNull(importResultWaiting)
         assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultWaiting.status)
         assertFalse(importResultWaiting.extractionRecords.isEmpty())
@@ -136,7 +135,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         )
 
         importResultRepository.save(importResultOngoing)
-        importService.importAndProcessConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+        importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         importService.confirmImportAndSave(catalogId, importId, user, jwt)
 
         assertEquals(1, conceptRepository.findAll().size)
@@ -153,7 +152,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         )
 
         importResultRepository.save(importResultOngoing)
-        val importResultPending = importService.importAndProcessConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+        val importResultPending = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         assertFalse { importResultPending.extractionRecords.isEmpty() }
         assertFalse { importResultPending.conceptExtraction.isEmpty() }
         assertEquals(
@@ -169,7 +168,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
 
         val newImportResultOngoing = importService.createImportResult(catalogId)
-        val importResultFailed = importService.importAndProcessConcepts(listOf(begrepToImport), catalogId,
+        val importResultFailed = importService.importConcepts(listOf(begrepToImport), catalogId,
             user, jwt, newImportResultOngoing.id)
 
         assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
@@ -181,7 +180,7 @@ class ImportServiceContractTest : ContractTestsBase() {
     @Test
     fun `should fail to process and throw exception if there is no import result with in progress`() {
         assertThrows<ResponseStatusException> {
-            importService.importAndProcessConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+            importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         }.also {
             assertEquals(HttpStatus.NOT_FOUND, it.statusCode)
         }
@@ -196,7 +195,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         importResultRepository.save(importResultCancelled)
 
         assertThrows<ResponseStatusException> {
-            importService.importAndProcessConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+            importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         }.also {
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, it.statusCode)
         }
@@ -242,7 +241,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         )
 
         importResultRepository.save(importResultOngoing)
-        importService.importAndProcessRdf(
+        importService.importRdf(
             catalogId = catalogId,
             importId = importId,
             concepts = turtle,
@@ -261,7 +260,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         )
 
         importResultRepository.save(importResultOngoingNew)
-        importService.importAndProcessRdf(
+        importService.importRdf(
             catalogId = catalogId,
             importId = importIdNew,
             concepts = turtle,
@@ -285,7 +284,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         )
 
         importResultRepository.save(importResultOngoing)
-        importService.importAndProcessRdf(
+        importService.importRdf(
             catalogId = catalogId,
             importId = importId,
             concepts = turtle,

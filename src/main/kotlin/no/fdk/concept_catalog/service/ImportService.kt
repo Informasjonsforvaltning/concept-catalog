@@ -62,7 +62,7 @@ class ImportService(
 
     }
 
-    fun importAndProcessRdf(
+    fun importRdf(
         catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
     ): ImportResult {
         val model: Model
@@ -136,42 +136,6 @@ class ImportService(
             extractionRecords = emptyList()
         )
         return importResultRepository.save(importResult)
-    }
-
-
-    fun importRdf(catalogId: String, concepts: String, lang: Lang, user: User, jwt: Jwt): ImportResult {
-        val model: Model
-
-        try {
-            model = ModelFactory.createDefaultModel().apply {
-                read(StringReader(concepts), null, lang.name)
-            }
-        } catch (ex: JenaException) {
-            logger.error("Error parsing RDF import", ex)
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message, ex)
-        } catch (ex: Exception) {
-            logger.error("Unexpected error during RDF import", ex)
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
-        }
-
-        val conceptsByUri = model.listResourcesWithProperty(RDF.type, SKOS.Concept)
-            .asSequence()
-            .filter { it.isURIResource }
-            .associateBy { it.uri }
-
-        if (conceptsByUri.isEmpty()) {
-            logger.warn("No concepts found in RDF import for catalog $catalogId")
-            return saveImportResultWithExtractionRecords(catalogId, emptyList(), ImportResultStatus.FAILED)
-        }
-
-        val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user)
-
-        return if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
-            logger.warn("Errors occurred during RDF import for catalog $catalogId")
-            saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
-        } else {
-            processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
-        }
     }
 
     fun getResults(catalogId: String): List<ImportResult> {
@@ -371,8 +335,8 @@ class ImportService(
             throw ex
         }
     }
-    fun importAndProcessConcepts(concepts: List<Begrep>, catalogId: String, user: User,
-                                 jwt: Jwt, importId: String = UUID.randomUUID().toString()): ImportResult {
+    fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User,
+                       jwt: Jwt, importId: String = UUID.randomUUID().toString()): ImportResult {
         conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
 
         val begrepUriMap = mutableMapOf<BegrepDBO, String>()

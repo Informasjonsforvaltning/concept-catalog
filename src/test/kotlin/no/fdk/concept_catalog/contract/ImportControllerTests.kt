@@ -31,11 +31,12 @@ import kotlin.test.assertNotEquals
 class ImportControllerTests : ContractTestsBase() {
 
     val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+    val importId = UUID.randomUUID().toString()
 
     @Test
     fun `Unauthorized on missing access token`() {
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/123456789/${importId}",
             httpMethod = HttpMethod.POST
         )
 
@@ -54,7 +55,7 @@ class ImportControllerTests : ContractTestsBase() {
         """.trimIndent()
 
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/123456789/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_READ).toString(),
             httpMethod = HttpMethod.POST,
@@ -75,8 +76,18 @@ class ImportControllerTests : ContractTestsBase() {
                     skos:prefLabel        "anbefaltTerm"@nb, "recommendedTerm"@en .
         """.trimIndent()
 
+        val catalogId = "987654321"
+        val importResultOnGoing = ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+        importResultRepository.save(importResultOnGoing)
+
         val response = authorizedRequest(
-            path = "/import/987654321",
+            path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -98,7 +109,7 @@ class ImportControllerTests : ContractTestsBase() {
         """.trimIndent()
 
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/123456789/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -120,7 +131,7 @@ class ImportControllerTests : ContractTestsBase() {
         """.trimIndent()
 
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/123456789/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -143,8 +154,18 @@ class ImportControllerTests : ContractTestsBase() {
                     skos:prefLabel        "anbefaltTerm"@nb, "recommendedTerm"@en .
         """.trimIndent()
 
+        val catalogId = "123456789"
+        val importResultOnGoing = ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+        importResultRepository.save(importResultOnGoing)
+
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -161,12 +182,29 @@ class ImportControllerTests : ContractTestsBase() {
 
         assertEquals(HttpStatus.OK, statusResponse.statusCode)
 
-        val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
+        val importResultPending = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
-        assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
+        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending!!.status)
 
-        assertEquals(1, importResult.extractionRecords.size)
-        val extractionRecord = importResult.extractionRecords.first()
+        val statusResponseConfirmSave = authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirm",
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.PUT
+        )
+
+        assertEquals(HttpStatus.CREATED, statusResponseConfirmSave.statusCode)
+
+        val statusResponseImportResult = authorizedRequest(
+            path = "/import/${catalogId}/results/${importId}",
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.GET
+        )
+
+        val importResultCompleted = objectMapper.readValue(statusResponseImportResult.body,
+            ImportResult::class.java)
+
+        assertEquals(1, importResultCompleted.extractionRecords.size)
+        val extractionRecord = importResultCompleted.extractionRecords.first()
 
         val conceptResponse = authorizedRequest(
             path = "/begreper/${extractionRecord.internalId}",
@@ -178,7 +216,7 @@ class ImportControllerTests : ContractTestsBase() {
 
         val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
 
-        assertEquals("123456789", concept.ansvarligVirksomhet.id)
+        assertEquals(catalogId, concept.ansvarligVirksomhet.id)
         assertEquals("anbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
     }
 
@@ -192,8 +230,18 @@ class ImportControllerTests : ContractTestsBase() {
                     rdf:type              skos:Concept .
         """.trimIndent()
 
+        val catalogId = "123456789"
+        val importResultOnGoing = ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+        importResultRepository.save(importResultOnGoing)
+
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/123456789/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -228,8 +276,18 @@ class ImportControllerTests : ContractTestsBase() {
                     skos:prefLabel        "anbefaltTerm"@nb, "recommendedTerm"@en .
         """.trimIndent()
 
+        val catalogId = "123456789"
+        val importResultOnGoing = ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+        importResultRepository.save(importResultOnGoing)
+
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -237,6 +295,14 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         assertEquals(HttpStatus.CREATED, response.statusCode)
+
+        authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirm",
+            body = turtle,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -249,8 +315,11 @@ class ImportControllerTests : ContractTestsBase() {
                     skos:prefLabel        "oppdatertAnbefaltTerm"@nb, "recommendedTerm"@en .
         """.trimIndent()
 
+        val importIdUpdate = UUID.randomUUID().toString()
+        importResultRepository.save(importResultOnGoing.copy(id = importIdUpdate))
+
         val updateResponse = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/${catalogId}/${importIdUpdate}",
             body = updateTurtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -259,8 +328,17 @@ class ImportControllerTests : ContractTestsBase() {
 
         assertEquals(HttpStatus.CREATED, updateResponse.statusCode)
 
+        authorizedRequest(
+            path = "/import/${catalogId}/${importIdUpdate}/confirm",
+            body = turtle,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.PUT,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+
         val countResponse = authorizedRequest(
-            path = "/import/123456789/results",
+            path = "/import/${catalogId}/results",
             body = updateTurtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.GET,
@@ -272,8 +350,10 @@ class ImportControllerTests : ContractTestsBase() {
         val importResults = objectMapper.readValue(countResponse.body, object : TypeReference<List<ImportResult>>() {})
         assertEquals(2, importResults.size)
 
+
+
         val statusResponse = authorizedRequest(
-            path = updateResponse.headers.location.toString(),
+            path = "/import/${catalogId}/results/${importIdUpdate}",
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.GET
         )
@@ -283,8 +363,8 @@ class ImportControllerTests : ContractTestsBase() {
         val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
         assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
-
         assertEquals(1, importResult.extractionRecords.size)
+
         val extractionRecord = importResult.extractionRecords.first()
 
         val conceptResponse = authorizedRequest(
@@ -393,8 +473,18 @@ class ImportControllerTests : ContractTestsBase() {
                           ] .
         """.trimIndent()
 
+        val catalogId = "123456789"
+        val importResultOnGoing = ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+        importResultRepository.save(importResultOnGoing)
+
         val response = authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -402,6 +492,12 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         assertEquals(HttpStatus.CREATED, response.statusCode)
+
+        authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirm",
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.PUT
+        )
 
         val statusResponse = authorizedRequest(
             path = response.headers.location.toString(),
@@ -455,9 +551,21 @@ class ImportControllerTests : ContractTestsBase() {
                     skos:hiddenLabel    "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb .
         """.trimIndent()
 
+        val catalogId = "123456789"
+        val resultId = UUID.randomUUID().toString()
+
+        val importResult = ImportResult(
+            id = resultId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.COMPLETED,
+            extractionRecords = emptyList()
+        )
+        importResultRepository.save(importResult)
+
         val responseTester: (Int) -> List<ImportResult> = { resultsSize ->
             val importResultsResponse = authorizedRequest(
-                path = "/import/123456789/results",
+                path = "/import/${catalogId}/results",
                 token = JwtToken(Access.ORG_WRITE).toString(),
                 httpMethod = HttpMethod.GET,
             )
@@ -475,7 +583,7 @@ class ImportControllerTests : ContractTestsBase() {
         }
 
         authorizedRequest(
-            path = "/import/123456789",
+            path = "/import/${catalogId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
@@ -487,7 +595,7 @@ class ImportControllerTests : ContractTestsBase() {
         val importResultId = importResults.map { it.id }.first()
 
         val deleteImportResult = authorizedRequest(
-            path = "/import/123456789/results/$importResultId",
+            path = "/import/${catalogId}/results/$importResultId",
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.DELETE
         )

@@ -119,90 +119,6 @@ class ImportServiceTest {
         }
     }
 
-
-    @Test
-    fun `should fail when the same RDF is uploaded multiple times`() {
-
-        val catalogId = "123456789"
-        val externalId = "9c33fd2b-2964-11e6-b2bc-96405985e0fa"
-        val conceptUri = "http://test/begrep/$externalId"
-
-        val turtle = """
-        @prefix schema: <http://schema.org/> .
-        @prefix dct:   <http://purl.org/dc/terms/> .
-        @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
-        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-        @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
-        @prefix dcat:  <http://www.w3.org/ns/dcat#> .
-        @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
-
-        <$conceptUri>
-         a                              skos:Concept ;
-          skos:prefLabel "nytt begrep 9"@nb ;
-          dct:identifier                 "$externalId" ;
-          dct:modified                   "2017-09-04"^^xsd:date ;
-          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/$catalogId> ;
-          dct:subject                    "Formues- og inntektsskatt"@nb ;
-          dcat:contactPoint              [ a                       vcard:Organization ;
-            vcard:hasEmail          <mailto:test@skatteetaten.no> ;
-            vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
-          ] .
-        """.trimIndent()
-
-        val lang = Lang.TURTLE
-        val user = User(id = "1924782563", name = "TEST USER", email = null)
-
-        val begrepCaptor = argumentCaptor<Iterable<BegrepDBO>>()//ArgumentCaptor.forClass(BegrepDBO::class.java)
-        whenever(conceptRepository.saveAll(begrepCaptor.capture())).thenAnswer {
-            begrepCaptor.firstValue
-        }
-
-        val importResultSuccess = importService.importRdf(
-            catalogId = catalogId,
-            concepts = turtle,
-            lang = lang,
-            user = user,
-            jwt = jwt
-        )
-
-        assertNotNull(importResultSuccess)
-        assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
-        assertFalse(importResultSuccess.extractionRecords.isEmpty())
-
-        val internalId = importResultSuccess.extractionRecords.first().internalId
-        val begrep: BegrepDBO? = begrepCaptor?.firstValue?.firstOrNull()
-        val originaltBegrep = begrep?.originaltBegrep
-
-        assertNotNull(begrep)
-        assertNotNull(originaltBegrep)
-
-        whenever(
-            importResultRepository.findFirstByStatusAndExtractionRecordsExternalId(
-                ImportResultStatus.COMPLETED,
-                conceptUri
-            )
-        ).thenReturn(
-            importResultSuccess
-        )
-
-        whenever(conceptRepository.findById(internalId)).thenReturn(Optional.of(begrep))
-        whenever(conceptRepository.getByOriginaltBegrep(originaltBegrep)).thenReturn(listOf(begrep))
-
-
-        val importResultFailed = importService.importRdf(
-            catalogId = catalogId,
-            concepts = turtle,
-            lang = lang,
-            user = user,
-            jwt = jwt
-        )
-
-        assertNotNull(importResultFailed)
-        assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
-    }
-
     @Test
     fun `should throw exception if catalog id is wrong or ImportResultId is not found`() {
         val catalogId = "123456789"
@@ -342,7 +258,7 @@ class ImportServiceTest {
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing))
 
-        val importResultFailure = importService.importAndProcessConcepts(
+        val importResultFailure = importService.importConcepts(
             concepts = listOf(createNewConcept(BEGREP_TO_BE_CREATED.ansvarligVirksomhet, user)
                 .toDTO()
                 .copy(id = conceptUri)
@@ -359,7 +275,7 @@ class ImportServiceTest {
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing))
 
-        val importResultFailure = importService.importAndProcessConcepts(
+        val importResultFailure = importService.importConcepts(
             concepts = emptyList(),
             catalogId = "123456789", user, jwt, importId)
 
@@ -406,7 +322,7 @@ class ImportServiceTest {
             .whenever(historyService)
             .updateHistory(any(), any(), any(), any())
 
-        val importResultPending = importService.importAndProcessRdf(
+        val importResultPending = importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,
@@ -433,7 +349,7 @@ class ImportServiceTest {
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing))
 
-        val importResultPending = importService.importAndProcessRdf(
+        val importResultPending = importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,
@@ -470,7 +386,7 @@ class ImportServiceTest {
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing ))
 
-        val importResultPending = importService.importAndProcessRdf(
+        val importResultPending = importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,
@@ -501,7 +417,7 @@ class ImportServiceTest {
             .whenever(conceptRepository)
             .saveAll(any<Iterable<BegrepDBO>>())
 
-        val importResultPending = importService.importAndProcessRdf(
+        val importResultPending = importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,
