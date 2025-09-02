@@ -8,13 +8,18 @@ import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.HistoryService
 import no.fdk.concept_catalog.service.ImportService
+import org.apache.jena.riot.Lang
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -40,9 +45,12 @@ class ImportServiceContractTest : ContractTestsBase() {
 
     val catalogId = "123456789"
     val importId = UUID.randomUUID().toString()
+    val externalId = UUID.randomUUID().toString()
     val conceptUri = "http://example.com/begrep/123456789"
     val virksomhetsUri = "http://example.com/begrep/123456789"
     val user = User(id = catalogId, name = "TEST USER", email = null)
+    val lang = Lang.TURTLE
+    //val user = User(id = "1924782563", name = "TEST USER", email = null)
 
     val begrepToImport = Begrep(
         id = conceptUri,
@@ -56,6 +64,30 @@ class ImportServiceContractTest : ContractTestsBase() {
         interneFelt = null,
         internErstattesAv = null,
     )
+
+    val turtle = """
+        @prefix schema: <http://schema.org/> .
+        @prefix dct:   <http://purl.org/dc/terms/> .
+        @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
+        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+        @prefix dcat:  <http://www.w3.org/ns/dcat#> .
+        @prefix xkos:  <http://rdf-vocabulary.ddialliance.org/xkos#> .
+
+        <$conceptUri>
+         a                              skos:Concept ;
+          skos:prefLabel "nytt begrep 9"@nb ;
+          dct:identifier                 "$externalId" ;
+          dct:modified                   "2017-09-04"^^xsd:date ;
+          dct:publisher                  <https://data.brreg.no/enhetsregisteret/api/enheter/$catalogId> ;
+          dct:subject                    "Formues- og inntektsskatt"@nb ;
+          dcat:contactPoint              [ a                       vcard:Organization ;
+            vcard:hasEmail          <mailto:test@skatteetaten.no> ;
+            vcard:organizationUnit  "Informasjonsforvaltning - innhenting"
+          ] .
+        """.trimIndent()
 
     @BeforeEach
     override fun setUp() {
@@ -200,4 +232,78 @@ class ImportServiceContractTest : ContractTestsBase() {
 
     }
 
+    @Test
+    fun `should fail when the same RDF is uploaded multiple times`() {
+        val importResultOngoing = ImportResult(
+            id = importId,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoing)
+        importService.importAndProcessRdf(
+            catalogId = catalogId,
+            importId = importId,
+            concepts = turtle,
+            lang = lang,
+            user = user,
+            jwt = jwt
+        )
+        importService.confirmImportAndSave(catalogId, importId, user, jwt)
+
+        val importIdNew = UUID.randomUUID().toString()
+        val importResultOngoingNew = ImportResult(
+            id = importIdNew,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoingNew)
+        importService.importAndProcessRdf(
+            catalogId = catalogId,
+            importId = importIdNew,
+            concepts = turtle,
+            lang = lang,
+            user = user,
+            jwt = jwt
+        )
+
+        val importResultFailed = importResultRepository.findById(importIdNew).let { it.get() }
+
+        assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
+    }
+
+    @Test
+    fun `should raise exception when history service fails`() {
+        val importResultOngoing = ImportResult(
+            id = importId,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoing)
+        importService.importAndProcessRdf(
+            catalogId = catalogId,
+            importId = importId,
+            concepts = turtle,
+            lang = lang,
+            user = user,
+            jwt = jwt
+        )
+
+        doThrow(RuntimeException("History service failed"))
+            .whenever(historyService)
+            .updateHistory(any(), any(), any(), any())
+
+        doThrow(RuntimeException("History service failed"))
+            .whenever(historyService)
+            .removeHistoryUpdate(any(), any())
+
+        assertThrows <Exception>{
+            importService.confirmImportAndSave(catalogId, importId, user, jwt)
+        }
+    }
 }
