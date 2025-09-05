@@ -4,7 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 
-enum class ImportResultStatus { FAILED, COMPLETED }
+enum class ImportResultStatus { FAILED, COMPLETED, IN_PROGRESS, PENDING_CONFIRMATION, CANCELLED }
 
 @Document(collection = "importResults")
 data class ImportResult(
@@ -14,5 +14,6 @@ data class ImportResult(
     val created: LocalDateTime,
     val catalogId: String,
     val status: ImportResultStatus,
-    val extractionRecords: List<ExtractionRecord> = emptyList()
-)
+    val extractionRecords: List<ExtractionRecord> = emptyList(),
+    val conceptExtraction: List<ConceptExtraction> = emptyList()
+    )
