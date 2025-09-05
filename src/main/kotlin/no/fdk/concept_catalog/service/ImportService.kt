@@ -68,7 +68,6 @@ class ImportService(
         val model: Model
 
         try {
-            //Thread.sleep(7000)
             model = ModelFactory.createDefaultModel().apply {
                 read(StringReader(concepts), null, lang.name)
             }
