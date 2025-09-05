@@ -123,8 +123,6 @@ class ImportService(
                 "Import with id: $importId is already cancelled"
             )
         }
-
-
     }
 
     fun createImportResult(catalogId: String): ImportResult {
