@@ -349,8 +349,6 @@ class ImportControllerTests : ContractTestsBase() {
         val importResults = objectMapper.readValue(countResponse.body, object : TypeReference<List<ImportResult>>() {})
         assertEquals(2, importResults.size)
 
-
-
         val statusResponse = authorizedRequest(
             path = "/import/${catalogId}/results/${importIdUpdate}",
             token = JwtToken(Access.ORG_WRITE).toString(),
