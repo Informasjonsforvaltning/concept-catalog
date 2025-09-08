@@ -6,6 +6,8 @@ import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.ImportResult
+import no.fdk.concept_catalog.repository.ConceptRepository
+import no.fdk.concept_catalog.repository.ImportResultRepository
 import no.fdk.concept_catalog.utils.JwkStore
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,6 +43,12 @@ open class ContractTestsBase {
     lateinit var elasticsearchOperations: ElasticsearchOperations
 
     @Autowired
+    lateinit var importResultRepository: ImportResultRepository
+
+    @Autowired
+    lateinit var conceptRepository: ConceptRepository
+
+    @Autowired
     lateinit var testRestTemplate: TestRestTemplate
 
     @BeforeEach
@@ -56,6 +64,9 @@ open class ContractTestsBase {
             CurrentConcept::class.java
         )
         elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+
+        importResultRepository.deleteAll()
+        conceptRepository.deleteAll()
     }
 
     fun addToElasticsearchIndex(concept: CurrentConcept) {
