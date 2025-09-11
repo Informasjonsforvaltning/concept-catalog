@@ -141,14 +141,9 @@ class ConceptsController(
 
     @PostMapping(value = ["/reindex"])
     fun reindexElastic(@AuthenticationPrincipal jwt: Jwt): ResponseEntity<Unit> {
-        return when {
-            !endpointPermissions.hasSysAdminPermission(jwt) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            else -> {
-                logger.info("reindexing elastic")
-                elasticUpdater.reindexElastic()
-                ResponseEntity(HttpStatus.OK)
-            }
-        }
+        logger.info("reindexing elastic")
+        elasticUpdater.reindexElastic()
+        return ResponseEntity(HttpStatus.OK)
     }
 
     @DeleteMapping(value = ["/{id}"])
