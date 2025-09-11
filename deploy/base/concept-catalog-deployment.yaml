@@ -41,7 +41,11 @@ spec:
                   name: concept-catalog
                   key: KEYSTORE_PASSWORD
           command: ["/bin/sh"]
-          args: ['-c', "keytool -noprompt -import -v -trustcacerts -file $crtfile -keystore $keystore_jks -keypass $KEYSTORE_PASSWORD -storepass $KEYSTORE_PASSWORD"]
+          args:
+            [
+              "-c",
+              "keytool -noprompt -import -v -trustcacerts -file $crtfile -keystore $keystore_jks -keypass $KEYSTORE_PASSWORD -storepass $KEYSTORE_PASSWORD",
+            ]
           volumeMounts:
             - name: keystore-volume
               mountPath: /var/secrets/elastic/keystores
@@ -53,6 +57,22 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /actuator/ping
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               memory: "2Gi"
@@ -62,4 +82,4 @@ spec:
           volumeMounts:
             - name: keystore-volume
               mountPath: /var/secrets/elastic/keystores
-      restartPolicy: Always    
+      restartPolicy: Always
