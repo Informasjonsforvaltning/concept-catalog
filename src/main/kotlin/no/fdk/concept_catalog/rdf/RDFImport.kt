@@ -22,7 +22,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val anbefaltTerm = extractAnbefaltTerm()
     val tillattTerm = extractTillattTerm()
     val frarådetTerm = extractFrarådetTerm()
-    val definisjon = extractDefinisjon()
+    val definisjon = extractDefinisjon()//if(extractDefinisjon().first != null) extractDefinisjon() else extractSkosDefinisjon()
     val definisjonForAllmennheten = extractDefinisjonForAllmennheten()
     val definisjonForSpesialister = extractDefinisjonForSpesialister()
     val merknad = extractMerknad()
@@ -149,6 +149,22 @@ private fun Resource.extractTillattTerm(): Pair<Map<String, List<String>>, List<
 
 private fun Resource.extractFrarådetTerm(): Pair<Map<String, List<String>>, List<Issue>> {
     return extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
+}
+
+private fun Resource.extractSkosDefinisjon(): Pair<Definisjon?, List<Issue>> {
+    val skosDefinition = SKOS.definition
+    val (localizedStrings, localizedStringsIssues) = extractLocalizedStrings(skosDefinition)
+
+    val issues = localizedStringsIssues.toMutableList()
+
+    val definisjon = if (localizedStrings.isNotEmpty()) {
+        Definisjon(tekst = localizedStrings,
+            kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = null))
+    } else {
+        issues += Issue(IssueType.WARNING, "${skosDefinition.localName}: Required property")
+        null
+    }
+    return definisjon to issues
 }
 
 private fun Resource.extractDefinisjon(): Pair<Definisjon?, List<Issue>> {
