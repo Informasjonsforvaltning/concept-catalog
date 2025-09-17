@@ -28,6 +28,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val merknad = extractMerknad()
     val eksempel = extractEksempel()
     val fagområde = extractFagområde()
+    val fagområdeKoder = extractFagområdeKoder()
     val omfang = extractOmfang()
     val gyldigFom = extractGyldigFom()
     val gyldigTom = extractGyldigTom()
@@ -48,6 +49,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         merknad = merknad.first,
         eksempel = eksempel.first,
         fagområde = fagområde.first,
+        fagområdeKoder = fagområdeKoder.first,
         omfang = omfang.first,
         gyldigFom = gyldigFom.first,
         gyldigTom = gyldigTom.first,
@@ -76,6 +78,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         merknad.second,
         eksempel.second,
         fagområde.second,
+        fagområdeKoder.second,
         omfang.second,
         gyldigFom.second,
         gyldigTom.second,
@@ -253,6 +256,28 @@ private fun Resource.extractEksempel(): Pair<Map<String, String>, List<Issue>> {
 
 private fun Resource.extractFagområde(): Pair<Map<String, List<String>>, List<Issue>> {
     return extractLocalizedStringsAsGrouping(DCTerms.subject)
+}
+
+private fun Resource.extractFagområdeKoder(): Pair<List<String>, List<Issue>> {
+    val property = DCTerms.subject
+    val issues = mutableListOf<Issue>()
+    val codeIds = mutableListOf<String>()
+
+    listProperties(property)
+        .toList()
+        .mapNotNull { it.`object`.asUriResourceOrNull()?.uri }
+        .forEach {
+            val fragment = it.substringAfterLast('#', "")
+
+            if (fragment.isBlank()) {
+                issues.add(Issue(IssueType.WARNING, "${property.localName}: Required code ID"))
+                return@forEach
+            }
+
+            codeIds.add(fragment)
+        }
+
+    return codeIds to issues
 }
 
 private fun Resource.extractOmfang(): Pair<URITekst?, List<Issue>> {
