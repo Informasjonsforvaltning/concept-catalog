@@ -8,6 +8,7 @@ import no.fdk.concept_catalog.service.createNewConcept
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.apache.jena.vocabulary.DCTerms
+import org.apache.jena.vocabulary.SKOS
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import java.time.LocalDate
+import kotlin.test.assertNull
 
 @Tag("unit")
 class RDFImportTests {
@@ -352,6 +354,79 @@ class RDFImportTests {
                 it.op == OpEnum.ADD && it.path == "/definisjonForSpesialister"
             })
         }
+    }
+
+    @Test
+    fun `should not extract EUVOC xlDefinition with no audience and SKOS definition and issue an error`() {
+
+        val turtle = """
+            @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
+            @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
+            @prefix dct:                            <http://purl.org/dc/terms/> .
+            @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    skos:definition       "definisjon"@nb ;
+                    euvoc:xlDefinition                   
+                          [ 
+                            rdf:type                        euvoc:XlNote ;
+                            rdf:value                       "definisjon"@nb ;
+                            skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
+                            dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
+                          ] .
+        """.trimIndent()
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        assertTrue(conceptExtraction.extractionRecord.extractResult.issues.any{
+            it.type == IssueType.ERROR
+                    && it.message.contains(EUVOC.xlDefinition.localName)
+                    && it.message.contains(SKOS.definition.localName)
+        })
+
+        assertNull(conceptExtraction.concept.definisjon)
+
+    }
+
+    @Test
+    fun `should extract SKOS definition`() {
+
+        val expectedDefinisjon = Definisjon(
+            tekst = mapOf("nb" to "definisjon", "en" to "definition"),
+            kildebeskrivelse = Kildebeskrivelse(
+                forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT
+            )
+        )
+
+        val turtle = """
+            @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
+            @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
+            @prefix dct:                            <http://purl.org/dc/terms/> .
+            @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    skos:definition        ${expectedDefinisjon.tekst?.mapNotNull { "\"${it.value}\"@${it.key}" }?.joinToString(", ") } .
+                    
+        """.trimIndent()
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        assertFalse (conceptExtraction.extractionRecord.extractResult.issues.any{
+            it.type == IssueType.ERROR
+                    && it.message.contains(EUVOC.xlDefinition.localName)
+                    && it.message.contains(SKOS.definition.localName)
+        })
+
+        assertEquals(expectedDefinisjon, conceptExtraction.concept.definisjon)
+
     }
 
     @Test
