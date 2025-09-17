@@ -7,7 +7,9 @@ import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.service.createNewConcept
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
+import org.apache.jena.vocabulary.DCTerms
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -833,6 +835,51 @@ class RDFImportTests {
             assertTrue(result.operations.any {
                 it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/4"
             })
+        }
+    }
+
+    @Test
+    fun `should fail to extract fagomraadekode`() {
+        val dcTerms = "http://purl.org/dc/terms/"
+        val property = DCTerms.subject
+        val turtle = """
+                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                        @prefix dct:   <$dcTerms> .
+                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+                        <https://example.com/concept>
+                                rdf:type              skos:Concept ;
+                                skos:prefLabel        "anbefaltTerm"@nb ;
+                                dct:subject            <47f92ffc-6173-49da-a614-043d448a3cbf> .
+                    """.trimIndent()
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        conceptExtraction.extractionRecord.extractResult.let { result ->
+            assertTrue(result.issues.any { it.type == IssueType.WARNING && it.message.contains(property.localName) })
+        }
+    }
+
+    @Test
+    fun `should extract fagomraadekode`() {
+        val dcTerms = "http://purl.org/dc/terms/"
+        val property = DCTerms.subject
+        val turtle = """
+                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+                        @prefix dct:   <$dcTerms> .
+                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+                        <https://example.com/concept>
+                                rdf:type              skos:Concept ;
+                                skos:prefLabel        "anbefaltTerm"@nb ;
+                                dct:subject           
+                                <https://catalog-admin-service.staging.fellesdatakatalog.digdir.no/312460726/concepts/code-list/subjects#47f92ffc-6173-49da-a614-043d448a3cbf> .
+                    """.trimIndent()
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        conceptExtraction.extractionRecord.extractResult.let { result ->
+            assertFalse(result.issues.any { it.type == IssueType.WARNING && it.message.contains(property.localName) })
         }
     }
 
