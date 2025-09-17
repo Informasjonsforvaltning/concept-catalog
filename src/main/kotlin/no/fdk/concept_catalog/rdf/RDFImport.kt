@@ -216,15 +216,14 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
     val source = listProperties(DCTerms.source)
         .toList()
         .mapNotNull { statement ->
-            statement.`object`.let {
+            statement.`object`?.let {
                 when {
                     it.isLiteral -> it.asLiteralOrNull()?.string
                         ?.let { text -> URITekst(tekst = text) }
 
                     it.isResource -> it.asResourceOrNull()
-                        .takeIf { it != null }
                         ?.let { res ->
-                            val tekst = res.getProperty(RDFS.label).`object`.asLiteralOrNull()?.string
+                            val tekst = res.getProperty(RDFS.label)?.`object`?.asLiteralOrNull()?.string
                             URITekst(uri = res.uri, tekst = tekst)
                         }
 
