@@ -213,6 +213,26 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
         }
     }
 
+    val source = listProperties(DCTerms.source)
+        .toList()
+        .mapNotNull { statement ->
+            statement.`object`.let {
+                when {
+                    it.isLiteral -> it.asLiteralOrNull()?.string
+                        ?.let { text -> URITekst(tekst = text) }
+
+                    it.isURIResource -> it.asUriResourceOrNull()?.uri
+                        ?.let { uri -> URITekst(uri = uri) }
+
+                    else -> null
+                }
+            }
+        }
+
+    val sourceDescription: Kildebeskrivelse? = relationship?.let {
+        Kildebeskrivelse(forholdTilKilde = relationship, kilde = source)
+    }
+
     val value = RDF.value
 
     val (localizedStrings, localizedStringsIssues) = extractLocalizedStrings(value)
@@ -223,59 +243,7 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
         return null to issues
     }
 
-    val (sources, sourcesIssues) = extractDefinisjonsKilde()
-
-    val sourceDescription: Kildebeskrivelse? = relationship?.let {
-        Kildebeskrivelse(forholdTilKilde = relationship, kilde = sources)
-    }
-
-    issues += sourcesIssues
-
     return Definisjon(tekst = localizedStrings, kildebeskrivelse = sourceDescription) to issues
-}
-
-private fun Resource.extractDefinisjonsKilde(): Pair<List<URITekst>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-    val sources = mutableListOf<URITekst>()
-
-    val (literalSources, literalIssues) = extractDefinisjonsKildeLiterals(DCTerms.source)
-    sources += literalSources
-    issues += literalIssues
-
-    val (resourceSources, resourceSourceIssues) = extractDefinisjonsKildeResources(DCTerms.source)
-    sources += resourceSources
-    issues += resourceSourceIssues
-
-    return sources to issues
-}
-
-fun Resource.extractDefinisjonsKildeResources(property: Property): Pair<List<URITekst>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-    val sources = mutableListOf<URITekst>()
-
-    sources += listProperties(property).toList()
-        .mapNotNull { it.`object`.asResourceOrNull() }
-        .flatMap { res ->
-            val (localizedLabels, localizedLabelIssues) = res.extractLocalizedStrings(RDFS.label)
-            issues += localizedLabelIssues
-            localizedLabels.values
-                ?.filter { it.isNotBlank() }
-                ?.map { URITekst(uri = res.uri, tekst = it) }?: emptyList()
-        }
-
-    return sources to issues
-}
-
-fun Resource.extractDefinisjonsKildeLiterals(property: Property): Pair<List<URITekst>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
-    val sources = mutableListOf<URITekst>()
-
-    sources += listProperties(property).toList()
-        .mapNotNull { it.`object`.asLiteralOrNull() }
-        .filter { !it.string.isNullOrBlank() && !it.language.isNullOrBlank() }
-        .map { URITekst(tekst = it.string) }
-
-    return sources to issues
 }
 
 private fun Resource.extractMerknad(): Pair<Map<String, String>, List<Issue>> {
