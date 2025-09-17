@@ -216,7 +216,7 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
     val source = listProperties(DCTerms.source)
         .toList()
         .mapNotNull { statement ->
-            statement.`object`?.let {
+            statement.`object`.let {
                 when {
                     it.isLiteral -> it.asLiteralOrNull()?.string
                         ?.let { text -> URITekst(tekst = text) }

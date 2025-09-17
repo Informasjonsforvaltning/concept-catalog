@@ -288,6 +288,10 @@ class RDFImportTests {
 			rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> .
         """.trimIndent()
 
+        val turtleSourceURINoLabel = """
+            <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#nolabel> a rdfs:Resource .
+        """.trimIndent()
+
         val turtle = """
             @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix rdfs:                           <http://www.w3.org/2000/01/rdf-schema#> .
@@ -305,10 +309,14 @@ class RDFImportTests {
                             rdf:type                        euvoc:XlNote ;
                             rdf:value                       "definisjon"@nb ;
                             skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
-                            dct:source                      $turtleSourceBlankNode, <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ; 
+                            dct:source                      $turtleSourceBlankNode, 
+                            <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#nolabel>, 
+                            <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ; 
                           ] .
                           
             $turtleSourceURI
+            
+            $turtleSourceURINoLabel
         """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
@@ -316,9 +324,12 @@ class RDFImportTests {
         val sources = conceptExtraction.concept.definisjon?.kildebeskrivelse?.kilde
 
         assertNotNull(sources)
-        assertEquals(2, sources?.size)
+        assertEquals(3, sources?.size)
         assertTrue ( sources.any { it.uri == null })
         assertTrue ( sources.any { it.uri != null })
+
+        assertTrue ( sources.any { it.tekst == null })
+        assertTrue ( sources.any { it.tekst != null })
 
     }
 
