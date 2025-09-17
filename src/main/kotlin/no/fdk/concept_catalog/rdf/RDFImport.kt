@@ -221,8 +221,11 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
                     it.isLiteral -> it.asLiteralOrNull()?.string
                         ?.let { text -> URITekst(tekst = text) }
 
-                    it.isURIResource -> it.asUriResourceOrNull()?.uri
-                        ?.let { uri -> URITekst(uri = uri) }
+                    it.isResource -> it.asResourceOrNull()
+                        ?.let { res ->
+                            val tekst = res.getProperty(RDFS.label)?.`object`?.asLiteralOrNull()?.string
+                            URITekst(uri = res.uri, tekst = tekst)
+                        }
 
                     else -> null
                 }
