@@ -376,9 +376,29 @@ private fun Resource.extractErstattesAv(): Pair<List<String>, List<Issue>> {
 }
 
 private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<Issue>> {
-    val issues = mutableListOf<Issue>()
+    val (associativeRelations, associativeRelationsIssues) = listOf(ExtendedSKOS.isFromConceptIn, SKOSNO.isFromConceptIn)
+        .map { extractAssociativeRelations(it) }
+        .flatten()
 
-    val associativeConceptRelations = this.listProperties(SKOSNO.isFromConceptIn)
+    val (partitiveRelations, partitiveRelationsIssues) = listOf(ExtendedSKOS.hasPartitiveConceptRelation, SKOSNO.hasPartitiveConceptRelation)
+        .map { extractPartitiveRelations(it) }
+        .flatten()
+
+    val (genericRelations, genericRelationIssues) = listOf(ExtendedSKOS.hasGenericConceptRelation, SKOSNO.hasGenericConceptRelation)
+        .map { extractGenericRelations(it) }
+        .flatten()
+
+    return listOf(associativeRelations, partitiveRelations, genericRelations).flatten() to
+            listOf(associativeRelationsIssues, partitiveRelationsIssues, genericRelationIssues).flatten()
+}
+
+ fun <T, R> Iterable<Pair<Iterable<T>, Iterable<R>>>.flatten(): Pair<List<T>, List<R>> {
+     return this.let { it.flatMap { it.first } to it.flatMap { it.second } }
+ }
+
+private fun Resource.extractAssociativeRelations(prop: Property): Pair<List<BegrepsRelasjon>, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+    return this.listProperties(prop)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
         .filter { it.hasProperty(RDF.type, SKOSNO.AssociativeConceptRelation) }
@@ -393,9 +413,12 @@ private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<
 
             BegrepsRelasjon(relasjon = "assosiativ", beskrivelse = localizedStrings, relatertBegrep = toConcept)
                 .takeIf { localizedStrings.isNotEmpty() && toConcept != null }
-        }
+        } to issues
+}
 
-    val partitiveConceptRelations = this.listProperties(SKOSNO.hasPartitiveConceptRelation)
+private fun Resource.extractPartitiveRelations(prop: Property): Pair<List<BegrepsRelasjon>, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+    return this.listProperties(prop)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
         .filter { it.hasProperty(RDF.type, SKOSNO.PartitiveConceptRelation) }
@@ -434,9 +457,12 @@ private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<
 
                 else -> null
             }
-        }
+        } to issues
+}
 
-    val genericConceptRelations = this.listProperties(SKOSNO.hasGenericConceptRelation)
+private fun Resource.extractGenericRelations(prop: Property): Pair<List<BegrepsRelasjon>, List<Issue>> {
+    val issues = mutableListOf<Issue>()
+    return this.listProperties(prop)
         .toList()
         .mapNotNull { it.`object`.asResourceOrNull() }
         .filter { it.hasProperty(RDF.type, SKOSNO.GenericConceptRelation) }
@@ -475,11 +501,7 @@ private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<
 
                 else -> null
             }
-        }
-
-    return listOf(associativeConceptRelations, partitiveConceptRelations, genericConceptRelations)
-        .flatten()
-        .let { it to issues }
+        } to issues
 }
 
 private fun Resource.extractLocalizedStrings(property: Property): Pair<Map<String, String>, List<Issue>> {
