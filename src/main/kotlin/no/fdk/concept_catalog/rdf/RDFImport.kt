@@ -376,24 +376,22 @@ private fun Resource.extractErstattesAv(): Pair<List<String>, List<Issue>> {
 }
 
 private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<Issue>> {
-    val (associativeRelations, associativeRelationsIssues) = listOf(ExtendedSKOS.isFromConceptIn, SKOSNO.isFromConceptIn)
-        .map { extractAssociativeRelations(it) }
-        .flatten()
+    val propsToExtractors: Map<List<Property>, (Property) -> Pair<List<BegrepsRelasjon>, List<Issue>>> = mapOf(
+        listOf(ExtendedSKOS.isFromConceptIn, SKOSNO.isFromConceptIn) to ::extractAssociativeRelations,
+        listOf(ExtendedSKOS.hasPartitiveConceptRelation, SKOSNO.hasPartitiveConceptRelation) to ::extractPartitiveRelations,
+        listOf(ExtendedSKOS.hasGenericConceptRelation, SKOSNO.hasGenericConceptRelation) to ::extractGenericRelations
+    )
 
-    val (partitiveRelations, partitiveRelationsIssues) = listOf(ExtendedSKOS.hasPartitiveConceptRelation, SKOSNO.hasPartitiveConceptRelation)
-        .map { extractPartitiveRelations(it) }
-        .flatten()
+    return propsToExtractors.map { (props, extractor) ->
+        props.map { prop ->
+            extractor(prop)
+        }.flatten()
+    }.flatten()
 
-    val (genericRelations, genericRelationIssues) = listOf(ExtendedSKOS.hasGenericConceptRelation, SKOSNO.hasGenericConceptRelation)
-        .map { extractGenericRelations(it) }
-        .flatten()
-
-    return listOf(associativeRelations, partitiveRelations, genericRelations).flatten() to
-            listOf(associativeRelationsIssues, partitiveRelationsIssues, genericRelationIssues).flatten()
 }
 
  fun <T, R> Iterable<Pair<Iterable<T>, Iterable<R>>>.flatten(): Pair<List<T>, List<R>> {
-     return this.let { it.flatMap { it.first } to it.flatMap { it.second } }
+     return this.let { list -> list.flatMap { pair -> pair.first } to list.flatMap { pair -> pair.second } }
  }
 
 private fun Resource.extractAssociativeRelations(prop: Property): Pair<List<BegrepsRelasjon>, List<Issue>> {
