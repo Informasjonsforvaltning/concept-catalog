@@ -376,23 +376,24 @@ private fun Resource.extractErstattesAv(): Pair<List<String>, List<Issue>> {
 }
 
 private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<Issue>> {
-    val propsToExtractors: Map<List<Property>, (Property) -> Pair<List<BegrepsRelasjon>, List<Issue>>> = mapOf(
-        listOf(ExtendedSKOS.isFromConceptIn, SKOSNO.isFromConceptIn) to ::extractAssociativeRelations,
-        listOf(ExtendedSKOS.hasPartitiveConceptRelation, SKOSNO.hasPartitiveConceptRelation) to ::extractPartitiveRelations,
-        listOf(ExtendedSKOS.hasGenericConceptRelation, SKOSNO.hasGenericConceptRelation) to ::extractGenericRelations
+    val extractAllRelations: (Triple<Property, Property, Property>) -> Pair<List<BegrepsRelasjon>, List<Issue>> = {
+        it.let { (p1, p2, p3) ->
+            listOf(extractAssociativeRelations(p1), extractPartitiveRelations(p2),
+                    extractGenericRelations(p3))
+            .concat()
+            }
+        }
+
+    return listOf(
+        Triple(ExtendedSKOS.isFromConceptIn, ExtendedSKOS.hasPartitiveConceptRelation, ExtendedSKOS.hasGenericConceptRelation),
+        Triple(SKOSNO.isFromConceptIn, SKOSNO.hasPartitiveConceptRelation, SKOSNO.hasGenericConceptRelation)
     )
-
-    return propsToExtractors.map { (props, extractor) ->
-        props.map { prop ->
-            extractor(prop)
-        }.flatten()
-    }.flatten()
-
+        .map { extractAllRelations(it) }
+        .concat()
 }
 
- fun <T, R> Iterable<Pair<Iterable<T>, Iterable<R>>>.flatten(): Pair<List<T>, List<R>> {
-     return this.let { list -> list.flatMap { pair -> pair.first } to list.flatMap { pair -> pair.second } }
- }
+ fun <T, R> Iterable<Pair<Iterable<T>, Iterable<R>>>.concat(): Pair<List<T>, List<R>> =
+     let { flatMap { it.first } to flatMap { it.second } }
 
 private fun Resource.extractAssociativeRelations(prop: Property): Pair<List<BegrepsRelasjon>, List<Issue>> {
     val issues = mutableListOf<Issue>()

@@ -13,11 +13,46 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import java.io.StringReader
 import java.time.LocalDate
 
 @Tag("unit")
 class RDFImportTests {
+
+    companion object {
+        const val SKOS = "skos:"
+        const val SKOSNO = "skosno:"
+
+        const val isFromConceptIn = "isFromConceptIn"
+        const val hasPartitiveConceptRelation = "hasPartitiveConceptRelation"
+        const val hasGenericConceptRelation = "hasGenericConceptRelation"
+
+        const val SKOS_isFromConcept = "$SKOS$isFromConceptIn"
+        const val SKOS_hasPartitiveConceptRelation = "$SKOS$hasPartitiveConceptRelation"
+        const val SKOS_hasGenericConceptRelation = "$SKOS$hasGenericConceptRelation"
+
+        const val SKOSNO_isFromConcept = "$SKOSNO$isFromConceptIn"
+        const val SKOSNO_hasPartitiveConceptRelation = "$SKOSNO$hasPartitiveConceptRelation"
+        const val SKOSNO_hasGenericConceptRelation = "$SKOSNO$hasGenericConceptRelation"
+
+        @JvmStatic
+        fun `SKOS and SKOSNO Relations`() = listOf(
+            Arguments.of(SKOS_isFromConcept, SKOS_hasPartitiveConceptRelation, SKOS_hasGenericConceptRelation),
+            Arguments.of(SKOSNO_isFromConcept, SKOSNO_hasPartitiveConceptRelation, SKOSNO_hasGenericConceptRelation),
+
+            Arguments.of(SKOSNO_isFromConcept, SKOS_hasPartitiveConceptRelation, SKOS_hasGenericConceptRelation),
+            Arguments.of(SKOS_isFromConcept, SKOSNO_hasPartitiveConceptRelation, SKOSNO_hasGenericConceptRelation),
+
+            Arguments.of(SKOS_isFromConcept, SKOSNO_hasPartitiveConceptRelation, SKOS_hasGenericConceptRelation),
+            Arguments.of(SKOSNO_isFromConcept, SKOS_hasPartitiveConceptRelation, SKOSNO_hasGenericConceptRelation),
+
+            Arguments.of(SKOS_isFromConcept, SKOS_hasPartitiveConceptRelation, SKOSNO_hasGenericConceptRelation),
+            Arguments.of(SKOSNO_isFromConcept, SKOSNO_hasPartitiveConceptRelation, SKOS_hasGenericConceptRelation),
+        )
+    }
 
     @Test
     fun `should extract versjonsnr`() {
@@ -709,8 +744,9 @@ class RDFImportTests {
         }
     }
 
-    @Test
-    fun `should extract begrepsRelasjon`() {
+    @ParameterizedTest
+    @MethodSource("SKOS and SKOSNO Relations")
+    fun `should extract begrepsRelasjon`(fromConcept: String, hasPartitiveConcept: String, hasGenericConcept: String) {
         val turtle = """
                         @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
                         @prefix dct:    <http://purl.org/dc/terms/> .
@@ -720,7 +756,7 @@ class RDFImportTests {
                         <https://example.com/concept>
                                 rdf:type              skos:Concept ;
                                 skos:prefLabel        "anbefaltTerm"@nb ;
-                                skosno:isFromConceptIn 
+                                $fromConcept 
                                       [ 
                                         rdf:type                        skosno:AssociativeConceptRelation ;
                                         skosno:hasToConcept             <https://example.com/topConcept> ; 
@@ -732,19 +768,19 @@ class RDFImportTests {
                                         dct:description                 "inndelingskriterium"@nb ;
                                         skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
                                       ] ;
-                                skosno:hasPartitiveConceptRelation    
+                                $hasPartitiveConcept    
                                       [ 
                                         rdf:type                        skosno:PartitiveConceptRelation ;
                                         dct:description                 "inndelingskriterium"@nb ;
                                         skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
                                       ] ;
-                                skosno:hasGenericConceptRelation      
+                                skosno:hasGenericConceptRelation
                                       [ 
                                         rdf:type                        skosno:GenericConceptRelation ;
                                         dct:description                 "inndelingskriterium"@nb ;
                                         skosno:hasGenericConcept        <https://example.com/genericConcept>
                                       ] ;
-                                skosno:hasGenericConceptRelation     
+                                $hasGenericConcept     
                                       [ 
                                         rdf:type                        skosno:GenericConceptRelation ;
                                         dct:description                 "inndelingskriterium"@nb ;
