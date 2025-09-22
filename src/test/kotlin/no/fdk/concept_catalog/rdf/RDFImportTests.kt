@@ -276,9 +276,9 @@ class RDFImportTests {
 
         val turtleSourceBlankNode = """
             [ a rdfs:Resource ;
-			rdfs:label "Definisjon – kilde - uten målgruppe - sitat fra kilde"@nb ,
-				   "Definisjon – kjelde - uten målgruppe - sitat fra kilde"@nn ,
-				   "Definition - source - direct from source - direct from source"@en ;
+			rdfs:label "Definisjon – kilde - uten målgruppe - sitat fra kilde" ,
+				   "Definisjon – kjelde - uten målgruppe - sitat fra kilde" ,
+				   "Definition - source - direct from source - direct from source" ;
 			rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> ]
             """.trimIndent()
 
@@ -322,7 +322,7 @@ class RDFImportTests {
         """.trimIndent()
 
         val sourceUriTekst = URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14",
-            tekst = "Definition - source - public - selfcomposed")
+            tekst = "Definisjon – kilde - allmenn - egendefinert")
 
         val sourceTekst = URITekst(tekst = "Definition - source - direct from source - direct from source")
 
