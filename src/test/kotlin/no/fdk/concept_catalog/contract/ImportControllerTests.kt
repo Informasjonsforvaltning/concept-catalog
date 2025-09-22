@@ -18,10 +18,12 @@ import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
+import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -132,15 +134,20 @@ class ImportControllerTests : ContractTestsBase() {
                     skos:prefLabel        .
         """.trimIndent()
 
-        val response = authorizedRequest(
-            path = "/import/${catalogId}/${importId}",
+
+
+        val exception = assertThrows<ResponseStatusException>{
+            val response = authorizedRequest(
+                path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
-        )
+        ) }
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.statusCode)
     }
 
     @Test

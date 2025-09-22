@@ -329,7 +329,7 @@ class ImportServiceTest {
             user = user,
             jwt = jwt,
             importId = importId
-        )
+        ).get()
 
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultPending))
@@ -356,7 +356,7 @@ class ImportServiceTest {
             user = user,
             jwt = jwt,
             importId = importId
-        )
+        ).get()
 
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultPending))
@@ -393,7 +393,7 @@ class ImportServiceTest {
             user = user,
             jwt = jwt,
             importId = importId
-        )
+        ).get()
 
         assertNotNull(importResultPending)
         assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
@@ -424,7 +424,7 @@ class ImportServiceTest {
             user = user,
             jwt = jwt,
             importId = importId
-        )
+        ).get()
 
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultPending ))

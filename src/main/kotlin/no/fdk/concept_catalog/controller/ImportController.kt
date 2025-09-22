@@ -101,7 +101,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                val importStatus = importService.importRdf(
+                importService.importRdf(
                     catalogId = catalogId,
                     importId = importId,
                     concepts = concepts,
@@ -111,7 +111,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
                 )
 
                 return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importStatus.id}"))
+                    .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
             }
         }
