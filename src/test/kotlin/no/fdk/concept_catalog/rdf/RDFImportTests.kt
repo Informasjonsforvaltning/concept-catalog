@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.StringReader
 import java.time.LocalDate
 import kotlin.test.assertNotNull
@@ -319,17 +321,23 @@ class RDFImportTests {
             $turtleSourceURINoLabel
         """.trimIndent()
 
+        val sourceUriTekst = URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14",
+            tekst = "Definition - source - public - selfcomposed")
+
+        val sourceTekst = URITekst(tekst = "Definition - source - direct from source - direct from source")
+
+        val sourceUri = URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#nolabel")
+
         val conceptExtraction = createConceptExtraction(turtle)
 
         val sources = conceptExtraction.concept.definisjon?.kildebeskrivelse?.kilde
 
         assertNotNull(sources)
         assertEquals(3, sources?.size)
-        assertTrue ( sources.any { it.uri == null })
-        assertTrue ( sources.any { it.uri != null })
 
-        assertTrue ( sources.any { it.tekst == null })
-        assertTrue ( sources.any { it.tekst != null })
+        assertTrue { sources.contains(sourceUriTekst) }
+        assertTrue { sources.contains(sourceTekst) }
+        assertTrue { sources.contains(sourceUri) }
 
     }
 
