@@ -154,13 +154,49 @@ private fun Resource.extractFrarådetTerm(): Pair<Map<String, List<String>>, Lis
     return extractLocalizedStringsAsGrouping(SKOS.hiddenLabel)
 }
 
+private fun Resource.extractSkosDefinisjon(): Pair<Definisjon?, List<Issue>> {
+    val (localizedStrings, localizedStringsIssues) = extractLocalizedStrings(SKOS.definition)
+
+    val skosDefinisjon = if (localizedStrings.isNotEmpty())
+        Definisjon(tekst = localizedStrings,
+            kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT))
+    else
+        null
+
+    return skosDefinisjon to localizedStringsIssues.toMutableList()
+}
+
 private fun Resource.extractDefinisjon(): Pair<Definisjon?, List<Issue>> {
-    return listProperties(EUVOC.xlDefinition)
-        .asSequence()
-        .mapNotNull { it.`object`.asResourceOrNull() }
-        .firstOrNull { !it.hasProperty(DCTerms.audience) }
-        ?.extractDefinition()
-        ?: Pair(null, emptyList())
+    val skosDefinitionProp = SKOS.definition
+    val xlDefinitionProp = EUVOC.xlDefinition
+
+    return when {
+        hasProperty(skosDefinitionProp) && hasProperty(xlDefinitionProp) ->
+            null to listOf(
+                Issue(
+                    IssueType.ERROR,
+                    "Invalid to define ${xlDefinitionProp.localName} with no audience and ${skosDefinitionProp.localName}"
+                )
+            )
+
+        hasProperty(skosDefinitionProp) -> listProperties(skosDefinitionProp).toList()
+            .mapNotNull{ it?.`object`?.asLiteralOrNull() }
+            .let {
+                when {
+                    it.isEmpty() -> null to emptyList()
+                    else -> extractSkosDefinisjon()
+                }
+            }
+
+        hasProperty(xlDefinitionProp) -> listProperties(xlDefinitionProp)
+            .asSequence()
+            .mapNotNull { it.`object`.asResourceOrNull() }
+            .firstOrNull { !it.hasProperty(DCTerms.audience) }
+            ?.extractDefinition()
+            ?: ( null to emptyList() )
+
+        else -> null to emptyList()
+    }
 }
 
 private fun Resource.extractDefinisjonForAllmennheten(): Pair<Definisjon?, List<Issue>> {
