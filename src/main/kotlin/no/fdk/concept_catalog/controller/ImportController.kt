@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -14,11 +15,13 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 
 @CrossOrigin
 @RestController
 @RequestMapping(value = ["/import/{catalogId}"])
-class ImportController(private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
+class ImportController(@Qualifier("import-executor") private val executor: Executor,
+                       private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
 
     @PutMapping(value = ["/{importId}/cancel"])
     fun cancelImport(
@@ -32,7 +35,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
                 CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
 
-            else -> CompletableFuture.supplyAsync { importService.cancelImport(importId) }
+            else -> CompletableFuture.supplyAsync ({ importService.cancelImport(importId) }, executor)
                 .thenApply {
                     ResponseEntity
                         .created(URI("/import/$catalogId/results/${importId}"))
@@ -106,16 +109,18 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
                 CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
 
             else ->
-                CompletableFuture.supplyAsync {
-                    importService.importRdf(
-                        catalogId = catalogId,
-                        importId = importId,
-                        concepts = concepts,
-                        lang = jenaLangFromHeader(contentType),
-                        user = user,
-                        jwt = jwt
-                    )
-                }
+                CompletableFuture.supplyAsync (
+                    {
+                        importService.importRdf(
+                            catalogId = catalogId,
+                            importId = importId,
+                            concepts = concepts,
+                            lang = jenaLangFromHeader(contentType),
+                            user = user,
+                            jwt = jwt
+                        )
+                    }, executor
+                )
                     .thenApply {
                         ResponseEntity
                             .created(URI("/import/$catalogId/results/${importId}"))
