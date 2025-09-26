@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import java.net.URI
+import java.util.concurrent.CompletableFuture
 
 @CrossOrigin
 @RestController
@@ -24,18 +25,19 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable importId: String
-    ): ResponseEntity<String> {
+    ): CompletableFuture<ResponseEntity<String>> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            user == null -> CompletableFuture.completedFuture(ResponseEntity(HttpStatus.UNAUTHORIZED))
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
+                CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
 
-            else -> {
-                importService.cancelImport(importId)
-                return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importId}"))
-                    .build()
-            }
+            else -> CompletableFuture.supplyAsync { importService.cancelImport(importId) }
+                .thenApply {
+                    ResponseEntity
+                        .created(URI("/import/$catalogId/results/${importId}"))
+                        .build()
+                }
         }
     }
 
@@ -93,27 +95,32 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
         @PathVariable catalogId: String,
         @PathVariable importId: String,
         @RequestBody concepts: String
-    ): ResponseEntity<Void> {
+    ): CompletableFuture<ResponseEntity<Void>> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            user == null ->
+                CompletableFuture.completedFuture(ResponseEntity(HttpStatus.UNAUTHORIZED))
 
-            else -> {
-                importService.importRdf(
-                    catalogId = catalogId,
-                    importId = importId,
-                    concepts = concepts,
-                    lang = jenaLangFromHeader(contentType),
-                    user = user,
-                    jwt = jwt
-                )
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
+                CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
 
-                return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importId}"))
-                    .build()
-            }
+            else ->
+                CompletableFuture.supplyAsync {
+                    importService.importRdf(
+                        catalogId = catalogId,
+                        importId = importId,
+                        concepts = concepts,
+                        lang = jenaLangFromHeader(contentType),
+                        user = user,
+                        jwt = jwt
+                    )
+                }.thenCompose { it }
+                    .thenApply {
+                        ResponseEntity
+                            .created(URI("/import/$catalogId/results/${importId}"))
+                            .build()
+                    }
         }
     }
 

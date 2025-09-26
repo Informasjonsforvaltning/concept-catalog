@@ -23,6 +23,7 @@ import org.springframework.http.*
 import org.springframework.test.context.ActiveProfiles
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
+import java.util.concurrent.CompletableFuture
 
 @ActiveProfiles("contract-test")
 @Import(TestcontainersConfig::class, ElasticTestConfig::class)
@@ -109,5 +110,30 @@ open class ContractTestsBase {
         val httpEntity: HttpEntity<String> = HttpEntity(body, headers)
 
         return testRestTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
+    }
+
+    fun authorizedRequestFuture(
+        path: String,
+        body: String? = null,
+        token: String? = null,
+        httpMethod: HttpMethod,
+        accept: MediaType = MediaType.APPLICATION_JSON,
+        contentType: MediaType = MediaType.APPLICATION_JSON,
+    ): CompletableFuture<ResponseEntity<String>> {
+        val url = "http://localhost:$port$path"
+
+        val headers = HttpHeaders()
+        headers.accept = listOf(accept)
+        headers.contentType = contentType
+
+        token?.let { headers.setBearerAuth(it) }
+
+        val httpEntity: HttpEntity<String> = HttpEntity(body, headers)
+
+        return CompletableFuture
+            .completedFuture(
+                testRestTemplate.exchange(url, httpMethod,
+                    httpEntity, String::class.java)
+            )
     }
 }

@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
@@ -341,7 +342,6 @@ class ImportServiceTest {
     }
 
     @Test
-    //@Disabled
     fun `should fail to rollback when exception is thrown during import`() {
         val importService = createImportServiceSpy()
         val importResultOngoing = createImportResultInProgress()
@@ -356,7 +356,7 @@ class ImportServiceTest {
             user = user,
             jwt = jwt,
             importId = importId
-        ).get()
+        ).join()
 
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultPending))
