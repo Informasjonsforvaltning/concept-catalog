@@ -115,7 +115,7 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
                         user = user,
                         jwt = jwt
                     )
-                }.thenCompose { it }
+                }
                     .thenApply {
                         ResponseEntity
                             .created(URI("/import/$catalogId/results/${importId}"))

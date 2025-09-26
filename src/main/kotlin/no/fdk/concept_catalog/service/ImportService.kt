@@ -42,7 +42,7 @@ class ImportService(
     @Async
     fun cancelImport(importId: String) {
         logger.info("Cancelling import with id: $importId")
-        updateImportStatus(importId, ImportResultStatus.CANCELLED)
+        CompletableFuture.supplyAsync { updateImportStatus(importId, ImportResultStatus.CANCELLED) }
     }
 
     fun updateImportStatus(importId: String, status: ImportResultStatus) =
@@ -85,16 +85,9 @@ class ImportService(
             }
         } catch (ex: JenaException) {
             logger.error("Error parsing RDF import", ex)
-            /*return CompletableFuture.failedFuture(
-                ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message, ex)
-            )*/
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message, ex)
         } catch (ex: Exception) {
             logger.error("Unexpected error during RDF import", ex)
-
-            /*return CompletableFuture.failedFuture(
-                ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
-            )*/
             throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
         }
 
