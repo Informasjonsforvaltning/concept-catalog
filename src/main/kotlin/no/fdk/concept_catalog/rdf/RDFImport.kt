@@ -257,8 +257,22 @@ private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
                     it.isLiteral -> it.asLiteralOrNull()?.string
                         ?.let { text -> URITekst(tekst = text) }
 
-                    it.isURIResource -> it.asUriResourceOrNull()?.uri
-                        ?.let { uri -> URITekst(uri = uri) }
+                    it.isResource -> it.asResourceOrNull()
+                        ?.let { res ->
+
+                            val literals = res.extractLocalizedStrings(RDFS.label).first
+
+                            val tekst = literals?.let {
+                                when {
+                                    it.containsKey("nb") -> it["nb"]
+                                    it.containsKey("no") -> it["no"]
+                                    it.containsKey("nn") -> it["nn"]
+                                    it.containsKey("en") -> it["en"]
+                                    else -> res.getProperty(RDFS.label)?.`object`?.asLiteralOrNull()?.string
+                                }
+                            }
+                            URITekst(uri = res.uri, tekst = tekst)
+                        }
 
                     else -> null
                 }

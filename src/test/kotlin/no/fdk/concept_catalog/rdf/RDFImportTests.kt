@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import java.io.StringReader
 import java.time.LocalDate
 import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 
 @Tag("unit")
 class RDFImportTests {
@@ -268,6 +269,71 @@ class RDFImportTests {
                 )
             })
         }
+    }
+
+    @Test
+    fun `should extract definisjon with sources`() {
+
+        val turtleSourceBlankNode = """
+            [ a rdfs:Resource ;
+			rdfs:label "Definisjon – kilde - uten målgruppe - sitat fra kilde" ,
+				   "Definisjon – kjelde - uten målgruppe - sitat fra kilde" ,
+				   "Definition - source - direct from source - direct from source" ;
+			rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> ]
+            """.trimIndent()
+
+        val turtleSourceURI = """
+            <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> a rdfs:Resource ;
+			rdfs:label  "Definisjon – kilde - allmenn - egendefinert"@nb ,
+				        "Definisjon – kjelde - allmenn - egendefinert"@nn ,
+				        "Definition - source - public - selfcomposed"@en ;
+			rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> .
+        """.trimIndent()
+
+        val turtleSourceURINoLabel = """
+            <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#nolabel> a rdfs:Resource .
+        """.trimIndent()
+
+        val turtle = """
+            @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix rdfs:                           <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
+            @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
+            @prefix dct:                            <http://purl.org/dc/terms/> .
+            @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:xlDefinition                   
+                          [ 
+                            rdf:type                        euvoc:XlNote ;
+                            rdf:value                       "definisjon"@nb ;
+                            skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
+                            dct:source                      $turtleSourceBlankNode, 
+                            <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#nolabel>, 
+                            <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ; 
+                          ] .
+                          
+            $turtleSourceURI
+            
+            $turtleSourceURINoLabel
+        """.trimIndent()
+
+        val sourceUriTekst = URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14",
+            tekst = "Definisjon – kilde - allmenn - egendefinert")
+
+        val sourceTekst = URITekst(tekst = "Definition - source - direct from source - direct from source")
+
+        val sourceUri = URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#nolabel")
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        val sources = conceptExtraction.concept.definisjon?.kildebeskrivelse?.kilde
+
+        assertEquals ( setOf(sourceUriTekst, sourceTekst, sourceUri), sources?.toSet() )
+
     }
 
     @Test
