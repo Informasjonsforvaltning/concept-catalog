@@ -335,9 +335,7 @@ class RDFImportTests {
         assertNotNull(sources)
         assertEquals(3, sources?.size)
 
-        assertTrue { sources.contains(sourceUriTekst) }
-        assertTrue { sources.contains(sourceTekst) }
-        assertTrue { sources.contains(sourceUri) }
+        assertEquals ( setOf(sourceUriTekst, sourceTekst, sourceUri), sources.toSet() )
 
     }
 
