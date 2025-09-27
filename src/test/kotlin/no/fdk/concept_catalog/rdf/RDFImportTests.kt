@@ -332,10 +332,7 @@ class RDFImportTests {
 
         val sources = conceptExtraction.concept.definisjon?.kildebeskrivelse?.kilde
 
-        assertNotNull(sources)
-        assertEquals(3, sources?.size)
-
-        assertEquals ( setOf(sourceUriTekst, sourceTekst, sourceUri), sources.toSet() )
+        assertEquals ( setOf(sourceUriTekst, sourceTekst, sourceUri), sources?.toSet() )
 
     }
 
