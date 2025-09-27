@@ -17,6 +17,7 @@ import org.apache.jena.vocabulary.SKOS
 import org.openapi4j.core.validation.ValidationSeverity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Async
@@ -28,6 +29,7 @@ import java.io.StringReader
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service
@@ -36,14 +38,18 @@ class ImportService(
     private val conceptRepository: ConceptRepository,
     private val conceptService: ConceptService,
     private val importResultRepository: ImportResultRepository,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    @Qualifier("import-executor") private val executor: Executor
 ) {
 
-    @Async
-    fun cancelImport(importId: String) {
-        logger.info("Cancelling import with id: $importId")
-        CompletableFuture.supplyAsync { updateImportStatus(importId, ImportResultStatus.CANCELLED) }
-    }
+    @Async//("import-executor")
+    fun cancelImport(importId: String) =
+        CompletableFuture.supplyAsync({
+            logger.info("Cancel Import (service) thread name: ${Thread.currentThread().name}")
+            logger.info("Cancelling import with id: $importId")
+            updateImportStatus(importId, ImportResultStatus.CANCELLED)
+        }, executor)
+
 
     fun updateImportStatus(importId: String, status: ImportResultStatus) =
         importResultRepository.save(getImportResult(importId).copy(status = status))
@@ -78,60 +84,69 @@ class ImportService(
     fun importRdf(
         catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
     ): CompletableFuture<ImportResult> {
-        val model: Model
+        return CompletableFuture.supplyAsync({
+            logger.info("Import (service) thread name: ${Thread.currentThread().name}")
+            val model: Model
 
-        try {
-            model = ModelFactory.createDefaultModel().apply {
-                read(StringReader(concepts), null, lang.name)
+            try {
+                model = ModelFactory.createDefaultModel().apply {
+                    read(StringReader(concepts), null, lang.name)
+                }
+            } catch (ex: JenaException) {
+                logger.error("Error parsing RDF import", ex)
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message, ex)
+            } catch (ex: Exception) {
+                logger.error("Unexpected error during RDF import", ex)
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
             }
-        } catch (ex: JenaException) {
-            logger.error("Error parsing RDF import", ex)
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, ex.message, ex)
-        } catch (ex: Exception) {
-            logger.error("Unexpected error during RDF import", ex)
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", ex)
-        }
 
-        val conceptsByUri = model.listResourcesWithProperty(RDF.type, SKOS.Concept)
-            .asSequence()
-            .filter { it.isURIResource }
-            .associateBy { it.uri }
+            val conceptsByUri = model.listResourcesWithProperty(RDF.type, SKOS.Concept)
+                .asSequence()
+                .filter { it.isURIResource }
+                .associateBy { it.uri }
 
-        if (conceptsByUri.isEmpty()) {
-            logger.warn("No concepts found in RDF import for catalog $catalogId")
-            checkIfAlreadyCancelled(importId)
-            return CompletableFuture.completedFuture(
-                saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(), ImportResultStatus.FAILED, importId)
+            if (conceptsByUri.isEmpty()) {
+                logger.warn("No concepts found in RDF import for catalog $catalogId")
+                checkIfAlreadyCancelled(importId)
+                saveImportResultWithExtractionRecords(
+                    catalogId,
+                    extractionRecords = emptyList(),
+                    ImportResultStatus.FAILED,
+                    importId
+                )
+
+            }
+
+            updateImportProgress(
+                importId = importId,
+                extractedConcepts = 0,
+                totalConcepts = conceptsByUri.size
             )
-        }
 
-        updateImportProgress(
-            importId = importId,
-            extractedConcepts = 0,
-            totalConcepts = conceptsByUri.size
-        )
+            val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user, importId)
 
-        val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user, importId)
+            if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
+                logger.warn("Errors occurred during RDF import for catalog $catalogId")
+                checkIfAlreadyCancelled(importId)
+                saveImportResultWithExtractionRecords(
+                    catalogId,
+                    conceptExtractions.allExtractionRecords,
+                    ImportResultStatus.FAILED,
+                    importId
+                )
 
-        return if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
-            logger.warn("Errors occurred during RDF import for catalog $catalogId")
-            checkIfAlreadyCancelled(importId)
+            } else {
+                logger.info("Number of concepts extracted: ${conceptExtractions.size} for catalog $catalogId")
+                checkIfAlreadyCancelled(importId)
 
-            CompletableFuture.completedFuture(
-                saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED, importId)
-            )
-        } else {
-            logger.info("Number of concepts extracted: ${conceptExtractions.size} for catalog $catalogId")
-            checkIfAlreadyCancelled(importId)
-            return CompletableFuture.completedFuture(
                 saveImportResultWithConceptExtractions(
                     catalogId = catalogId,
                     conceptExtractions = conceptExtractions,
                     status = ImportResultStatus.PENDING_CONFIRMATION,
                     importId = importId
                 )
-            )
-        }
+            }
+        }, executor)
 
     }
 

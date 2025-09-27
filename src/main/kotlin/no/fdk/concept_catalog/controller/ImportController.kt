@@ -5,7 +5,8 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
-import org.springframework.beans.factory.annotation.Qualifier
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -15,13 +16,12 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executor
 
 @CrossOrigin
 @RestController
 @RequestMapping(value = ["/import/{catalogId}"])
-class ImportController(@Qualifier("import-executor") private val executor: Executor,
-                       private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
+class ImportController(private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
+    private val logger: Logger = LoggerFactory.getLogger(ImportService::class.java)
 
     @PutMapping(value = ["/{importId}/cancel"])
     fun cancelImport(
@@ -29,18 +29,21 @@ class ImportController(@Qualifier("import-executor") private val executor: Execu
         @PathVariable catalogId: String,
         @PathVariable importId: String
     ): CompletableFuture<ResponseEntity<String>> {
+        logger.info("Cancel import (controller) thread name: ${Thread.currentThread().name}")
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> CompletableFuture.completedFuture(ResponseEntity(HttpStatus.UNAUTHORIZED))
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
                 CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
 
-            else -> CompletableFuture.supplyAsync ({ importService.cancelImport(importId) }, executor)
-                .thenApply {
-                    ResponseEntity
-                        .created(URI("/import/$catalogId/results/${importId}"))
-                        .build()
-                }
+            else -> {
+                    importService.cancelImport(importId)
+                    .thenApply {
+                        ResponseEntity
+                            .created(URI("/import/$catalogId/results/${importId}"))
+                            .build()
+                    }
+            }
         }
     }
 
@@ -100,6 +103,7 @@ class ImportController(@Qualifier("import-executor") private val executor: Execu
         @RequestBody concepts: String
     ): CompletableFuture<ResponseEntity<Void>> {
         val user = endpointPermissions.getUser(jwt)
+        logger.info("Import (controller) thread name: ${Thread.currentThread().name}")
 
         return when {
             user == null ->
@@ -108,24 +112,22 @@ class ImportController(@Qualifier("import-executor") private val executor: Execu
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
                 CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
 
-            else ->
-                CompletableFuture.supplyAsync (
-                    {
-                        importService.importRdf(
-                            catalogId = catalogId,
-                            importId = importId,
-                            concepts = concepts,
-                            lang = jenaLangFromHeader(contentType),
-                            user = user,
-                            jwt = jwt
-                        )
-                    }, executor
+            else -> {
+                logger.info("Import import (controller, supplier) thread name: ${Thread.currentThread().name}")
+                importService.importRdf(
+                    catalogId = catalogId,
+                    importId = importId,
+                    concepts = concepts,
+                    lang = jenaLangFromHeader(contentType),
+                    user = user,
+                    jwt = jwt
                 )
                     .thenApply {
                         ResponseEntity
                             .created(URI("/import/$catalogId/results/${importId}"))
                             .build()
                     }
+            }
         }
     }
 
