@@ -74,7 +74,8 @@ class ImportService(
             )
         )
 
-    @Async fun importRdf(
+    @Async("import-executor")
+    fun importRdf(
         catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
     ): CompletableFuture<ImportResult> {
         val model: Model
