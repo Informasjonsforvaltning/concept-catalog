@@ -119,21 +119,16 @@ open class ContractTestsBase {
         httpMethod: HttpMethod,
         accept: MediaType = MediaType.APPLICATION_JSON,
         contentType: MediaType = MediaType.APPLICATION_JSON,
-    ): CompletableFuture<ResponseEntity<String>> {
-        val url = "http://localhost:$port$path"
-
-        val headers = HttpHeaders()
-        headers.accept = listOf(accept)
-        headers.contentType = contentType
-
-        token?.let { headers.setBearerAuth(it) }
-
-        val httpEntity: HttpEntity<String> = HttpEntity(body, headers)
-
-        return CompletableFuture
+    ) =
+        CompletableFuture
             .completedFuture(
-                testRestTemplate.exchange(url, httpMethod,
-                    httpEntity, String::class.java)
+                authorizedRequest(
+                    path = path,
+                    body = body,
+                    token = token,
+                    httpMethod = httpMethod,
+                    accept = accept,
+                    contentType = contentType
+                )
             )
-    }
 }

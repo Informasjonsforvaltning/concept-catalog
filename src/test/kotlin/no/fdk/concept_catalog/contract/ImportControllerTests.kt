@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.*
+import kotlinx.coroutines.future.await
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
@@ -140,9 +141,11 @@ class ImportControllerTests : ContractTestsBase() {
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
-        )
+        ).thenApply {
+            assertEquals(HttpStatus.BAD_REQUEST, it.statusCode)
+        }
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.get().statusCode)
+
     }
 
     @Test
@@ -167,60 +170,63 @@ class ImportControllerTests : ContractTestsBase() {
         )
         importResultRepository.save(importResultOnGoing)
 
-        val response = authorizedRequest(
+        authorizedRequestFuture(
             path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
-        )
+        ).thenApply { response ->
 
-        assertEquals(HttpStatus.CREATED, response.statusCode)
+            assertEquals(HttpStatus.CREATED, response.statusCode)
 
-        val statusResponse = authorizedRequestFuture(
-            path = response.headers.location.toString(),
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
+            val statusResponse = authorizedRequestFuture(
+                path = response.headers.location.toString(),
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET
+            )
 
-        assertEquals(HttpStatus.OK, statusResponse.get().statusCode)
+            assertEquals(HttpStatus.OK, statusResponse.get().statusCode)
 
-        val importResultPending = objectMapper.readValue(statusResponse.get().body, ImportResult::class.java)
+            val importResultPending = objectMapper.readValue(statusResponse.get().body, ImportResult::class.java)
 
-        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending!!.status)
+            assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending!!.status)
 
-        val statusResponseConfirmSave = authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirm",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.PUT
-        )
+            val statusResponseConfirmSave = authorizedRequest(
+                path = "/import/${catalogId}/${importId}/confirm",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.PUT
+            )
 
-        assertEquals(HttpStatus.CREATED, statusResponseConfirmSave.statusCode)
+            assertEquals(HttpStatus.CREATED, statusResponseConfirmSave.statusCode)
 
-        val statusResponseImportResult = authorizedRequest(
-            path = "/import/${catalogId}/results/${importId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
+            val statusResponseImportResult = authorizedRequest(
+                path = "/import/${catalogId}/results/${importId}",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET
+            )
 
-        val importResultCompleted = objectMapper.readValue(statusResponseImportResult.body,
-            ImportResult::class.java)
+            val importResultCompleted = objectMapper.readValue(statusResponseImportResult.body,
+                ImportResult::class.java)
 
-        assertEquals(1, importResultCompleted.extractionRecords.size)
-        val extractionRecord = importResultCompleted.extractionRecords.first()
+            assertEquals(1, importResultCompleted.extractionRecords.size)
+            val extractionRecord = importResultCompleted.extractionRecords.first()
 
-        val conceptResponse = authorizedRequest(
-            path = "/begreper/${extractionRecord.internalId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
+            val conceptResponse = authorizedRequest(
+                path = "/begreper/${extractionRecord.internalId}",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET
+            )
 
-        assertEquals(HttpStatus.OK, conceptResponse.statusCode)
+            assertEquals(HttpStatus.OK, conceptResponse.statusCode)
 
-        val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
+            val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
 
-        assertEquals(catalogId, concept.ansvarligVirksomhet.id)
-        assertEquals("anbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
+            assertEquals(catalogId, concept.ansvarligVirksomhet.id)
+            assertEquals("anbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
+
+        }
+
     }
 
     @Test
@@ -242,27 +248,27 @@ class ImportControllerTests : ContractTestsBase() {
         )
         importResultRepository.save(importResultOnGoing)
 
-        val response = authorizedRequestFuture(
+        authorizedRequestFuture(
             path = "/import/123456789/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
-        )
+        ).thenApply {
+            assertEquals(HttpStatus.CREATED, it.statusCode)
 
-        assertEquals(HttpStatus.CREATED, response.get().statusCode)
+            val statusResponse = authorizedRequest(
+                path = it.headers.location.toString(),
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET
+            )
 
-        val statusResponse = authorizedRequest(
-            path = response.get().headers.location.toString(),
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
+            assertEquals(HttpStatus.OK, statusResponse.statusCode)
 
-        assertEquals(HttpStatus.OK, statusResponse.statusCode)
+            val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
-        val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
-
-        assertEquals(ImportResultStatus.FAILED, importResult!!.status)
+            assertEquals(ImportResultStatus.FAILED, importResult!!.status)
+        }
     }
 
     @Test
@@ -319,65 +325,69 @@ class ImportControllerTests : ContractTestsBase() {
         val importIdUpdate = UUID.randomUUID().toString()
         importResultRepository.save(importResultOnGoing.copy(id = importIdUpdate))
 
-        val updateResponse = authorizedRequestFuture(
+        authorizedRequestFuture(
             path = "/import/${catalogId}/${importIdUpdate}",
             body = updateTurtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
-        )
+        ).thenApply { updateResponse ->
 
-        assertEquals(HttpStatus.CREATED, updateResponse.get().statusCode)
+            assertEquals(HttpStatus.CREATED, updateResponse.statusCode)
 
-        authorizedRequest(
-            path = "/import/${catalogId}/${importIdUpdate}/confirm",
-            body = turtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.PUT,
-            contentType = MediaType.valueOf("text/turtle")
-        )
+            authorizedRequest(
+                path = "/import/${catalogId}/${importIdUpdate}/confirm",
+                body = turtle,
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.PUT,
+                contentType = MediaType.valueOf("text/turtle")
+            )
 
 
-        val countResponse = authorizedRequest(
-            path = "/import/${catalogId}/results",
-            body = updateTurtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET,
-            contentType = MediaType.valueOf(APPLICATION_JSON_VALUE)
-        )
+            val countResponse = authorizedRequest(
+                path = "/import/${catalogId}/results",
+                body = updateTurtle,
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET,
+                contentType = MediaType.valueOf(APPLICATION_JSON_VALUE)
+            )
 
-        assertEquals(HttpStatus.OK, countResponse.statusCode)
+            assertEquals(HttpStatus.OK, countResponse.statusCode)
 
-        val importResults = objectMapper.readValue(countResponse.body, object : TypeReference<List<ImportResult>>() {})
-        assertEquals(2, importResults.size)
+            val importResults = objectMapper.readValue(countResponse.body, object : TypeReference<List<ImportResult>>() {})
+            assertEquals(2, importResults.size)
 
-        val statusResponse = authorizedRequest(
-            path = "/import/${catalogId}/results/${importIdUpdate}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
+            val statusResponse = authorizedRequest(
+                path = "/import/${catalogId}/results/${importIdUpdate}",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET
+            )
 
-        assertEquals(HttpStatus.OK, statusResponse.statusCode)
+            assertEquals(HttpStatus.OK, statusResponse.statusCode)
 
-        val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
+            val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
-        assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
-        assertEquals(1, importResult.extractionRecords.size)
+            assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
+            assertEquals(1, importResult.extractionRecords.size)
 
-        val extractionRecord = importResult.extractionRecords.first()
+            val extractionRecord = importResult.extractionRecords.first()
 
-        val conceptResponse = authorizedRequest(
-            path = "/begreper/${extractionRecord.internalId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
+            val conceptResponse = authorizedRequest(
+                path = "/begreper/${extractionRecord.internalId}",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET
+            )
 
-        assertEquals(HttpStatus.OK, conceptResponse.statusCode)
+            assertEquals(HttpStatus.OK, conceptResponse.statusCode)
 
-        val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
+            val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
 
-        assertEquals("123456789", concept.ansvarligVirksomhet.id)
-        assertEquals("oppdatertAnbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
+            assertEquals("123456789", concept.ansvarligVirksomhet.id)
+            assertEquals("oppdatertAnbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
+
+        }
+
+
     }
 
     @Test
@@ -481,51 +491,51 @@ class ImportControllerTests : ContractTestsBase() {
         )
         importResultRepository.save(importResultOnGoing)
 
-        val response = authorizedRequestFuture(
+        authorizedRequestFuture(
             path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
-        )
+        ).thenApply { response ->
+            assertEquals(HttpStatus.CREATED, response.statusCode)
 
-        assertEquals(HttpStatus.CREATED, response.get().statusCode)
-
-        authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirm",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.PUT
-        )
-
-        val statusResponse = authorizedRequest(
-            path = response.get().headers.location.toString(),
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        assertEquals(HttpStatus.OK, statusResponse.statusCode)
-
-        val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
-
-        assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
-
-        val begreperResponse = authorizedRequest(
-            path = "/begreper/search?orgNummer=123456789",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.POST,
-            body = objectMapper.writeValueAsString(
-                SearchOperation(query = "")
+            authorizedRequest(
+                path = "/import/${catalogId}/${importId}/confirm",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.PUT
             )
-        )
 
-        // get number of concepts in the response
-        val searchHits: Paginated = objectMapper.readValue(
-            begreperResponse.body,
-            Paginated::class.java
-        )
+            val statusResponse = authorizedRequest(
+                path = response.headers.location.toString(),
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.GET
+            )
 
-        assertEquals(HttpStatus.OK, begreperResponse.statusCode)
-        assertNotEquals(0, searchHits?.hits?.size)
+            assertEquals(HttpStatus.OK, statusResponse.statusCode)
+
+            val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
+
+            assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
+
+            val begreperResponse = authorizedRequest(
+                path = "/begreper/search?orgNummer=123456789",
+                token = JwtToken(Access.ORG_WRITE).toString(),
+                httpMethod = HttpMethod.POST,
+                body = objectMapper.writeValueAsString(
+                    SearchOperation(query = "")
+                )
+            )
+
+            // get number of concepts in the response
+            val searchHits: Paginated = objectMapper.readValue(
+                begreperResponse.body,
+                Paginated::class.java
+            )
+
+            assertEquals(HttpStatus.OK, begreperResponse.statusCode)
+            assertNotEquals(0, searchHits?.hits?.size)
+        }
 
     }
 

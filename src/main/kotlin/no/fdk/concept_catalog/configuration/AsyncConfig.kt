@@ -16,4 +16,13 @@ class AsyncConfig {
         setThreadNamePrefix("import-")
         initialize()
     }
+
+    @Bean("cancel-import-executor")
+    fun cancelExecutor() = ThreadPoolTaskExecutor().apply {
+        corePoolSize = 8
+        maxPoolSize = 64
+        queueCapacity = 200
+        setThreadNamePrefix("cancel-import")
+        initialize()
+    }
 }

@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
+import org.apache.jena.shared.JenaException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -20,7 +21,8 @@ import java.util.concurrent.Executor
 @CrossOrigin
 @RestController
 @RequestMapping(value = ["/import/{catalogId}"])
-class ImportController(@Qualifier("import-executor") private val executor: Executor,
+class ImportController(@Qualifier("import-executor") private val importExecutor: Executor,
+                       @Qualifier("cancel-import-executor") private val cancelExecutor: Executor,
                        private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
 
     @PutMapping(value = ["/{importId}/cancel"])
@@ -35,7 +37,8 @@ class ImportController(@Qualifier("import-executor") private val executor: Execu
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
                 CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
 
-            else -> CompletableFuture.supplyAsync ({ importService.cancelImport(importId) }, executor)
+            else -> CompletableFuture.supplyAsync ({ importService.cancelImport(importId) }, cancelExecutor)
+                //.thenCompose { it }
                 .thenApply {
                     ResponseEntity
                         .created(URI("/import/$catalogId/results/${importId}"))
@@ -119,13 +122,24 @@ class ImportController(@Qualifier("import-executor") private val executor: Execu
                             user = user,
                             jwt = jwt
                         )
-                    }, executor
+                    }, importExecutor
                 )
-                    .thenApply {
+                    //.thenCompose { it } //TODO remove it and fix tests
+                    .handle { _, ex ->
+                        when {
+                            ex != null -> throw ex
+
+                            else -> ResponseEntity
+                                .created(URI("/import/$catalogId/results/${importId}"))
+                                .build()
+                        }
+                    }
+                    /*.thenApply {
                         ResponseEntity
                             .created(URI("/import/$catalogId/results/${importId}"))
                             .build()
-                    }
+                    }*/
+
         }
     }
 

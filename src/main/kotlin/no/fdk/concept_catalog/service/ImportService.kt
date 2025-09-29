@@ -39,10 +39,10 @@ class ImportService(
     private val objectMapper: ObjectMapper
 ) {
 
-    @Async
-    fun cancelImport(importId: String) {
+    @Async("cancel-import-executor")
+    fun cancelImport(importId: String): CompletableFuture<ImportResult> {
         logger.info("Cancelling import with id: $importId")
-        CompletableFuture.supplyAsync { updateImportStatus(importId, ImportResultStatus.CANCELLED) }
+        return CompletableFuture.completedFuture( updateImportStatus(importId, ImportResultStatus.CANCELLED) )
     }
 
     fun updateImportStatus(importId: String, status: ImportResultStatus) =
