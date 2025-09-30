@@ -8,6 +8,7 @@ import no.fdk.concept_catalog.service.createNewConcept
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.apache.jena.vocabulary.DCTerms
+import org.apache.jena.vocabulary.RDF
 import org.apache.jena.vocabulary.SKOS
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -958,18 +959,39 @@ class RDFImportTests {
         }
     }
 
-    private fun createConceptExtraction(turtle: String): ConceptExtraction {
-        val model = ModelFactory.createDefaultModel()
-        model.read(StringReader(turtle), null, Lang.TURTLE.name)
+    companion object {
+        fun createConceptExtraction(turtle: String): ConceptExtraction {
+            val model = ModelFactory.createDefaultModel()
+            model.read(StringReader(turtle), null, Lang.TURTLE.name)
 
-        val resource = model.getResource("https://example.com/concept")
+            val resource = model.getResource("https://example.com/concept")
 
-        val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
+            val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
-        val objectMapper = jacksonObjectMapper()
-            .registerModule(JavaTimeModule())
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            val objectMapper = jacksonObjectMapper()
+                .registerModule(JavaTimeModule())
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
-        return resource.extract(concept, objectMapper)
+            return resource.extract(concept, objectMapper)
+        }
+
+        fun createConceptExtractions(turtle: String): List<ConceptExtraction> {
+            val model = ModelFactory.createDefaultModel()
+            model.read(StringReader(turtle), null, Lang.TURTLE.name)
+
+            val uriResources = model.listResourcesWithProperty(RDF.type, SKOS.Concept)
+                .asSequence()
+                .filter { it.isURIResource }
+                .toList()
+
+            val emptyConcept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
+
+            val objectMapper = jacksonObjectMapper()
+                .registerModule(JavaTimeModule())
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+
+            return uriResources.map { it.extract(emptyConcept, objectMapper) }
+        }
     }
+
 }

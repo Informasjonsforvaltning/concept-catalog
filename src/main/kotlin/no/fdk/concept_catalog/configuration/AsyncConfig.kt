@@ -22,7 +22,7 @@ class AsyncConfig {
         corePoolSize = 8
         maxPoolSize = 64
         queueCapacity = 200
-        setThreadNamePrefix("cancel-import")
+        setThreadNamePrefix("cancel-import-")
         initialize()
     }
 }

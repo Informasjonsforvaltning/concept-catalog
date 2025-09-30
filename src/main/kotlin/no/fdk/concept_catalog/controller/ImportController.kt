@@ -6,14 +6,18 @@ import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
 import org.apache.jena.shared.JenaException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Async
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import java.net.URI
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
@@ -22,7 +26,6 @@ import java.util.concurrent.Executor
 @RestController
 @RequestMapping(value = ["/import/{catalogId}"])
 class ImportController(@Qualifier("import-executor") private val importExecutor: Executor,
-                       @Qualifier("cancel-import-executor") private val cancelExecutor: Executor,
                        private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
 
     @PutMapping(value = ["/{importId}/cancel"])
@@ -30,20 +33,19 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable importId: String
-    ): CompletableFuture<ResponseEntity<String>> {
+    ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> CompletableFuture.completedFuture(ResponseEntity(HttpStatus.UNAUTHORIZED))
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
-                CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
+                ResponseEntity(HttpStatus.FORBIDDEN)
 
-            else -> CompletableFuture.supplyAsync ({ importService.cancelImport(importId) }, cancelExecutor)
-                //.thenCompose { it }
-                .thenApply {
-                    ResponseEntity
-                        .created(URI("/import/$catalogId/results/${importId}"))
-                        .build()
-                }
+            else -> {
+                importService.cancelImport(importId)
+                ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .build()
+            }
         }
     }
 
@@ -101,19 +103,21 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         @PathVariable catalogId: String,
         @PathVariable importId: String,
         @RequestBody concepts: String
-    ): CompletableFuture<ResponseEntity<Void>> {
+    ): ResponseEntity<Void> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {
             user == null ->
-                CompletableFuture.completedFuture(ResponseEntity(HttpStatus.UNAUTHORIZED))
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
 
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
-                CompletableFuture.completedFuture(ResponseEntity(HttpStatus.FORBIDDEN))
+                ResponseEntity(HttpStatus.FORBIDDEN)
 
-            else ->
-                CompletableFuture.supplyAsync (
-                    {
+            else -> {
+                var exception: Exception? = null
+
+                importExecutor.execute {
+                    try {
                         importService.importRdf(
                             catalogId = catalogId,
                             importId = importId,
@@ -122,24 +126,23 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
                             user = user,
                             jwt = jwt
                         )
-                    }, importExecutor
-                )
-                    //.thenCompose { it } //TODO remove it and fix tests
-                    .handle { _, ex ->
-                        when {
-                            ex != null -> throw ex
 
-                            else -> ResponseEntity
-                                .created(URI("/import/$catalogId/results/${importId}"))
-                                .build()
-                        }
+                    } catch (ex: Exception) {
+                        exception = ex
                     }
-                    /*.thenApply {
-                        ResponseEntity
-                            .created(URI("/import/$catalogId/results/${importId}"))
-                            .build()
-                    }*/
+                }
 
+                when {
+                    exception != null && exception is ResponseStatusException ->
+                        ResponseEntity
+                            .status((exception as ResponseStatusException).statusCode)
+                            .build()
+
+                    else -> ResponseEntity
+                        .created(URI("/import/$catalogId/results/${importId}"))
+                        .build()
+                }
+            }
         }
     }
 

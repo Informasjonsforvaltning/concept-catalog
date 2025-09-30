@@ -27,7 +27,6 @@ import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service
@@ -40,9 +39,9 @@ class ImportService(
 ) {
 
     @Async("cancel-import-executor")
-    fun cancelImport(importId: String): CompletableFuture<ImportResult> {
+    fun cancelImport(importId: String) {
         logger.info("Cancelling import with id: $importId")
-        return CompletableFuture.completedFuture( updateImportStatus(importId, ImportResultStatus.CANCELLED) )
+        updateImportStatus(importId, ImportResultStatus.CANCELLED)
     }
 
     fun updateImportStatus(importId: String, status: ImportResultStatus) =
@@ -74,10 +73,10 @@ class ImportService(
             )
         )
 
-    @Async("import-executor")
+    //@Async("import-executor")
     fun importRdf(
         catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
-    ): CompletableFuture<ImportResult> {
+    ) {
         val model: Model
 
         try {
@@ -100,9 +99,7 @@ class ImportService(
         if (conceptsByUri.isEmpty()) {
             logger.warn("No concepts found in RDF import for catalog $catalogId")
             checkIfAlreadyCancelled(importId)
-            return CompletableFuture.completedFuture(
-                saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(), ImportResultStatus.FAILED, importId)
-            )
+            saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(), ImportResultStatus.FAILED, importId)
         }
 
         updateImportProgress(
@@ -113,23 +110,23 @@ class ImportService(
 
         val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user, importId)
 
-        return if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
+        if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
             logger.warn("Errors occurred during RDF import for catalog $catalogId")
             checkIfAlreadyCancelled(importId)
-
-            CompletableFuture.completedFuture(
-                saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED, importId)
+            saveImportResultWithExtractionRecords(
+                catalogId,
+                conceptExtractions.allExtractionRecords,
+                ImportResultStatus.FAILED,
+                importId
             )
         } else {
             logger.info("Number of concepts extracted: ${conceptExtractions.size} for catalog $catalogId")
             checkIfAlreadyCancelled(importId)
-            return CompletableFuture.completedFuture(
-                saveImportResultWithConceptExtractions(
-                    catalogId = catalogId,
-                    conceptExtractions = conceptExtractions,
-                    status = ImportResultStatus.PENDING_CONFIRMATION,
-                    importId = importId
-                )
+            saveImportResultWithConceptExtractions(
+                catalogId = catalogId,
+                conceptExtractions = conceptExtractions,
+                status = ImportResultStatus.PENDING_CONFIRMATION,
+                importId = importId
             )
         }
 
@@ -143,6 +140,7 @@ class ImportService(
             }
 
         if (importResult.status == ImportResultStatus.CANCELLED) {
+            logger.info("Import with id: $importId is already cancelled")
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Import with id: $importId is already cancelled"

@@ -1,0 +1,5 @@
+spring:
+  task:
+    execution:
+      pool:
+        enabled: false
