@@ -7,7 +7,6 @@ import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.validation.isOrganizationNumber
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -146,7 +145,7 @@ class ChangeRequestService(
             if (openChangeRequestForConcept.isNotEmpty())
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Found unhandled change request for concept")
 
-            val concept = conceptRepository.findByIdOrNull(changeRequest.conceptId)
+            val concept = conceptRepository.findById(changeRequest.conceptId).orElse(null)
             if (concept?.ansvarligVirksomhet?.id != catalogId)
                     throw ResponseStatusException(HttpStatus.BAD_REQUEST, "No concept with id ${changeRequest.conceptId} in catalog")
             if (concept.originaltBegrep != changeRequest.conceptId)
