@@ -17,7 +17,6 @@ import org.apache.jena.vocabulary.SKOS
 import org.openapi4j.core.validation.ValidationSeverity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -140,11 +139,11 @@ class ImportService(
     }
 
     fun getResult(statusId: String): ImportResult? {
-        return importResultRepository.findByIdOrNull(statusId)
+        return importResultRepository.findById(statusId).orElse(null)
     }
 
     fun deleteImportResult(catalogId: String, resultId: String) {
-        val result = importResultRepository.findByIdOrNull(resultId)
+        val result = importResultRepository.findById(resultId).orElse(null)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $resultId not found")
 
         result.takeIf { result.catalogId == catalogId }
@@ -194,7 +193,7 @@ class ImportService(
 
     private fun findLatestConceptByUri(uri: String): BegrepDBO? {
         return findExistingConceptId(uri)
-            ?.let { conceptRepository.findByIdOrNull(it) }
+            ?.let { conceptRepository.findById(it).orElse(null) }
             ?.let { concept ->
                 conceptRepository.getByOriginaltBegrep(concept.originaltBegrep).maxByOrNull { it.versjonsnr }
             }

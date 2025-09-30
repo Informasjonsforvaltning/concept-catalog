@@ -11,7 +11,6 @@ import org.apache.jena.riot.Lang
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.MongoOperations
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -57,10 +56,10 @@ class ConceptService(
     }
 
     fun getConceptById(id: String): Begrep? =
-        conceptRepository.findByIdOrNull(id)?.toDTO()
+        conceptRepository.findById(id).orElse(null)?.toDTO()
 
     fun getConceptDBO(id: String): BegrepDBO? =
-        conceptRepository.findByIdOrNull(id)
+        conceptRepository.findById(id).orElse(null)
 
     fun createConcept(concept: Begrep, user: User, jwt: Jwt): Begrep {
         val newDefaultConcept: BegrepDBO = createNewConcept(concept.ansvarligVirksomhet, user)
