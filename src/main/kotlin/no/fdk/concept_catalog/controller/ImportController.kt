@@ -109,34 +109,21 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
                 ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                var exception: Exception? = null
 
                 importExecutor.execute {
-                    try {
-                        importService.importRdf(
-                            catalogId = catalogId,
-                            importId = importId,
-                            concepts = concepts,
-                            lang = jenaLangFromHeader(contentType),
-                            user = user,
-                            jwt = jwt
-                        )
-
-                    } catch (ex: Exception) {
-                        exception = ex
-                    }
+                    importService.importRdf(
+                        catalogId = catalogId,
+                        importId = importId,
+                        concepts = concepts,
+                        lang = jenaLangFromHeader(contentType),
+                        user = user,
+                        jwt = jwt
+                    )
                 }
 
-                when {
-                    exception != null && exception is ResponseStatusException ->
-                        ResponseEntity
-                            .status((exception as ResponseStatusException).statusCode)
-                            .build()
-
-                    else -> ResponseEntity
-                        .created(URI("/import/$catalogId/results/${importId}"))
-                        .build()
-                }
+                ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .build()
             }
         }
     }
