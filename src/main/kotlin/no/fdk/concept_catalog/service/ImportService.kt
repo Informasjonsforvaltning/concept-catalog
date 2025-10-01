@@ -72,7 +72,6 @@ class ImportService(
             )
         )
 
-    //@Async("import-executor")
     fun importRdf(
         catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
     ) {
