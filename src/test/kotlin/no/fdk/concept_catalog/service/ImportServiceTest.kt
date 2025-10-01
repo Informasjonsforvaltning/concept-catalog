@@ -346,7 +346,7 @@ class ImportServiceTest {
     }
 
     @Test
-    fun `should fail to rollback when exception is thrown during import`() { // TODO
+    fun `should fail to rollback when exception is thrown during import`() {
         val importService = createImportServiceSpy()
         val importResultOngoing = createImportResultInProgress()
         val importResultPending = importResultOngoing.copy(

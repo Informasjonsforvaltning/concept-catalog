@@ -141,7 +141,6 @@ class ImportControllerTests : ContractTestsBase() {
         )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
-
     }
 
     @Test
@@ -202,10 +201,8 @@ class ImportControllerTests : ContractTestsBase() {
             httpMethod = HttpMethod.GET
         )
 
-        val importResultCompleted = objectMapper.readValue(
-            statusResponseImportResult.body,
-            ImportResult::class.java
-        )
+        val importResultCompleted = objectMapper.readValue(statusResponseImportResult.body,
+            ImportResult::class.java)
 
         assertEquals(1, importResultCompleted.extractionRecords.size)
         val extractionRecord = importResultCompleted.extractionRecords.first()
@@ -222,7 +219,6 @@ class ImportControllerTests : ContractTestsBase() {
 
         assertEquals(catalogId, concept.ansvarligVirksomhet.id)
         assertEquals("anbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
-
     }
 
     @Test
@@ -251,6 +247,7 @@ class ImportControllerTests : ContractTestsBase() {
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
         )
+
         assertEquals(HttpStatus.CREATED, response.statusCode)
 
         val statusResponse = authorizedRequest(
@@ -264,7 +261,6 @@ class ImportControllerTests : ContractTestsBase() {
         val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
         assertEquals(ImportResultStatus.FAILED, importResult!!.status)
-
     }
 
     @Test
@@ -380,8 +376,6 @@ class ImportControllerTests : ContractTestsBase() {
 
         assertEquals("123456789", concept.ansvarligVirksomhet.id)
         assertEquals("oppdatertAnbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
-
-
     }
 
     @Test
@@ -492,6 +486,7 @@ class ImportControllerTests : ContractTestsBase() {
             httpMethod = HttpMethod.POST,
             contentType = MediaType.valueOf("text/turtle")
         )
+
         assertEquals(HttpStatus.CREATED, response.statusCode)
 
         authorizedRequest(

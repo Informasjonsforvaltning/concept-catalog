@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test
 import java.io.StringReader
 import java.time.LocalDate
 import kotlin.test.assertNull
-import kotlin.test.assertNotNull
 
 @Tag("unit")
 class RDFImportTests {
@@ -1059,5 +1058,4 @@ class RDFImportTests {
             return uriResources.map { it.extract(emptyConcept, objectMapper) }
         }
     }
-
 }
