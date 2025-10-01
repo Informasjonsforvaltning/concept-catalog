@@ -69,10 +69,6 @@ spring:
   config.activate.on-profile: contract-test
   main:
     allow-bean-definition-overriding: true
-  task:
-    execution:
-      pool:
-        core-size: 1
   data.mongodb:
     host: localhost
     username: testuser
