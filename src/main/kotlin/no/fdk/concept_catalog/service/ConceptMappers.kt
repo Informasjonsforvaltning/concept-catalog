@@ -18,6 +18,7 @@ fun BegrepDBO.toDTO(): Begrep =
         status,
         statusURI,
         erPublisert,
+        isArchived,
         publiseringsTidspunkt,
         anbefaltTerm,
         tillattTerm,

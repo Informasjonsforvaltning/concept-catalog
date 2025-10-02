@@ -25,7 +25,9 @@ data class BegrepDBO (
     val status: Status?,
     val statusURI: String? = null,
     val erPublisert: Boolean = false,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
+    val isArchived: Boolean = false,
+    
+    @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
     val anbefaltTerm: Term?,
     val tillattTerm: Map<String, List<String>>?,
@@ -67,7 +69,8 @@ data class Begrep (
     val status: Status? = null,
     val statusURI: String? = null,
     val erPublisert: Boolean = false,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
+    val isArchived: Boolean = false,
+    @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
     val anbefaltTerm: Term? = null,
     val tillattTerm: Map<String, List<String>>? = HashMap(),
