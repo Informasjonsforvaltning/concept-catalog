@@ -75,10 +75,11 @@ spec:
             failureThreshold: 3
           resources:
             requests:
-              memory: "2Gi"
-              cpu: "200m"
+              memory: "4Gi"
+              cpu: "500m"
             limits:
-              memory: "2Gi"
+              memory: "4Gi"
+              cpu: "500m"
           volumeMounts:
             - name: keystore-volume
               mountPath: /var/secrets/elastic/keystores
