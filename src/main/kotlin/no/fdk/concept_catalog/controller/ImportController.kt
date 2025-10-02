@@ -87,7 +87,7 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
 
 
             else -> {
-                logger.info("Creating import is not allowed (Unauthorized)")
+                logger.info("Creating import is allowed (authorized)")
                 val importResult = importService.createImportResult(catalogId)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importResult.id}"))
