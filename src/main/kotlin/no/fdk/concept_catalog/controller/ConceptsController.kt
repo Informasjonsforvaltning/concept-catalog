@@ -256,7 +256,7 @@ class ConceptsController(
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
 
-            concept.erPublisert -> {
+            concept.isArchived -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
                 conceptService.createRevisionOfConcept(patchOperations, concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }

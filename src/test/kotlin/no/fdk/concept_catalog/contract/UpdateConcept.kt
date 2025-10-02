@@ -334,6 +334,10 @@ class UpdateConcept : ContractTestsBase() {
         )
 
         assertEquals(HttpStatus.OK, getRsp.statusCode)
+        
+        // Verify the revision is not archived
+        val revisionResult: Begrep = mapper.readValue(getRsp.body as String)
+        assertEquals(false, revisionResult.isArchived)
     }
 
     @Test
@@ -344,6 +348,22 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_0_OLD.id}",
+            mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+    }
+
+    @Test
+    fun `Bad request when trying to patch archived concept directly`() {
+        val archivedConcept = BEGREP_TO_BE_UPDATED.copy(isArchived = true)
+        mongoOperations.insert(archivedConcept.toDBO())
+
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
+
+        val response = authorizedRequest(
+            "/begreper/${archivedConcept.id}",
             mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )

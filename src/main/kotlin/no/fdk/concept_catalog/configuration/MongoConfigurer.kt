@@ -21,12 +21,12 @@ class MongoConfigurer {
     fun configureIndexes(mongoOperations: MongoOperations): Boolean {
         val idxOperations = mongoOperations.indexOps(BegrepDBO::class.java)
 
-        idxOperations.ensureIndex(
+        idxOperations.createIndex(
             CompoundIndexDefinition(Document().append("ansvarligVirksomhet.id", 1))
                 .named("ansvarlig_virksomhet")
         )
 
-        idxOperations.ensureIndex(
+        idxOperations.createIndex(
             CompoundIndexDefinition(
                 Document()
                     .append("ansvarligVirksomhet.id", 1)
@@ -35,12 +35,12 @@ class MongoConfigurer {
                 .named("ansvarlig_virksomhet_status")
         )
 
-        idxOperations.ensureIndex(
+        idxOperations.createIndex(
             CompoundIndexDefinition(Document().append("originaltBegrep", 1))
                 .named("originalt_begrep")
         )
 
-        idxOperations.ensureIndex(
+        idxOperations.createIndex(
             CompoundIndexDefinition(
                 Document()
                     .append("originaltBegrep", 1)

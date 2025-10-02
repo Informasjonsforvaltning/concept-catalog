@@ -22,6 +22,7 @@ fun Begrep.toDBO(): BegrepDBO =
         status,
         statusURI,
         erPublisert,
+        isArchived,
         publiseringsTidspunkt,
         anbefaltTerm,
         tillattTerm,

@@ -6,17 +6,17 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DataSource (
-    @JsonProperty("dataType")
+    @param:JsonProperty("dataType")
     val dataType: DataType,
-    @JsonProperty("dataSourceType")
+    @param:JsonProperty("dataSourceType")
     val dataSourceType: DataSourceType,
-    @JsonProperty("url")
+    @param:JsonProperty("url")
     val url: String,
-    @JsonProperty("acceptHeaderValue")
+    @param:JsonProperty("acceptHeaderValue")
     val acceptHeaderValue: String,
-    @JsonProperty("publisherId")
+    @param:JsonProperty("publisherId")
     val publisherId: String,
-    @JsonProperty("description")
+    @param:JsonProperty("description")
     val description: String
 )
 

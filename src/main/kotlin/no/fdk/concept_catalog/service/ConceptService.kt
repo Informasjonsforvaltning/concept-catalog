@@ -233,8 +233,8 @@ class ConceptService(
         val validation = patched.validateSchema()
 
         when {
-            concept.erPublisert -> {
-                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to patch published concepts")
+            concept.isArchived -> {
+                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to patch archived concepts")
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
             }
@@ -387,6 +387,7 @@ class ConceptService(
     fun publish(concept: BegrepDBO): Begrep {
         val published = concept.copy(
             erPublisert = true,
+            isArchived = true,
             versjonsnr = getVersionOrMinimum(concept),
             publiseringsTidspunkt = Instant.now()
         )
