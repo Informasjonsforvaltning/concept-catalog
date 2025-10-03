@@ -4,12 +4,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.util.concurrent.ThreadPoolExecutor
 
 @EnableAsync
 @Configuration
+@Profile("!contract-test")
 class AsyncConfig {
     private val logger: Logger = LoggerFactory.getLogger(AsyncConfig::class.java)
 
