@@ -103,6 +103,7 @@ fun BegrepDBO.createNewRevision(): BegrepDBO =
         revisjonAv = id,
         status = Status.UTKAST,
         erPublisert = false,
+        isArchived = false,
         publiseringsTidspunkt = null
     )
 

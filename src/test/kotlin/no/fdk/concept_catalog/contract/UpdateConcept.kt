@@ -307,7 +307,7 @@ class UpdateConcept : ContractTestsBase() {
     }
 
     @Test
-    fun `Patch of published concept creates new revision`() {
+    fun `Patch of archived concept creates new revision`() {
         mongoOperations.insert(BEGREP_0.toDBO())
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
@@ -356,9 +356,10 @@ class UpdateConcept : ContractTestsBase() {
     }
 
     @Test
-    fun `Bad request when trying to patch archived concept directly`() {
-        val archivedConcept = BEGREP_TO_BE_UPDATED.copy(isArchived = true)
+    fun `Bad request when trying to patch archived concept which already has new revision`() {
+        val archivedConcept = BEGREP_0_OLD.copy()
         mongoOperations.insert(archivedConcept.toDBO())
+        mongoOperations.insert(BEGREP_0.toDBO())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
 
