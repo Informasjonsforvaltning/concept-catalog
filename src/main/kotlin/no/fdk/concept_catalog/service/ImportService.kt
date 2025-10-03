@@ -138,7 +138,7 @@ class ImportService(
             }
 
         if (importResult.status == ImportResultStatus.CANCELLED) {
-            logger.info("Import with id: $importId is already cancelled")
+            logger.warn("Import with id: $importId is already cancelled")
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Import with id: $importId is already cancelled"
