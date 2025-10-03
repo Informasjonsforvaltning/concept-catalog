@@ -677,6 +677,7 @@ class ChangeRequests : ContractTestsBase() {
                 id = location.id,
                 versjonsnr = SemVer(1, 0, 2),
                 erPublisert = false,
+                isArchived = false,
                 sistPublisertId = null,
                 publiseringsTidspunkt = null,
                 revisjonAv = BEGREP_0.id,
@@ -770,6 +771,7 @@ class ChangeRequests : ContractTestsBase() {
                 id = location.id,
                 originaltBegrep = location.id,
                 erPublisert = false,
+                isArchived = false,
                 versjonsnr = SemVer(0, 1, 0),
                 ansvarligVirksomhet = Virksomhet(
                     id = "123456789"
