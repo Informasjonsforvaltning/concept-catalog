@@ -262,6 +262,15 @@ class ConceptService(
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
             }
+
+            patched.isArchived -> {
+                val badRequest = ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Unable to archive concepts as part of normal update"
+                )
+                logger.error("aborting update of ${concept.id}", badRequest)
+                throw badRequest
+            }
         }
 
         return patched
