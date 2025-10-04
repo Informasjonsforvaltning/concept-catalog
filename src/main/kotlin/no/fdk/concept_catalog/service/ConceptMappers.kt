@@ -117,6 +117,7 @@ fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
         status = Status.UTKAST,
         statusURI = CONCEPT_STATUS.draft.uri,
         erPublisert = false,
+        isArchived = false,
         publiseringsTidspunkt = null,
         opprettet = Instant.now(),
         opprettetAv = user.name,

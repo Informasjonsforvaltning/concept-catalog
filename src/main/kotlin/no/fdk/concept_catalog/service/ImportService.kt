@@ -222,7 +222,7 @@ class ImportService(
             val operations = it.extractionRecord.allOperations
             val concept = it.concept
                 .updateLastChangedAndByWhom(user)
-                .apply { if (erPublisert) createNewRevision() }
+                .apply { if (isArchived) createNewRevision() }
             try {
                 updateHistory(concept, operations, user, jwt)
                 updatedExtractionsHistory.add(it.extractionRecord)
