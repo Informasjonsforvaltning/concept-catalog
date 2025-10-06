@@ -77,17 +77,17 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> {
-                logger.info("User for creating import is null (Unauthorized)")
+                logger.debug("Unauthorized import, user data is missing")
                 ResponseEntity(HttpStatus.UNAUTHORIZED)
             }
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
-                logger.info("User for creating import is not allowed (forbidden)")
+                logger.debug("Import cancelled, not permitted")
                 ResponseEntity(HttpStatus.FORBIDDEN)
             }
 
 
             else -> {
-                logger.info("Creating import is allowed (authorized)")
+                logger.debug("Import initialized, creating result")
                 val importResult = importService.createImportResult(catalogId)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importResult.id}"))
@@ -113,18 +113,18 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
 
         return when {
             user == null -> {
-                logger.info("User for importing is null (Unauthorized)")
+                logger.debug("Unauthorized import, user data is missing")
                 ResponseEntity(HttpStatus.UNAUTHORIZED)
             }
 
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
-                logger.info("User for importing is not allowed (forbidden)")
+                logger.debug("Import cancelled, not permitted")
                 ResponseEntity(HttpStatus.FORBIDDEN)
             }
 
             else -> {
 
-                logger.info("Importing RDF data now")
+                logger.debug("Importing RDF data now")
                 importExecutor.execute {
                     importService.importRdf(
                         catalogId = catalogId,

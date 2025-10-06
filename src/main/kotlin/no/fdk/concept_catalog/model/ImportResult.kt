@@ -18,5 +18,5 @@ data class ImportResult(
     val conceptExtraction: List<ConceptExtraction> = emptyList(),
     val totalConcepts: Int = 0,
     val extractedConcepts: Int = 0,
-    val savedConcepts: Int = 0,
+    val savedConcepts: Int = 0
     )

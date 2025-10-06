@@ -8,6 +8,7 @@ import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.repository.ImportResultRepository
+import no.fdk.concept_catalog.test_config.SyncConfig
 import no.fdk.concept_catalog.utils.JwkStore
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +26,7 @@ import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
 
 @ActiveProfiles("contract-test")
-@Import(TestcontainersConfig::class, ElasticTestConfig::class)
+@Import(SyncConfig::class, TestcontainersConfig::class, ElasticTestConfig::class)
 @EnableWireMock(ConfigureWireMock(port = 6000))
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 open class ContractTestsBase {
