@@ -88,8 +88,6 @@ class ImportService(
             )
         )
 
-
-
     fun importRdf(
         catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
     ) {
@@ -408,7 +406,6 @@ class ImportService(
         var extractionRecordMap: Map<BegrepDBO, ExtractionRecord>
         var conceptExtractions: List<ConceptExtraction>
 
-        //Thread.sleep(7000)
         try {
             extractionRecordMap = concepts.map { begrepDTO ->
                 checkIfAlreadyCancelled(importId)
@@ -477,52 +474,6 @@ class ImportService(
                     status = ImportResultStatus.PENDING_CONFIRMATION
                 )
             }
-        }
-    }
-
-    fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
-        conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
-
-        val begrepUriMap = mutableMapOf<BegrepDBO, String>()
-        val extractionRecordMap: Map<BegrepDBO, ExtractionRecord> = concepts.map { begrepDTO ->
-            val uuid = UUID.randomUUID().toString()
-            val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id?: uuid) ?: createNewConcept(begrepDTO.ansvarligVirksomhet, user)
-            val updatedBegrepDTO = begrepDTOWithUri.updateLastChangedAndByWhom(user)
-            val begrepDBO = updatedBegrepDTO.addUpdatableFieldsFromDTO(begrepDTO)
-            begrepUriMap[begrepDBO] = begrepDTO.id?: uuid
-
-            val patchOperations: List<JsonPatchOperation> =
-                createPatchOperations(updatedBegrepDTO, begrepDBO, objectMapper)
-
-            val issues: List<Issue> = extractIssues(begrepDBO, patchOperations)
-
-            val extractionResult = ExtractResult(operations = patchOperations, issues = issues)
-
-            logger.info("Original Begrep ${begrepDBO.originaltBegrep}, anbefalt term: ${begrepDBO.anbefaltTerm}")
-
-            begrepDBO to ExtractionRecord(
-                externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id?: uuid,
-                internalId = begrepDBO.id,
-                extractResult = extractionResult
-            )
-        }.associate { it }
-
-        val conceptExtractions = extractionRecordMap.map { (concept, record) ->
-            ConceptExtraction(
-                concept = concept,
-                extractionRecord = record
-            )
-        }
-
-        return when {
-            conceptExtractions.isEmpty() -> {
-                logger.warn("No concepts found in the imported file")
-                saveImportResultWithExtractionRecords(catalogId, emptyList(), ImportResultStatus.FAILED)
-            }
-
-            conceptExtractions.hasError -> saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
-
-            else -> processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
         }
     }
 
