@@ -5,6 +5,9 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -13,11 +16,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import java.net.URI
+import java.util.concurrent.Executor
 
 @CrossOrigin
 @RestController
 @RequestMapping(value = ["/import/{catalogId}"])
-class ImportController(private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
+class ImportController(@Qualifier("import-executor") private val importExecutor: Executor,
+                       private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
+    private val logger: Logger = LoggerFactory.getLogger(ImportService::class.java)
 
     @PutMapping(value = ["/{importId}/cancel"])
     fun cancelImport(
@@ -28,11 +34,12 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
                 importService.cancelImport(importId)
-                return ResponseEntity
+                ResponseEntity
                     .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
             }
@@ -69,10 +76,18 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            user == null -> {
+                logger.debug("Unauthorized import, user data is missing")
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
+                logger.debug("Import cancelled, not permitted")
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            }
+
 
             else -> {
+                logger.debug("Import initialized, creating result")
                 val importResult = importService.createImportResult(catalogId)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importResult.id}"))
@@ -97,21 +112,32 @@ class ImportController(private val endpointPermissions: EndpointPermissions, pri
         val user = endpointPermissions.getUser(jwt)
 
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            user == null -> {
+                logger.debug("Unauthorized import, user data is missing")
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
+                logger.debug("Import cancelled, not permitted")
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            }
 
             else -> {
-                val importStatus = importService.importRdf(
-                    catalogId = catalogId,
-                    importId = importId,
-                    concepts = concepts,
-                    lang = jenaLangFromHeader(contentType),
-                    user = user,
-                    jwt = jwt
-                )
 
-                return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importStatus.id}"))
+                logger.debug("Importing RDF data now")
+                importExecutor.execute {
+                    importService.importRdf(
+                        catalogId = catalogId,
+                        importId = importId,
+                        concepts = concepts,
+                        lang = jenaLangFromHeader(contentType),
+                        user = user,
+                        jwt = jwt
+                    )
+                }
+
+                ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
             }
         }

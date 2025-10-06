@@ -24,6 +24,7 @@ import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.rdf.RDFImportTests.Companion.createConceptExtractions
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_CREATED
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.springframework.http.HttpStatus
@@ -315,6 +316,10 @@ class ImportServiceTest {
     @Test
     fun `should raise exception when history service fails`() {
         val importResultOngoing = createImportResultInProgress()
+        val importResultPending = importResultOngoing.copy(
+            status = ImportResultStatus.PENDING_CONFIRMATION,
+            conceptExtraction = createConceptExtractions(turtle)
+        )
 
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing))
@@ -322,7 +327,7 @@ class ImportServiceTest {
             .whenever(historyService)
             .updateHistory(any(), any(), any(), any())
 
-        val importResultPending = importService.importRdf(
+        importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,
@@ -341,15 +346,18 @@ class ImportServiceTest {
     }
 
     @Test
-    //@Disabled
     fun `should fail to rollback when exception is thrown during import`() {
         val importService = createImportServiceSpy()
         val importResultOngoing = createImportResultInProgress()
+        val importResultPending = importResultOngoing.copy(
+            status = ImportResultStatus.PENDING_CONFIRMATION,
+            conceptExtraction = createConceptExtractions(turtle)
+        )
 
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing))
 
-        val importResultPending = importService.importRdf(
+        importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,
@@ -379,6 +387,10 @@ class ImportServiceTest {
     fun `should fail to rollback when exception is thrown updating DB`() {
         val importService = createImportServiceSpy()
         val importResultOngoing = createImportResultInProgress()
+        val importResultPending = importResultOngoing.copy(
+            status = ImportResultStatus.PENDING_CONFIRMATION,
+            conceptExtraction = createConceptExtractions(turtle)
+        )
 
         doThrow(RuntimeException("Updating DB failed"))
             .whenever(conceptRepository)
@@ -386,7 +398,7 @@ class ImportServiceTest {
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing ))
 
-        val importResultPending = importService.importRdf(
+        importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,
@@ -410,6 +422,10 @@ class ImportServiceTest {
     fun `should fail to rollback when exception is thrown updating elastic`() {
         val importService = createImportServiceSpy()
         val importResultOngoing = createImportResultInProgress()
+        val importResultPending = importResultOngoing.copy(
+            status = ImportResultStatus.PENDING_CONFIRMATION,
+            conceptExtraction = createConceptExtractions(turtle)
+        )
 
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing ))
@@ -417,7 +433,7 @@ class ImportServiceTest {
             .whenever(conceptRepository)
             .saveAll(any<Iterable<BegrepDBO>>())
 
-        val importResultPending = importService.importRdf(
+        importService.importRdf(
             catalogId = catalogId,
             concepts = turtle,
             lang = lang,

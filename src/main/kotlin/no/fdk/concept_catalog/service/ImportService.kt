@@ -18,6 +18,7 @@ import org.openapi4j.core.validation.ValidationSeverity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.scheduling.annotation.Async
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 @Service
 class ImportService(
@@ -35,35 +37,44 @@ class ImportService(
     private val objectMapper: ObjectMapper
 ) {
 
+    @Async("cancel-import-executor")
     fun cancelImport(importId: String) {
+        logger.info("Cancelling import with id: $importId")
+        updateImportStatus(importId, ImportResultStatus.CANCELLED)
+    }
 
-        val importResult = importResultRepository.findById(importId)
-            .orElseThrow {
-                ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
-            }
+    fun updateImportStatus(importId: String, status: ImportResultStatus) =
+        importResultRepository.save(getImportResult(importId).copy(status = status))
 
+    fun confirmImportAndSave(catalogId: String, importId: String, user: User, jwt: Jwt) =
+            processAndSaveConcepts(
+                catalogId, getImportResult(importId).conceptExtraction ?: emptyList(),
+                user, jwt, importId
+            )
+
+    private fun getImportResult(importId: String): ImportResult = importResultRepository.findById(importId)
+        .orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
+        }
+
+    fun updateImportProgress(importId: String, extractedConcepts: Int, totalConcepts: Int) =
+            importResultRepository.save(
+                getImportResult(importId).copy(
+                    extractedConcepts = extractedConcepts,
+                    totalConcepts = totalConcepts
+                )
+            )
+
+    fun updateImportProgress(importId: String, extractedConcepts: Int) =
         importResultRepository.save(
-            importResult.copy(
-                status = ImportResultStatus.CANCELLED
+            getImportResult(importId).copy(
+                extractedConcepts = extractedConcepts
             )
         )
-    }
-
-    fun confirmImportAndSave(catalogId: String, importId: String, user: User, jwt: Jwt) {
-        val importResult = importResultRepository.findById(importId)
-            .orElseThrow {
-                ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
-            }
-
-        processAndSaveConcepts(catalogId,
-            importResult.conceptExtraction ?: emptyList(),
-            user, jwt, importId)
-
-    }
 
     fun importRdf(
         catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt
-    ): ImportResult {
+    ) {
         val model: Model
 
         try {
@@ -86,20 +97,31 @@ class ImportService(
         if (conceptsByUri.isEmpty()) {
             logger.warn("No concepts found in RDF import for catalog $catalogId")
             checkIfAlreadyCancelled(importId)
-            return saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(), ImportResultStatus.FAILED, importId)
+            saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(), ImportResultStatus.FAILED, importId)
         }
 
-        val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user)
+        updateImportProgress(
+            importId = importId,
+            extractedConcepts = 0,
+            totalConcepts = conceptsByUri.size
+        )
 
-        return if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
+        val conceptExtractions = extractConcepts(conceptsByUri, catalogId, user, importId)
+
+        if (conceptExtractions.isEmpty() || conceptExtractions.hasError) {
             logger.warn("Errors occurred during RDF import for catalog $catalogId")
             checkIfAlreadyCancelled(importId)
-            saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED, importId)
+            saveImportResultWithExtractionRecords(
+                catalogId,
+                conceptExtractions.allExtractionRecords,
+                ImportResultStatus.FAILED,
+                importId
+            )
         } else {
             logger.info("Number of concepts extracted: ${conceptExtractions.size} for catalog $catalogId")
             checkIfAlreadyCancelled(importId)
-            return saveImportResultWithConceptExtractions(
-                catalogId= catalogId,
+            saveImportResultWithConceptExtractions(
+                catalogId = catalogId,
                 conceptExtractions = conceptExtractions,
                 status = ImportResultStatus.PENDING_CONFIRMATION,
                 importId = importId
@@ -116,6 +138,7 @@ class ImportService(
             }
 
         if (importResult.status == ImportResultStatus.CANCELLED) {
+            logger.warn("Import with id: $importId is already cancelled")
             throw ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Import with id: $importId is already cancelled"
@@ -153,29 +176,48 @@ class ImportService(
     }
 
     private fun extractConcepts(
-        conceptsByUri: Map<String, Resource>, catalogId: String, user: User
+        conceptsByUri: Map<String, Resource>, catalogId: String, user: User, importId: String? = null
     ): List<ConceptExtraction> {
+        val counter = AtomicInteger(0)
         return conceptsByUri.mapNotNull { (uri, resource) ->
             val concept = findLatestConceptByUri(uri) ?: createNewConcept(Virksomhet(id = catalogId), user)
-
-            resource.extract(concept, objectMapper)
+            val conceptExtraction = resource.extract(concept, objectMapper)
+            importId?.let {
+                checkIfAlreadyCancelled(it)
+                updateImportProgress(importId = it, extractedConcepts = counter.incrementAndGet())
+            }
+            conceptExtraction
         }
     }
 
     fun saveImportResultWithConceptExtractions(
-        catalogId: String, conceptExtractions: List<ConceptExtraction>, status: ImportResultStatus, importId: String? = null
-    ): ImportResult {
-        return importResultRepository.save(
+        catalogId: String,
+        conceptExtractions: List<ConceptExtraction>,
+        status: ImportResultStatus,
+        importId: String? = null
+    ): ImportResult = importId
+        ?.let { getImportResult(it) }
+        ?.let {
+            importResultRepository.save(
+                it.copy(
+                    id = it.id,
+                    created = LocalDateTime.now(),
+                    catalogId = catalogId,
+                    status = status,
+                    extractionRecords = conceptExtractions.allExtractionRecords,
+                    conceptExtraction = conceptExtractions
+                )
+            )
+        } ?: importResultRepository.save(
             ImportResult(
-                id = importId?: UUID.randomUUID().toString(),
+                id = UUID.randomUUID().toString(),
                 created = LocalDateTime.now(),
                 catalogId = catalogId,
                 status = status,
                 extractionRecords = conceptExtractions.allExtractionRecords,
                 conceptExtraction = conceptExtractions
             )
-        )
-    }
+    )
 
     fun saveImportResultWithExtractionRecords(
         catalogId: String, extractionRecords: List<ExtractionRecord>,

@@ -67,6 +67,8 @@ application:
 ---
 spring:
   config.activate.on-profile: contract-test
+  main:
+    allow-bean-definition-overriding: true
   data.mongodb:
     host: localhost
     username: testuser

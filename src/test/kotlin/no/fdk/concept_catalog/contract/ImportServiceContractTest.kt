@@ -249,6 +249,10 @@ class ImportServiceContractTest : ContractTestsBase() {
             user = user,
             jwt = jwt
         )
+        val importResultWaiting = importResultRepository.findById(importId).get()
+
+        assertEquals(importResultWaiting.extractedConcepts, importResultWaiting.totalConcepts)
+
         importService.confirmImportAndSave(catalogId, importId, user, jwt)
 
         val importIdNew = UUID.randomUUID().toString()
