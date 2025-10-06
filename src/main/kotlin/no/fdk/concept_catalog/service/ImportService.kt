@@ -209,14 +209,14 @@ class ImportService(
                 )
             )
         } ?: importResultRepository.save(
-        ImportResult(
-            id = UUID.randomUUID().toString(),
-            created = LocalDateTime.now(),
-            catalogId = catalogId,
-            status = status,
-            extractionRecords = conceptExtractions.allExtractionRecords,
-            conceptExtraction = conceptExtractions
-        )
+            ImportResult(
+                id = UUID.randomUUID().toString(),
+                created = LocalDateTime.now(),
+                catalogId = catalogId,
+                status = status,
+                extractionRecords = conceptExtractions.allExtractionRecords,
+                conceptExtraction = conceptExtractions
+            )
     )
 
     fun saveImportResultWithExtractionRecords(
