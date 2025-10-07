@@ -245,6 +245,8 @@ class ImportServiceTest {
         verify(importService)
             .processAndSaveConcepts(any(), any(),
                 any(), any(), any())
+        verify(importService).confirmImport(importId)
+        verify(importService).updateImportStatus(importId = importId, status = ImportResultStatus.SAVING)
 
         val importResultCompleted = importResultPending.copy(status = ImportResultStatus.COMPLETED)
 
