@@ -290,9 +290,9 @@ class ImportService(
             } catch (ex: Exception) {
                 logger.error("Failed to update history for concept: ${concept.id}", ex)
                 logger.error("Stopping import for all concepts and rolling back all concepts with updated history due to error")
+                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
                     savedConceptsElastic, jwt)
-                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update history. Import failed", ex)
             }
 
@@ -303,9 +303,9 @@ class ImportService(
             } catch (ex: Exception) {
                 logger.error("Failed to save concepts in DB", ex)
                 logger.error("Stopping import for all concepts and rolling back all concepts in updated history and DB due to error")
+                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
                     savedConceptsElastic, jwt)
-                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
             }
 
@@ -317,9 +317,9 @@ class ImportService(
             } catch (ex: Exception) {
                 logger.error("Failed to save concept in Elastic: ${concept.id}", ex)
                 logger.error("Stopping import for all concepts and rolling back all concepts in updated history, DB, and Elastic due to error")
+                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
                     savedConceptsElastic, jwt)
-                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
             }
 

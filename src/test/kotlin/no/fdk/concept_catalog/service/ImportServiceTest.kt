@@ -43,6 +43,7 @@ import kotlin.test.fail
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.times
 import org.springframework.data.mongodb.core.MongoOperations
 import kotlin.test.assertTrue
 
@@ -352,6 +353,7 @@ class ImportServiceTest {
 
     @Test
     fun `should raise exception when history service fails`() {
+        val importService = createImportServiceSpy()
         val importResultOngoing = createImportResultInProgress()
         val importResultPending = importResultOngoing.copy(
             status = ImportResultStatus.PENDING_CONFIRMATION,
@@ -379,6 +381,8 @@ class ImportServiceTest {
         assertThrows<ResponseStatusException> {
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }.also { assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, it.statusCode) }
+
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
     }
 
@@ -418,6 +422,9 @@ class ImportServiceTest {
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }
 
+        verify(importService, times(2)).updateImportStatus(any(), any())
+
+
     }
 
     @Test
@@ -455,6 +462,7 @@ class ImportServiceTest {
         }
 
         verify(importService).rollbackHistoryUpdates(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
     }
 
     @Test
@@ -496,6 +504,7 @@ class ImportServiceTest {
         }
 
         verify(importService).rollbackHistoryUpdates(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
     }
 
@@ -528,6 +537,7 @@ class ImportServiceTest {
         verify(conceptService).updateCurrentConceptForOriginalId(any<String>())
         verify(importService).rollBackUpdates(any(), any(),
             any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
 
@@ -563,6 +573,7 @@ class ImportServiceTest {
         verify(importService).saveAllConceptsDB(any())
         verify(importService).rollBackUpdates(any(), any(),
             any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
 
