@@ -307,7 +307,7 @@ class UpdateConcept : ContractTestsBase() {
     }
 
     @Test
-    fun `Patch of published concept creates new revision`() {
+    fun `Patch of archived concept creates new revision`() {
         mongoOperations.insert(BEGREP_0.toDBO())
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
@@ -334,6 +334,10 @@ class UpdateConcept : ContractTestsBase() {
         )
 
         assertEquals(HttpStatus.OK, getRsp.statusCode)
+        
+        // Verify the revision is not archived
+        val revisionResult: Begrep = mapper.readValue(getRsp.body as String)
+        assertEquals(false, revisionResult.isArchived)
     }
 
     @Test
@@ -344,6 +348,23 @@ class UpdateConcept : ContractTestsBase() {
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_0_OLD.id}",
+            mapper.writeValueAsString(operations),
+            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
+        )
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+    }
+
+    @Test
+    fun `Bad request when trying to patch archived concept which already has new revision`() {
+        val archivedConcept = BEGREP_0_OLD.copy()
+        mongoOperations.insert(archivedConcept.toDBO())
+        mongoOperations.insert(BEGREP_0.toDBO())
+
+        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
+
+        val response = authorizedRequest(
+            "/begreper/${archivedConcept.id}",
             mapper.writeValueAsString(operations),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )

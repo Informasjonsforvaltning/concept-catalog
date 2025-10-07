@@ -18,6 +18,7 @@ fun BegrepDBO.toDTO(): Begrep =
         status,
         statusURI,
         erPublisert,
+        isArchived,
         publiseringsTidspunkt,
         anbefaltTerm,
         tillattTerm,
@@ -102,6 +103,7 @@ fun BegrepDBO.createNewRevision(): BegrepDBO =
         revisjonAv = id,
         status = Status.UTKAST,
         erPublisert = false,
+        isArchived = false,
         publiseringsTidspunkt = null
     )
 
@@ -115,6 +117,7 @@ fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
         status = Status.UTKAST,
         statusURI = CONCEPT_STATUS.draft.uri,
         erPublisert = false,
+        isArchived = false,
         publiseringsTidspunkt = null,
         opprettet = Instant.now(),
         opprettetAv = user.name,

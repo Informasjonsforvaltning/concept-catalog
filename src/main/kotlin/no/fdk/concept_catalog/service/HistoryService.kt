@@ -14,6 +14,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 
 private val logger = LoggerFactory.getLogger(HistoryService::class.java)
@@ -24,7 +25,7 @@ class HistoryService(
     private val mapper: ObjectMapper
 ) {
     fun updateHistory(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): String? =
-        URL("${applicationProperties.historyServiceUri}/${concept.ansvarligVirksomhet.id}/${concept.id}/updates")
+        URI("${applicationProperties.historyServiceUri}/${concept.ansvarligVirksomhet.id}/${concept.id}/updates").toURL()
             .let { it.openConnection() as HttpURLConnection }
             .postUpdateToHistoryService(HistoricPayload(user, operations), jwt)
 
@@ -44,7 +45,7 @@ class HistoryService(
     }
 
     fun removeHistoryUpdate(location: String, jwt: Jwt) {
-        URL("${applicationProperties.historyServiceUri}$location")
+        URI("${applicationProperties.historyServiceUri}$location").toURL()
             .let { it.openConnection() as HttpURLConnection }
             .deleteFromHistoryService(jwt)
     }

@@ -41,10 +41,10 @@ class ConceptService(
         if (newCurrent == null && currentConceptRepository.existsById(originalId)) {
             currentConceptRepository.deleteById(originalId)
         } else if (newCurrent != null) {
-            val latestPublishedId = allVersions.filter { it.erPublisert }
+            val latestArchivedId = allVersions.filter { it.isArchived }
                 .maxByOrNull { it.versjonsnr }
                 ?.id
-            currentConceptRepository.save(CurrentConcept(newCurrent, latestPublishedId))
+            currentConceptRepository.save(CurrentConcept(newCurrent, latestArchivedId))
         }
     }
 
@@ -233,8 +233,8 @@ class ConceptService(
         val validation = patched.validateSchema()
 
         when {
-            concept.erPublisert -> {
-                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to patch published concepts")
+            concept.isArchived -> {
+                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to patch archived concepts")
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
             }
@@ -258,6 +258,15 @@ class ConceptService(
                 val badRequest = ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Unable to publish concepts as part of normal update"
+                )
+                logger.error("aborting update of ${concept.id}", badRequest)
+                throw badRequest
+            }
+
+            patched.isArchived -> {
+                val badRequest = ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Unable to archive concepts as part of normal update"
                 )
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
@@ -387,6 +396,7 @@ class ConceptService(
     fun publish(concept: BegrepDBO): Begrep {
         val published = concept.copy(
             erPublisert = true,
+            isArchived = true,
             versjonsnr = getVersionOrMinimum(concept),
             publiseringsTidspunkt = Instant.now()
         )
@@ -480,12 +490,12 @@ class ConceptService(
             ?.let { it.id == id }
             ?: true
 
-    fun findIdOfUnpublishedRevision(concept: BegrepDBO): String? =
+    fun findIdOfUnarchivedRevision(concept: BegrepDBO): String? =
         when {
-            !concept.erPublisert -> null
-            else -> conceptRepository.getByOriginaltBegrepAndErPublisert(
+            !concept.isArchived -> null
+            else -> conceptRepository.getByOriginaltBegrepAndIsArchived(
                 originaltBegrep = concept.originaltBegrep,
-                erPublisert = false
+                isArchived = false
             ).maxByOrNull { it.opprettet?.epochSecond ?: 0 }?.id
         }
 

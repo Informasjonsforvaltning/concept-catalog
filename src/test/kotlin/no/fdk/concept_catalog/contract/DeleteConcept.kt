@@ -130,8 +130,8 @@ class DeleteConcept : ContractTestsBase() {
 
     @Test
     fun `Previous version is added to search when current is deleted`() {
-        mongoOperations.insertAll(listOf(BEGREP_0_OLD.toDBO(), BEGREP_0.copy(erPublisert = false).toDBO()))
-        addToElasticsearchIndex(listOf(BEGREP_0.copy(erPublisert = false).asCurrentConcept()))
+        mongoOperations.insertAll(listOf(BEGREP_0_OLD.toDBO(), BEGREP_0.copy(erPublisert = false, isArchived = false).toDBO()))
+        addToElasticsearchIndex(listOf(BEGREP_0.copy(erPublisert = false, isArchived = false).asCurrentConcept()))
 
         val deleteResponse = authorizedRequest(
             "/begreper/${BEGREP_0.id}",

@@ -107,6 +107,7 @@ class PublishConcept : ContractTestsBase() {
 
         val expected = BEGREP_TO_BE_UPDATED.copy(
             erPublisert = true,
+            isArchived = true,
             sistPublisertId = null,
             publiseringsTidspunkt = result.publiseringsTidspunkt
         )

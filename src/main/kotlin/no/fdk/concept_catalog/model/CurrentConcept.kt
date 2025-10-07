@@ -23,7 +23,8 @@ data class CurrentConcept(
     val status: Status?,
     val statusURI: String? = null,
     val erPublisert: Boolean = false,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
+    val isArchived: Boolean = false,
+    @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     @Field(type = FieldType.Date)
     val publiseringsTidspunkt: Instant? = null,
     val anbefaltTerm: Term?,
@@ -61,7 +62,7 @@ data class CurrentConcept(
 ) {
     constructor(dbo: BegrepDBO, latestPublishedId: String?) : this(
         dbo.id, dbo.originaltBegrep, dbo.versjonsnr, dbo.revisjonAv,
-        dbo.status, dbo.statusURI, dbo.erPublisert, dbo.publiseringsTidspunkt,
+        dbo.status, dbo.statusURI, dbo.erPublisert, dbo.isArchived, dbo.publiseringsTidspunkt,
         dbo.anbefaltTerm, dbo.tillattTerm, dbo.frarådetTerm, dbo.definisjon,
         dbo.definisjonForAllmennheten, dbo.definisjonForSpesialister,
         dbo.merknad, dbo.merkelapp, dbo.ansvarligVirksomhet, dbo.eksempel,
@@ -75,7 +76,7 @@ data class CurrentConcept(
     fun toDTO(): Begrep =
         Begrep(
             id = idOfThisVersion, originaltBegrep = originaltBegrep, versjonsnr = versjonsnr, revisjonAv = revisjonAv,
-            status = status, statusURI = statusURI, erPublisert = erPublisert, publiseringsTidspunkt = publiseringsTidspunkt,
+            status = status, statusURI = statusURI, erPublisert = erPublisert, isArchived = isArchived, publiseringsTidspunkt = publiseringsTidspunkt,
             anbefaltTerm = anbefaltTerm, tillattTerm = tillattTerm, frarådetTerm = frarådetTerm, definisjon = definisjon,
             definisjonForAllmennheten = definisjonForAllmennheten, definisjonForSpesialister = definisjonForSpesialister,
             merknad = merknad, merkelapp = merkelapp, ansvarligVirksomhet = ansvarligVirksomhet, eksempel = eksempel,
