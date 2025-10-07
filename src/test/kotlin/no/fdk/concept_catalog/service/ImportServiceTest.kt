@@ -216,13 +216,13 @@ class ImportServiceTest {
             mapper = objectMapper
         )
 
-        val importService = ImportService(
+        val importService = spy(ImportService(
             historyService = historyService,
             conceptRepository = conceptRepository,
             conceptService = conceptService,
             importResultRepository = importResultRepository,
             objectMapper = objectMapper
-        )
+        ))
 
         val begrepCaptor = argumentCaptor<Iterable<BegrepDBO>>()
 
@@ -241,6 +241,10 @@ class ImportServiceTest {
 
 
         importService.confirmImportAndSave(catalogId, importId, user, jwt)
+
+        verify(importService)
+            .processAndSaveConcepts(any(), any(),
+                any(), any(), any())
 
         val importResultCompleted = importResultPending.copy(status = ImportResultStatus.COMPLETED)
 

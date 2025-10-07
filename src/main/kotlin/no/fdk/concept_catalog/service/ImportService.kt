@@ -266,7 +266,7 @@ class ImportService(
             ?.internalId
     }
 
-    private fun processAndSaveConcepts(
+    fun processAndSaveConcepts(
         catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt, importId: String? = null
     ): ImportResult {
 
