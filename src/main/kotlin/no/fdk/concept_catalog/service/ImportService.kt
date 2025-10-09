@@ -283,7 +283,7 @@ class ImportService(
                 .updateLastChangedAndByWhom(user)
                 .apply { if (erPublisert) createNewRevision() }
             try {
-                logger.info("Updating history for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
+                logger.debug("Updating history for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
                 updateHistory(concept, operations, user, jwt)
                 updatedExtractionsHistory.add(it.extractionRecord)
                 concepts.add(concept)
@@ -298,7 +298,7 @@ class ImportService(
 
             // After history is updated safely for all concepts, save them in the DB and update elastic search
             try {
-                logger.info("Updating Mongo for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
+                logger.debug("Updating Mongo for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
                 savedConceptsDB.addAll(saveAllConceptsDB(listOf(concept)))
             } catch (ex: Exception) {
                 logger.error("Failed to save concepts in DB", ex)
@@ -311,7 +311,7 @@ class ImportService(
 
 
             try {
-                logger.info("Updating Elastic for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
+                logger.debug("Updating Elastic for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
                 conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
                 savedConceptsElastic.add(concept)
             } catch (ex: Exception) {
