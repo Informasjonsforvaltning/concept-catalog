@@ -46,11 +46,20 @@ class ImportService(
     fun updateImportStatus(importId: String, status: ImportResultStatus) =
         importResultRepository.save(getImportResult(importId).copy(status = status))
 
-    fun confirmImportAndSave(catalogId: String, importId: String, user: User, jwt: Jwt) =
-            processAndSaveConcepts(
-                catalogId, getImportResult(importId).conceptExtraction ?: emptyList(),
-                user, jwt, importId
-            )
+    @Async("import-executor")
+    fun confirmImport(importId: String) {
+        updateImportStatus(importId = importId, status = ImportResultStatus.SAVING)
+    }
+
+
+    @Async("import-executor")
+    fun confirmImportAndSave(catalogId: String, importId: String, user: User, jwt: Jwt) {
+        confirmImport(importId)
+        processAndSaveConcepts(
+            catalogId, getImportResult(importId).conceptExtraction ?: emptyList(),
+            user, jwt, importId
+        )
+    }
 
     private fun getImportResult(importId: String): ImportResult = importResultRepository.findById(importId)
         .orElseThrow {
@@ -69,6 +78,13 @@ class ImportService(
         importResultRepository.save(
             getImportResult(importId).copy(
                 extractedConcepts = extractedConcepts
+            )
+        )
+
+    fun updateImportSavingProgress(importId: String, savedConcepts: Int) =
+        importResultRepository.save(
+            getImportResult(importId).copy(
+                savedConcepts = savedConcepts
             )
         )
 
@@ -209,14 +225,14 @@ class ImportService(
                 )
             )
         } ?: importResultRepository.save(
-            ImportResult(
-                id = UUID.randomUUID().toString(),
-                created = LocalDateTime.now(),
-                catalogId = catalogId,
-                status = status,
-                extractionRecords = conceptExtractions.allExtractionRecords,
-                conceptExtraction = conceptExtractions
-            )
+        ImportResult(
+            id = UUID.randomUUID().toString(),
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = status,
+            extractionRecords = conceptExtractions.allExtractionRecords,
+            conceptExtraction = conceptExtractions
+        )
     )
 
     fun saveImportResultWithExtractionRecords(
@@ -250,7 +266,7 @@ class ImportService(
             ?.internalId
     }
 
-    private fun processAndSaveConcepts(
+    fun processAndSaveConcepts(
         catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt, importId: String? = null
     ): ImportResult {
 
@@ -260,46 +276,55 @@ class ImportService(
         val concepts = mutableListOf<BegrepDBO>()
 
         // update history for all concepts and revert all done if any error occurs
-        conceptExtractions.forEach { it ->
+        val countSaved = AtomicInteger(0)
+        conceptExtractions.forEach {
             val operations = it.extractionRecord.allOperations
             val concept = it.concept
                 .updateLastChangedAndByWhom(user)
                 .apply { if (erPublisert) createNewRevision() }
             try {
+                logger.debug("Updating history for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
                 updateHistory(concept, operations, user, jwt)
                 updatedExtractionsHistory.add(it.extractionRecord)
                 concepts.add(concept)
             } catch (ex: Exception) {
                 logger.error("Failed to update history for concept: ${concept.id}", ex)
                 logger.error("Stopping import for all concepts and rolling back all concepts with updated history due to error")
+                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
                     savedConceptsElastic, jwt)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update history. Import failed", ex)
             }
-        }
 
-        // After history is updated safely for all concepts, save them in the DB and update elastic search
-        try {
-            savedConceptsDB.addAll(saveAllConceptsDB(concepts))
-        } catch (ex: Exception) {
-            logger.error("Failed to save concepts in DB", ex)
-            logger.error("Stopping import for all concepts and rolling back all concepts in updated history and DB due to error")
-            rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
-                savedConceptsElastic, jwt)
-            throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
-        }
-
-        concepts.forEach { concept ->
+            // After history is updated safely for all concepts, save them in the DB and update elastic search
             try {
+                logger.debug("Updating Mongo for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
+                savedConceptsDB.addAll(saveAllConceptsDB(listOf(concept)))
+            } catch (ex: Exception) {
+                logger.error("Failed to save concepts in DB", ex)
+                logger.error("Stopping import for all concepts and rolling back all concepts in updated history and DB due to error")
+                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
+                rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
+                    savedConceptsElastic, jwt)
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
+            }
+
+
+            try {
+                logger.debug("Updating Elastic for concept number: ${countSaved.get() + 1}, concept ID: ${concept.id}")
                 conceptService.updateCurrentConceptForOriginalId(concept.originaltBegrep)
                 savedConceptsElastic.add(concept)
             } catch (ex: Exception) {
                 logger.error("Failed to save concept in Elastic: ${concept.id}", ex)
                 logger.error("Stopping import for all concepts and rolling back all concepts in updated history, DB, and Elastic due to error")
+                updateImportStatus(importId?: UUID.randomUUID().toString(), ImportResultStatus.FAILED)
                 rollBackUpdates(updatedExtractionsHistory, savedConceptsDB,
                     savedConceptsElastic, jwt)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save imported concepts. Import failed", ex)
             }
+
+            updateImportSavingProgress(importId?: UUID.randomUUID().toString(),
+                countSaved.incrementAndGet())
         }
 
         return saveImportResultWithExtractionRecords(catalogId,
@@ -381,7 +406,6 @@ class ImportService(
         var extractionRecordMap: Map<BegrepDBO, ExtractionRecord>
         var conceptExtractions: List<ConceptExtraction>
 
-        //Thread.sleep(7000)
         try {
             extractionRecordMap = concepts.map { begrepDTO ->
                 checkIfAlreadyCancelled(importId)
@@ -450,52 +474,6 @@ class ImportService(
                     status = ImportResultStatus.PENDING_CONFIRMATION
                 )
             }
-        }
-    }
-
-    fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User, jwt: Jwt): ImportResult {
-        conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
-
-        val begrepUriMap = mutableMapOf<BegrepDBO, String>()
-        val extractionRecordMap: Map<BegrepDBO, ExtractionRecord> = concepts.map { begrepDTO ->
-            val uuid = UUID.randomUUID().toString()
-            val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id?: uuid) ?: createNewConcept(begrepDTO.ansvarligVirksomhet, user)
-            val updatedBegrepDTO = begrepDTOWithUri.updateLastChangedAndByWhom(user)
-            val begrepDBO = updatedBegrepDTO.addUpdatableFieldsFromDTO(begrepDTO)
-            begrepUriMap[begrepDBO] = begrepDTO.id?: uuid
-
-            val patchOperations: List<JsonPatchOperation> =
-                createPatchOperations(updatedBegrepDTO, begrepDBO, objectMapper)
-
-            val issues: List<Issue> = extractIssues(begrepDBO, patchOperations)
-
-            val extractionResult = ExtractResult(operations = patchOperations, issues = issues)
-
-            logger.info("Original Begrep ${begrepDBO.originaltBegrep}, anbefalt term: ${begrepDBO.anbefaltTerm}")
-
-            begrepDBO to ExtractionRecord(
-                externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id?: uuid,
-                internalId = begrepDBO.id,
-                extractResult = extractionResult
-            )
-        }.associate { it }
-
-        val conceptExtractions = extractionRecordMap.map { (concept, record) ->
-            ConceptExtraction(
-                concept = concept,
-                extractionRecord = record
-            )
-        }
-
-        return when {
-            conceptExtractions.isEmpty() -> {
-                logger.warn("No concepts found in the imported file")
-                saveImportResultWithExtractionRecords(catalogId, emptyList(), ImportResultStatus.FAILED)
-            }
-
-            conceptExtractions.hasError -> saveImportResultWithExtractionRecords(catalogId, conceptExtractions.allExtractionRecords, ImportResultStatus.FAILED)
-
-            else -> processAndSaveConcepts(catalogId, conceptExtractions, user, jwt)
         }
     }
 

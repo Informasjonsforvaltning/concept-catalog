@@ -123,6 +123,13 @@ class ImportServiceContractTest : ContractTestsBase() {
         assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultWaiting.status)
         assertFalse(importResultWaiting.extractionRecords.isEmpty())
 
+        importService.confirmImportAndSave(catalogId, importId, user, jwt)
+
+        val importResultCompleted = importResultRepository.findById(importId)?.let { it.get() }
+        assertNotNull(importResultCompleted)
+        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
+
+
     }
 
     @Test

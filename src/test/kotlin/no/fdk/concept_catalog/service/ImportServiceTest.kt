@@ -43,8 +43,8 @@ import kotlin.test.fail
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.spy
+import org.mockito.kotlin.times
 import org.springframework.data.mongodb.core.MongoOperations
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @Tag("unit")
@@ -172,10 +172,14 @@ class ImportServiceTest {
             internErstattesAv = null,
         )
 
-        val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
-        assertNotNull(importResultSuccess)
-        assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
-        assertFalse(importResultSuccess.extractionRecords.isEmpty())
+        val importResultOngoing = createImportResultInProgress()
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResultOngoing ))
+
+        val importResultPending = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+        assertNotNull(importResultPending)
+        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
+        assertFalse(importResultPending.extractionRecords.isEmpty())
 
     }
 
@@ -184,6 +188,7 @@ class ImportServiceTest {
         val catalogId = "123456789"
         val conceptUri = "http://example.com/begrep/123456789"
         val user = User(id = catalogId, name = "TEST USER", email = null)
+        val importResultOngoing = createImportResultInProgress()
         val begrepToImport = Begrep(
             id = conceptUri,
             status = Status.UTKAST,
@@ -197,6 +202,9 @@ class ImportServiceTest {
             internErstattesAv = null,
         )
 
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResultOngoing ))
+
         val conceptService = ConceptService(
             conceptRepository = conceptRepository,
             conceptSearchService = mock<ConceptSearchService>(),
@@ -208,31 +216,57 @@ class ImportServiceTest {
             mapper = objectMapper
         )
 
-        val importService = ImportService(
+        val importService = spy(ImportService(
             historyService = historyService,
             conceptRepository = conceptRepository,
             conceptService = conceptService,
             importResultRepository = importResultRepository,
             objectMapper = objectMapper
-        )
+        ))
 
         val begrepCaptor = argumentCaptor<Iterable<BegrepDBO>>()
 
-        val importResultSuccess = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+        val importResultPending = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+
+        assertNotNull(importResultPending)
+        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
+
 
         whenever(conceptRepository.saveAll(any<Iterable<BegrepDBO>>())).thenAnswer {
             it.arguments[0] // return the same list
         }
+
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResultPending ))
+
+
+        importService.confirmImportAndSave(catalogId, importId, user, jwt)
+
+        verify(importService)
+            .processAndSaveConcepts(any(), any(),
+                any(), any(), any())
+        verify(importService).confirmImport(importId)
+        verify(importService).updateImportStatus(importId = importId, status = ImportResultStatus.SAVING)
+
+        val importResultCompleted = importResultPending.copy(status = ImportResultStatus.COMPLETED)
+
         verify(conceptRepository).saveAll(begrepCaptor.capture())
 
-        assertNotNull(importResultSuccess)
-        assertEquals(ImportResultStatus.COMPLETED, importResultSuccess.status)
-        assertFalse(importResultSuccess.extractionRecords.isEmpty())
+        whenever(importResultRepository.findById(importId)).thenReturn(
+            Optional.of(
+                importResultPending.copy(
+                    status = ImportResultStatus.COMPLETED,
+                    extractionRecords = importResultPending.extractionRecords
+                )
+            )
+        )
+
+        assertFalse(importResultPending.extractionRecords.isEmpty())
 
         val begrepDBO: BegrepDBO? = begrepCaptor.firstValue.firstOrNull()
         assertNotNull(begrepDBO)
 
-        val internalId = importResultSuccess.extractionRecords.first().internalId
+        val internalId = importResultPending.extractionRecords.first().internalId
         val originaltBegrep = begrepDBO.originaltBegrep
 
         whenever(
@@ -240,16 +274,26 @@ class ImportServiceTest {
                 ImportResultStatus.COMPLETED,
                 conceptUri
             )
-        ).thenReturn(importResultSuccess)
+        ).thenReturn(importResultCompleted)
+
         whenever(conceptRepository.findById(internalId))
             .thenReturn(Optional.of(begrepDBO))
+
         whenever(conceptRepository.getByOriginaltBegrep(originaltBegrep))
             .thenReturn(listOf(begrepDBO))
 
-        val importResultFailure = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+        val importIdNew = UUID.randomUUID().toString()
+
+        val importResultOngoingNew = createImportResultInProgress().copy(id = importIdNew)
+
+        whenever(importResultRepository.findById(importIdNew))
+            .thenReturn(Optional.of(importResultOngoingNew ))
+
+        val importResultFailure = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importIdNew)
 
         assertNotNull(importResultFailure)
         assertEquals(ImportResultStatus.FAILED, importResultFailure.status)
+
     }
 
     @Test
@@ -315,6 +359,7 @@ class ImportServiceTest {
 
     @Test
     fun `should raise exception when history service fails`() {
+        val importService = createImportServiceSpy()
         val importResultOngoing = createImportResultInProgress()
         val importResultPending = importResultOngoing.copy(
             status = ImportResultStatus.PENDING_CONFIRMATION,
@@ -342,6 +387,8 @@ class ImportServiceTest {
         assertThrows<ResponseStatusException> {
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }.also { assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, it.statusCode) }
+
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
     }
 
@@ -381,6 +428,9 @@ class ImportServiceTest {
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }
 
+        verify(importService, times(2)).updateImportStatus(any(), any())
+
+
     }
 
     @Test
@@ -395,6 +445,7 @@ class ImportServiceTest {
         doThrow(RuntimeException("Updating DB failed"))
             .whenever(conceptRepository)
             .saveAll(any<Iterable<BegrepDBO>>())
+
         whenever(importResultRepository.findById(importId))
             .thenReturn(Optional.of(importResultOngoing ))
 
@@ -407,8 +458,9 @@ class ImportServiceTest {
             importId = importId
         )
 
-        assertNotNull(importResultPending)
-        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResultPending ))
+
         assertThrows<ResponseStatusException> {
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }.also {
@@ -416,6 +468,7 @@ class ImportServiceTest {
         }
 
         verify(importService).rollbackHistoryUpdates(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
     }
 
     @Test
@@ -457,52 +510,78 @@ class ImportServiceTest {
         }
 
         verify(importService).rollbackHistoryUpdates(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
     }
 
     @Test
     fun `should throw response exceptions and roll back if Elastic fails`() {
         val importService = createImportServiceSpy()
+        val importResultOngoing = createImportResultInProgress()
+        doThrow(RuntimeException("Fail Elastic"))
+            .whenever(conceptService)
+            .updateCurrentConceptForOriginalId(any<String>())
+
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResultOngoing ))
+
+        var importResult = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+
+        assertNotNull(importResult)
+
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResult ))
 
         doThrow(RuntimeException("Fail Elastic"))
             .whenever(conceptService)
             .updateCurrentConceptForOriginalId(any<String>())
 
-        var importResultUnknown: ImportResult? = null
-
-        val exception = assertThrows<ResponseStatusException> {
-            importResultUnknown = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+        val exception = assertThrows<ResponseStatusException>() {
+            importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }
 
         verify(conceptService).updateCurrentConceptForOriginalId(any<String>())
         verify(importService).rollBackUpdates(any(), any(),
             any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
-        assertNull(importResultUnknown)
 
     }
 
     @Test
     fun `Should throw response exceptions and roll back if DB fails to update`() {
         val importService = createImportServiceSpy()
+        val importResultOngoing = createImportResultInProgress()
+        doThrow(RuntimeException("Fail Elastic"))
+            .whenever(conceptService)
+            .updateCurrentConceptForOriginalId(any<String>())
+
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResultOngoing ))
+
+        var importResult = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+
+        assertNotNull(importResult)
+
+        whenever(importResultRepository.findById(importId))
+            .thenReturn(Optional.of(importResult ))
 
         doThrow(RuntimeException("Fail DB"))
             .whenever(conceptRepository)
             .saveAll(any<Iterable<BegrepDBO>>())
 
-        var importResultUnknown: ImportResult? = null
 
         val exception = assertThrows<ResponseStatusException> {
-            importResultUnknown = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt)
+            importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }
 
         verify(importService).saveAllConceptsDB(any())
         verify(importService).rollBackUpdates(any(), any(),
             any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any())
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
-        assertNull(importResultUnknown)
 
     }
 
@@ -522,6 +601,5 @@ class ImportServiceTest {
     )
 
     private fun createImportResultInProgress() = createImportResult(ImportResultStatus.IN_PROGRESS)
-
 
 }
