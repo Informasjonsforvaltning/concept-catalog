@@ -406,7 +406,14 @@ class ImportService(
         var extractionRecordMap: Map<BegrepDBO, ExtractionRecord>
         var conceptExtractions: List<ConceptExtraction>
 
+        updateImportProgress(
+            importId = importId,
+            extractedConcepts = 0,
+            totalConcepts = concepts.size
+        )
+
         try {
+            val counter = AtomicInteger(0)
             extractionRecordMap = concepts.map { begrepDTO ->
                 checkIfAlreadyCancelled(importId)
                 val uuid = UUID.randomUUID().toString()
@@ -425,13 +432,14 @@ class ImportService(
 
                 val extractionResult = ExtractResult(operations = patchOperations, issues = issues)
 
-                logger.info("Original Begrep ${begrepDBO.originaltBegrep}, anbefalt term: ${begrepDBO.anbefaltTerm}")
+                updateImportProgress(importId = importId, extractedConcepts = counter.incrementAndGet())
 
                 begrepDBO to ExtractionRecord(
                     externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id ?: uuid,
                     internalId = begrepDBO.id,
                     extractResult = extractionResult
                 )
+
             }.associate {
                 checkIfAlreadyCancelled(importId)
                 it
@@ -467,12 +475,18 @@ class ImportService(
 
             else -> {
                 checkIfAlreadyCancelled(importId)
-                return saveImportResultWithConceptExtractions(
-                    catalogId= catalogId,
-                    importId = importId,
-                    conceptExtractions = conceptExtractions,
-                    status = ImportResultStatus.PENDING_CONFIRMATION
-                )
+                try {
+                    return saveImportResultWithConceptExtractions(
+                        catalogId= catalogId,
+                        importId = importId,
+                        conceptExtractions = conceptExtractions,
+                        status = ImportResultStatus.PENDING_CONFIRMATION
+                    )
+                } catch (exception: Exception) {
+                    logger.error("Failed to finalize importing concepts", exception)
+                    updateImportStatus(importId, ImportResultStatus.FAILED)
+                    throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to finalize importing concepts", exception)
+                }
             }
         }
     }
