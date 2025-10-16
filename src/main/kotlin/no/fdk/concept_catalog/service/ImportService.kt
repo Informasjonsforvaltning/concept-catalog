@@ -400,6 +400,29 @@ class ImportService(
     }
     fun importConcepts(concepts: List<Begrep>, catalogId: String, user: User,
                        jwt: Jwt, importId: String = UUID.randomUUID().toString()): ImportResult {
+
+        if (concepts.size > 500)
+            return saveImportResultWithExtractionRecords(
+                catalogId = catalogId,
+                extractionRecords = listOf(
+                    ExtractionRecord(
+                        externalId = importId,
+                        internalId = importId,
+                        extractResult = ExtractResult(
+                            operations = emptyList(),
+                            issues = listOf(
+                                Issue(
+                                    type = IssueType.ERROR,
+                                    message = "CSV/JSON importen har mer enn 500 begreper."
+                                )
+                            )
+                        )
+                    )
+                ),
+                status = ImportResultStatus.FAILED,
+                importId = importId
+            )
+
         conceptService.publishNewCollectionIfFirstSavedConcept(catalogId)
 
         val begrepUriMap = mutableMapOf<BegrepDBO, String>()
