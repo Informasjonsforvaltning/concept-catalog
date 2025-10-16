@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.CompoundIndexes
 import org.springframework.data.mongodb.core.mapping.Document
@@ -86,7 +87,9 @@ data class Begrep (
     val fagområdeKoder: List<String>? = ArrayList(),
     val omfang: URITekst? = null,
     val kontaktpunkt: Kontaktpunkt? = null,
+    @param:JsonDeserialize(using = MultiFormatLocalDateDeserializer::class)
     val gyldigFom: LocalDate? = null,
+    @param:JsonDeserialize(using = MultiFormatLocalDateDeserializer::class)
     val gyldigTom: LocalDate? = null,
     val endringslogelement: Endringslogelement? = null,
     val opprettet: Instant? = null,
