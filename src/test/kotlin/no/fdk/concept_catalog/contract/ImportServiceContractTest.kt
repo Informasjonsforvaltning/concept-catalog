@@ -161,7 +161,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         importResultRepository.save(importResultOngoing)
         val importResultPending = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         assertFalse { importResultPending.extractionRecords.isEmpty() }
-        assertFalse { importResultPending.conceptExtraction.isEmpty() }
+        assertFalse { importResultPending.conceptExtractions.isEmpty() }
         assertEquals(
             ImportResultStatus.PENDING_CONFIRMATION,
             importResultRepository.findById(importId)?.let { it.get() }?.status

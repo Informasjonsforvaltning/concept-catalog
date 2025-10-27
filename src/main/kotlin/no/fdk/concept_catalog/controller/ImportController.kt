@@ -66,6 +66,28 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         }
     }
 
+    @PutMapping(value = ["/{importId}/confirmConceptImport"])
+    fun confirmConceptImport(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable catalogId: String,
+        @PathVariable importId: String,
+        @RequestBody externalId: String
+    ): ResponseEntity<String> {
+        logger.info("Saving imported concept with external ID: $externalId")
+        val user = endpointPermissions.getUser(jwt)
+        return when {
+            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+
+            else -> {
+                importService.addConceptToCatalog(catalogId, importId, externalId, user, jwt)
+                return ResponseEntity
+                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .build()
+            }
+        }
+    }
+
     @GetMapping(
         value = ["/createImportId"],
         produces = [MediaType.APPLICATION_JSON_VALUE],

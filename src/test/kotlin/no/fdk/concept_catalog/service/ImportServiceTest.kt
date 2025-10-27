@@ -363,7 +363,7 @@ class ImportServiceTest {
         val importResultOngoing = createImportResultInProgress()
         val importResultPending = importResultOngoing.copy(
             status = ImportResultStatus.PENDING_CONFIRMATION,
-            conceptExtraction = createConceptExtractions(turtle)
+            conceptExtractions = createConceptExtractions(turtle)
         )
 
         whenever(importResultRepository.findById(importId))
@@ -398,7 +398,7 @@ class ImportServiceTest {
         val importResultOngoing = createImportResultInProgress()
         val importResultPending = importResultOngoing.copy(
             status = ImportResultStatus.PENDING_CONFIRMATION,
-            conceptExtraction = createConceptExtractions(turtle)
+            conceptExtractions = createConceptExtractions(turtle)
         )
 
         whenever(importResultRepository.findById(importId))
@@ -439,7 +439,7 @@ class ImportServiceTest {
         val importResultOngoing = createImportResultInProgress()
         val importResultPending = importResultOngoing.copy(
             status = ImportResultStatus.PENDING_CONFIRMATION,
-            conceptExtraction = createConceptExtractions(turtle)
+            conceptExtractions = createConceptExtractions(turtle)
         )
 
         doThrow(RuntimeException("Updating DB failed"))
@@ -477,7 +477,7 @@ class ImportServiceTest {
         val importResultOngoing = createImportResultInProgress()
         val importResultPending = importResultOngoing.copy(
             status = ImportResultStatus.PENDING_CONFIRMATION,
-            conceptExtraction = createConceptExtractions(turtle)
+            conceptExtractions = createConceptExtractions(turtle)
         )
 
         whenever(importResultRepository.findById(importId))
