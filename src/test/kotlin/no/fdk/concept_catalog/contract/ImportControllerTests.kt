@@ -138,8 +138,6 @@ class ImportControllerTests : ContractTestsBase() {
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS
         ))
-
-
         val response = authorizedRequest(
             path = "/import/${catalogId}/${importId}",
             body = turtle,
