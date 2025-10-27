@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.ConceptExtractionStatus
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.Paginated
@@ -14,6 +15,7 @@ import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.rdf.RDFImportTests.Companion.createConceptExtraction
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
@@ -261,6 +263,79 @@ class ImportControllerTests : ContractTestsBase() {
         val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
         assertEquals(ImportResultStatus.FAILED, importResult!!.status)
+    }
+
+    @Test
+    fun `should save an imported concept for admin org only`() {
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+
+        val turtle = """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb, "recommendedTerm"@en .
+        """.trimIndent()
+
+        val importResultOnGoing = ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+
+        importResultRepository.save(importResultOnGoing)
+
+        val importResult = ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            extractionRecords = emptyList()
+        )
+
+        importResultRepository.save(importResult)
+
+        val conceptExtraction = createConceptExtraction(turtle)
+
+        authorizedRequest(
+            path = "/import/${catalogId}/${importId}",
+            body = turtle,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.POST,
+            contentType = MediaType.valueOf("text/turtle")
+        )
+
+
+        val importResultPending = importResultRepository.findById(importResult.id).get()
+
+        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
+
+        val responseUnauthorized = authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirmConceptImport",
+            body = importResultPending.conceptExtractions.first().extractionRecord.externalId,
+            token = JwtToken(Access.ORG_READ).toString(),
+            httpMethod = HttpMethod.PUT,
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, responseUnauthorized.statusCode)
+
+        val responseAuthorized = authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirmConceptImport",
+            body = importResultPending.conceptExtractions.first().extractionRecord.externalId,
+            token = JwtToken(Access.ORG_WRITE).toString(),
+            httpMethod = HttpMethod.PUT,
+        )
+
+        assertEquals(HttpStatus.CREATED, responseAuthorized.statusCode)
+
+        val importResultCompleted = importResultRepository.findById(importResult.id).get()
+
+        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
+        assertEquals(ConceptExtractionStatus.COMPLETED, importResultCompleted
+            .conceptExtractions.first().conceptExtractionStatus)
     }
 
     @Test
