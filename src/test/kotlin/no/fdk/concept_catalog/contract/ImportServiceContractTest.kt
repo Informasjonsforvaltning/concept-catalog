@@ -393,6 +393,10 @@ class ImportServiceContractTest : ContractTestsBase() {
         var importResultPartial = importResultRepository.findById(importId).let { it.get() }
 
         assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
+        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == externalId }
+            ?.let {
+                assertEquals(ConceptExtractionStatus.COMPLETED, it.conceptExtractionStatus)
+            }
 
         externalId = importResultPending.conceptExtractions.last().extractionRecord.externalId
 
