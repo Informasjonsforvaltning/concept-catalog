@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.contract
 
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.ConceptExtractionStatus
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.Status
@@ -21,6 +22,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.server.ResponseStatusException
@@ -315,5 +317,105 @@ class ImportServiceContractTest : ContractTestsBase() {
         assertThrows <Exception>{
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }
+    }
+
+    @Test
+    fun `should add imported concept to the catalog manually`() {
+        val importResultOngoing = ImportResult(
+            id = importId,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoing)
+
+        importService.importRdf(
+            catalogId = catalogId,
+            importId = importId,
+            concepts = turtle,
+            lang = lang,
+            user = user,
+            jwt = jwt
+        )
+
+        importService.addConceptToCatalog(
+            catalogId = catalogId,
+            importId = importId,
+            externalId = conceptUri,
+            user = user,
+            jwt = jwt
+        )
+
+        val importResultCompleted = importResultRepository.findById(importId).let { it.get() }
+
+        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
+
+        assertEquals(ConceptExtractionStatus.COMPLETED,
+            importResultCompleted.conceptExtractions.first().conceptExtractionStatus)
+
+    }
+
+    @Test
+    fun `should be partially completed when adding minimum one concept`() {
+        val conceptUri2 = conceptUri + "2"
+        val begrepToImport2 = begrepToImport.copy(id = conceptUri2)
+
+        val importResultOngoing = ImportResult(
+            id = importId,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoing)
+
+        importService.importConcepts(
+            concepts = listOf(begrepToImport, begrepToImport2),
+            catalogId = catalogId,
+            importId = importId,
+            user = user,
+            jwt = jwt
+        )
+
+        val importResultPending = importResultRepository.findById(importId).let { it.get() }
+
+        var externalId = importResultPending.conceptExtractions.first().extractionRecord.externalId
+
+        importService.addConceptToCatalog(
+            catalogId = catalogId,
+            importId = importId,
+            externalId = externalId,
+            user = user,
+            jwt = jwt
+        )
+
+        var importResultPartial = importResultRepository.findById(importId).let { it.get() }
+
+        assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
+
+        externalId = importResultPending.conceptExtractions.last().extractionRecord.externalId
+
+        doThrow(RuntimeException("History service failed"))
+            .whenever(historyService)
+            .updateHistory(any(), any(), any(), any())
+
+        assertThrows <Exception> {
+            importService.addConceptToCatalog(
+                catalogId = catalogId,
+                importId = importId,
+                externalId = externalId,
+                user = user,
+                jwt = jwt
+            )
+        }
+
+        importResultPartial = importResultRepository.findById(importId).let { it.get() }
+
+        assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
+        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == externalId }
+            ?.let {
+                assertEquals(ConceptExtractionStatus.FAILED, it.conceptExtractionStatus)
+            }
     }
 }

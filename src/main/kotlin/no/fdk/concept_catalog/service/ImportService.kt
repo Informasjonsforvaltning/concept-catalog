@@ -283,9 +283,6 @@ class ImportService(
 
 
     fun addConceptToCatalog(catalogId: String, importId: String, externalId: String, user: User, jwt: Jwt) {
-
-        Thread.sleep(10000)
-
         logger.info("Adding concept with external ID: $externalId from import with ID: $importId to catalog: $catalogId")
 
         val importResult = getImportResult(importId)
@@ -454,7 +451,7 @@ class ImportService(
         concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt,
     ) {
         try {
-            historyService.updateHistory(concept, operations, user, jwt)
+            historyService.updateHistory(concept, operations, user, jwt)//
             logger.info("Updated history for concept: ${concept.id}")
         } catch (ex: Exception) {
             logger.error("Failed to update history for concept: ${concept.id}", ex)
