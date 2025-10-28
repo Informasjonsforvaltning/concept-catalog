@@ -184,9 +184,13 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
             concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                val importResult = importService.importConcepts(concepts, catalogId, user, jwt, importId)
+                logger.debug("Importing Concepts in csv format")
+                importExecutor.execute {
+                    importService.importConcepts(concepts, catalogId, user, jwt, importId)
+                }
+
                 return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importResult.id}"))
+                    .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
             }
         }

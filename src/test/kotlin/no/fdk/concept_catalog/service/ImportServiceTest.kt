@@ -33,6 +33,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDateTime
@@ -388,7 +389,8 @@ class ImportServiceTest {
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }.also { assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, it.statusCode) }
 
-        verify(importService, times(2)).updateImportStatus(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(),
+            any(), anyOrNull())
 
     }
 
@@ -428,7 +430,8 @@ class ImportServiceTest {
             importService.confirmImportAndSave(catalogId, importId, user, jwt)
         }
 
-        verify(importService, times(2)).updateImportStatus(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(),
+            any(), anyOrNull())
 
 
     }
@@ -468,7 +471,10 @@ class ImportServiceTest {
         }
 
         verify(importService).rollbackHistoryUpdates(any(), any())
-        verify(importService, times(2)).updateImportStatus(any(), any())
+        verify(importService, times(2)).updateImportStatus(
+            any(),
+            any(),
+            anyOrNull())
     }
 
     @Test
@@ -510,7 +516,8 @@ class ImportServiceTest {
         }
 
         verify(importService).rollbackHistoryUpdates(any(), any())
-        verify(importService, times(2)).updateImportStatus(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(),
+            any(), anyOrNull())
 
     }
 
@@ -543,7 +550,9 @@ class ImportServiceTest {
         verify(conceptService).updateCurrentConceptForOriginalId(any<String>())
         verify(importService).rollBackUpdates(any(), any(),
             any(), any())
-        verify(importService, times(2)).updateImportStatus(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(), any(),
+            anyOrNull()
+        )
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
 
@@ -579,7 +588,8 @@ class ImportServiceTest {
         verify(importService).saveAllConceptsDB(any())
         verify(importService).rollBackUpdates(any(), any(),
             any(), any())
-        verify(importService, times(2)).updateImportStatus(any(), any())
+        verify(importService, times(2)).updateImportStatus(any(),
+            any(), anyOrNull())
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.statusCode)
 

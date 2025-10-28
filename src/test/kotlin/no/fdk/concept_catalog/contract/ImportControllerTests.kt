@@ -124,7 +124,7 @@ class ImportControllerTests : ContractTestsBase() {
     }
 
     @Test
-    fun `Bad request on invalid rdf`() {
+    fun `Bad request on invalid rdf`() { //TODO
         val turtle = """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
@@ -134,6 +134,12 @@ class ImportControllerTests : ContractTestsBase() {
                     skos:prefLabel        .
         """.trimIndent()
 
+        importResultRepository.save<ImportResult>(ImportResult(
+            id = importId,
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS
+        ))
         val response = authorizedRequest(
             path = "/import/${catalogId}/${importId}",
             body = turtle,
