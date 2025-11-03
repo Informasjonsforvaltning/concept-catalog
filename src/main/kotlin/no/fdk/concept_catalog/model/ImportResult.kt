@@ -14,7 +14,6 @@ data class ImportResult(
     val created: LocalDateTime,
     val catalogId: String,
     val status: ImportResultStatus,
-    val extractionRecords: List<ExtractionRecord> = emptyList(),
     val conceptExtractions: List<ConceptExtraction> = emptyList(),
     val totalConcepts: Int = 0,
     val extractedConcepts: Int = 0,

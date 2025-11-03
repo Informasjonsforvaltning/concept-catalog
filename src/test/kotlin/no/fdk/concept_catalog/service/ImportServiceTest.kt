@@ -24,6 +24,7 @@ import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.model.allExtractionRecords
 import no.fdk.concept_catalog.rdf.RDFImportTests.Companion.createConceptExtractions
 import no.fdk.concept_catalog.utils.BEGREP_TO_BE_CREATED
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -180,7 +181,7 @@ class ImportServiceTest {
         val importResultPending = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         assertNotNull(importResultPending)
         assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
-        assertFalse(importResultPending.extractionRecords.isEmpty())
+        assertEquals(1, importResultPending.conceptExtractions.size)
 
     }
 
@@ -232,7 +233,6 @@ class ImportServiceTest {
         assertNotNull(importResultPending)
         assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
 
-
         whenever(conceptRepository.saveAll(any<Iterable<BegrepDBO>>())).thenAnswer {
             it.arguments[0] // return the same list
         }
@@ -257,21 +257,21 @@ class ImportServiceTest {
             Optional.of(
                 importResultPending.copy(
                     status = ImportResultStatus.COMPLETED,
-                    extractionRecords = importResultPending.extractionRecords
+                    conceptExtractions = importResultPending.conceptExtractions
                 )
             )
         )
 
-        assertFalse(importResultPending.extractionRecords.isEmpty())
+        assertFalse(importResultPending.conceptExtractions.isEmpty())
 
         val begrepDBO: BegrepDBO? = begrepCaptor.firstValue.firstOrNull()
         assertNotNull(begrepDBO)
 
-        val internalId = importResultPending.extractionRecords.first().internalId
+        val internalId = importResultPending.conceptExtractions.allExtractionRecords.first().internalId
         val originaltBegrep = begrepDBO.originaltBegrep
 
         whenever(
-            importResultRepository.findFirstByStatusAndExtractionRecordsExternalId(
+            importResultRepository.findFirstByStatusAndConceptExtractionsExtractionRecordExternalId(
                 ImportResultStatus.COMPLETED,
                 conceptUri
             )

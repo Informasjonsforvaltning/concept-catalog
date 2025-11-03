@@ -9,6 +9,7 @@ import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.model.allExtractionRecords
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.HistoryService
 import no.fdk.concept_catalog.service.ImportService
@@ -22,7 +23,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.server.ResponseStatusException
@@ -123,7 +123,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         val importResultWaiting = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
         assertNotNull(importResultWaiting)
         assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultWaiting.status)
-        assertFalse(importResultWaiting.extractionRecords.isEmpty())
+        assertFalse(importResultWaiting.conceptExtractions.allExtractionRecords.isEmpty())
 
         importService.confirmImportAndSave(catalogId, importId, user, jwt)
 
@@ -162,8 +162,8 @@ class ImportServiceContractTest : ContractTestsBase() {
 
         importResultRepository.save(importResultOngoing)
         val importResultPending = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
-        assertFalse { importResultPending.extractionRecords.isEmpty() }
         assertFalse { importResultPending.conceptExtractions.isEmpty() }
+        assertFalse { importResultPending.conceptExtractions.allExtractionRecords.isEmpty() }
         assertEquals(
             ImportResultStatus.PENDING_CONFIRMATION,
             importResultRepository.findById(importId)?.let { it.get() }?.status
@@ -263,6 +263,10 @@ class ImportServiceContractTest : ContractTestsBase() {
         assertEquals(importResultWaiting.extractedConcepts, importResultWaiting.totalConcepts)
 
         importService.confirmImportAndSave(catalogId, importId, user, jwt)
+
+        val importResult = importResultRepository.findById(importId).let { it.get() }
+
+        assertEquals(ImportResultStatus.COMPLETED, importResult.status)
 
         val importIdNew = UUID.randomUUID().toString()
         val importResultOngoingNew = ImportResult(

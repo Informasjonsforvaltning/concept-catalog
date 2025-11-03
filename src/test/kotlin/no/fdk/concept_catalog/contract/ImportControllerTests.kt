@@ -15,6 +15,7 @@ import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
+import no.fdk.concept_catalog.model.allExtractionRecords
 import no.fdk.concept_catalog.rdf.RDFImportTests.Companion.createConceptExtraction
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
@@ -86,7 +87,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = invalidCatalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResultOnGoing)
 
@@ -169,7 +170,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResultOnGoing)
 
@@ -212,8 +213,8 @@ class ImportControllerTests : ContractTestsBase() {
         val importResultCompleted = objectMapper.readValue(statusResponseImportResult.body,
             ImportResult::class.java)
 
-        assertEquals(1, importResultCompleted.extractionRecords.size)
-        val extractionRecord = importResultCompleted.extractionRecords.first()
+        assertEquals(1, importResultCompleted.conceptExtractions.allExtractionRecords.size)
+        val extractionRecord = importResultCompleted.conceptExtractions.first().extractionRecord
 
         val conceptResponse = authorizedRequest(
             path = "/begreper/${extractionRecord.internalId}",
@@ -244,7 +245,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResultOnGoing)
 
@@ -289,7 +290,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
 
         importResultRepository.save(importResultOnGoing)
@@ -299,7 +300,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
 
         importResultRepository.save(importResult)
@@ -362,7 +363,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResultOnGoing)
 
@@ -441,9 +442,9 @@ class ImportControllerTests : ContractTestsBase() {
         val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
 
         assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
-        assertEquals(1, importResult.extractionRecords.size)
+        assertEquals(1, importResult.conceptExtractions.allExtractionRecords.size)
 
-        val extractionRecord = importResult.extractionRecords.first()
+        val extractionRecord = importResult.conceptExtractions.first().extractionRecord
 
         val conceptResponse = authorizedRequest(
             path = "/begreper/${extractionRecord.internalId}",
@@ -556,7 +557,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResultOnGoing)
 
@@ -633,7 +634,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.COMPLETED,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResult)
 
@@ -835,7 +836,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResult)
 

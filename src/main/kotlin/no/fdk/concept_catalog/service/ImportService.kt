@@ -217,7 +217,7 @@ class ImportService(
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         return importResultRepository.save(importResult)
     }
@@ -260,7 +260,8 @@ class ImportService(
         catalogId: String,
         conceptExtractions: List<ConceptExtraction>,
         status: ImportResultStatus,
-        importId: String? = null
+        importId: String? = null,
+        failureMessage: String? = null
     ): ImportResult = importId
         ?.let { getImportResult(it) }
         ?.let {
@@ -270,7 +271,6 @@ class ImportService(
                     created = LocalDateTime.now(),
                     catalogId = catalogId,
                     status = status,
-                    extractionRecords = conceptExtractions.allExtractionRecords,
                     conceptExtractions = conceptExtractions
                 )
             )
@@ -280,25 +280,9 @@ class ImportService(
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = status,
-            extractionRecords = conceptExtractions.allExtractionRecords,
             conceptExtractions = conceptExtractions
         )
     )
-
-    fun saveImportResultWithExtractionRecords(
-        catalogId: String, extractionRecords: List<ExtractionRecord>,
-        status: ImportResultStatus, importId:String? = null, failureMessage: String? = null): ImportResult {
-        return importResultRepository.save(
-            ImportResult(
-                id = importId?: UUID.randomUUID().toString(),
-                created = LocalDateTime.now(),
-                catalogId = catalogId,
-                status = status,
-                extractionRecords = extractionRecords,
-                failureMessage = failureMessage
-            )
-        )
-    }
 
     private fun findLatestConceptByUri(uri: String): BegrepDBO? {
         return findExistingConceptId(uri)
@@ -309,10 +293,11 @@ class ImportService(
     }
 
     private fun findExistingConceptId(externalId: String): String? {
-        return importResultRepository.findFirstByStatusAndExtractionRecordsExternalId(
+        return importResultRepository.findFirstByStatusAndConceptExtractionsExtractionRecordExternalId(
             ImportResultStatus.COMPLETED,
             externalId
-        )?.extractionRecords
+        )?.conceptExtractions
+            ?.allExtractionRecords
             ?.firstOrNull { it.externalId == externalId }
             ?.internalId
     }
@@ -433,10 +418,11 @@ class ImportService(
                 countSaved.incrementAndGet())
         }
 
-        return saveImportResultWithExtractionRecords(catalogId,
-            conceptExtractions.map { it.extractionRecord },
-            ImportResultStatus.COMPLETED,
-            importId)
+        return saveImportResultWithConceptExtractions(
+            catalogId = catalogId,
+            conceptExtractions = conceptExtractions,
+            status = ImportResultStatus.COMPLETED,
+            importId = importId)
     }
 
     @Transactional(rollbackFor = [Exception::class])
@@ -580,14 +566,16 @@ class ImportService(
             conceptExtractions.isEmpty() -> {
                 logger.warn("No concepts found in the imported file")
                 checkIfAlreadyCancelled(importId)
-                saveImportResultWithExtractionRecords(catalogId, extractionRecords = emptyList(),
-                    ImportResultStatus.FAILED, importId, failureMessage = FAILURE_MESSAGE_NO_CONCEPTS)
+                saveImportResultWithConceptExtractions(catalogId = catalogId,
+                    conceptExtractions = emptyList(),
+                    status =ImportResultStatus.FAILED, importId = importId,
+                    failureMessage = FAILURE_MESSAGE_NO_CONCEPTS)
             }
             conceptExtractions.hasError -> {
                 checkIfAlreadyCancelled(importId)
-                saveImportResultWithExtractionRecords(
-                    catalogId, conceptExtractions.allExtractionRecords,
-                    ImportResultStatus.FAILED, importId
+                saveImportResultWithConceptExtractions(
+                    catalogId = catalogId, conceptExtractions = conceptExtractions,
+                    status = ImportResultStatus.FAILED, importId = importId
                 )
             }
 
