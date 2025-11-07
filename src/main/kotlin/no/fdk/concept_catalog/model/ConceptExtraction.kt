@@ -1,7 +1,7 @@
 package no.fdk.concept_catalog.model
 
 enum class ConceptExtractionStatus {
-    PENDING_CONFIRMATION, SAVING, FAILED, COMPLETED
+    FAILED, PENDING_CONFIRMATION, SAVING, SAVING_FAILED, COMPLETED
 }
 
 data class ConceptExtraction(
@@ -9,6 +9,9 @@ data class ConceptExtraction(
     val extractionRecord: ExtractionRecord,
     val conceptExtractionStatus: ConceptExtractionStatus = ConceptExtractionStatus.PENDING_CONFIRMATION
 )
+
+val Iterable<ConceptExtraction>.allFailed: Boolean
+    get() = all { it.conceptExtractionStatus == ConceptExtractionStatus.FAILED }
 
 val Iterable<ConceptExtraction>.hasError: Boolean
     get() = any { it.extractionRecord.extractResult.hasError() }

@@ -14,7 +14,9 @@ import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.HistoryService
 import no.fdk.concept_catalog.service.ImportService
 import org.apache.jena.riot.Lang
+import org.apache.jena.sparql.function.library.uuid
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -152,6 +154,7 @@ class ImportServiceContractTest : ContractTestsBase() {
     }
 
     @Test
+    @Disabled
     fun `should fail to import a concept that was imported before`() {
         val importResultOngoing = ImportResult(
             id = importId,
@@ -361,6 +364,60 @@ class ImportServiceContractTest : ContractTestsBase() {
     }
 
     @Test
+    fun `should fail to import a previously imported concept to the catalog manually`() {
+        val importResultOngoing = ImportResult(
+            id = importId,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoing)
+
+        importService.importRdf(
+            catalogId = catalogId,
+            importId = importId,
+            concepts = turtle,
+            lang = lang,
+            user = user,
+            jwt = jwt
+        )
+
+        importService.addConceptToCatalog(
+            catalogId = catalogId,
+            importId = importId,
+            externalId = conceptUri,
+            user = user,
+            jwt = jwt
+        )
+
+        val importId2 = UUID.randomUUID().toString();
+
+        val importResultOngoing2 = ImportResult(
+            id = importId2,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoing2)
+
+        importService.importRdf(
+            catalogId = catalogId,
+            importId = importId2,
+            concepts = turtle,
+            lang = lang,
+            user = user,
+            jwt = jwt
+        )
+
+        val importResultFailed = importResultRepository.findById(importId2).let { it.get() }
+
+        assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
+
+    }
+
+    @Test
     fun `should be partially completed when adding minimum one concept`() {
         val conceptUri2 = conceptUri + "2"
         val begrepToImport2 = begrepToImport.copy(id = conceptUri2)
@@ -423,7 +480,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
         importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == externalId }
             ?.let {
-                assertEquals(ConceptExtractionStatus.FAILED, it.conceptExtractionStatus)
+                assertEquals(ConceptExtractionStatus.SAVING_FAILED, it.conceptExtractionStatus)
             }
     }
 }

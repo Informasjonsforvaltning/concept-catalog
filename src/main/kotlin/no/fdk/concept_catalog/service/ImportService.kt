@@ -53,7 +53,17 @@ class ImportService(
     }
 
     fun updateImportStatus(importId: String, status: ImportResultStatus, failureMessage: String? = null) =
-        importResultRepository.save(getImportResult(importId).copy(status = status, failureMessage = failureMessage))
+        getImportResult(importId).let {
+            when {
+                it.status != status -> importResultRepository.save(
+                    it.copy(
+                        status = status,
+                        failureMessage = failureMessage
+                    )
+                )
+                else -> it
+            }
+        }
 
     @Async("import-executor")
     fun confirmImport(importId: String) {
@@ -170,7 +180,7 @@ class ImportService(
                     failureMessage = FAILURE_MESSAGE_NO_CONCEPTS
                 )
 
-            conceptExtractions.hasError -> {
+            conceptExtractions.allFailed -> {
                 logger.warn("Errors occurred during RDF import for catalog $catalogId")
                 checkIfAlreadyCancelled(importId)
                 saveImportResultWithConceptExtractions(
@@ -339,23 +349,25 @@ class ImportService(
 
             } catch (ex: Exception) {
                 logger.error("Failed to add concept ${concept.id} to catalog: ${catalogId}", ex)
-                updateImportedConceptStatus(importId, externalId, ConceptExtractionStatus.FAILED)
+                updateImportedConceptStatus(importId, externalId, ConceptExtractionStatus.SAVING_FAILED)
                 throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Failed to add concept to catalog", ex)
 
             }
             val updatedImportResult = updateImportedConceptStatus(importId, externalId, ConceptExtractionStatus.COMPLETED)
             when {
-                updatedImportResult.conceptExtractions.all { it.conceptExtractionStatus == ConceptExtractionStatus.COMPLETED } ->
-                    updateImportStatus(importId, ImportResultStatus.COMPLETED)
-                updatedImportResult.conceptExtractions.any { it.conceptExtractionStatus != ConceptExtractionStatus.COMPLETED } ->
-                    updateImportStatus(importId, ImportResultStatus.PARTIALLY_COMPLETED)
+                updatedImportResult.conceptExtractions.any {
+                    it.conceptExtractionStatus == ConceptExtractionStatus.PENDING_CONFIRMATION ||
+                            it.conceptExtractionStatus == ConceptExtractionStatus.SAVING_FAILED
+                }
+                    -> updateImportStatus(importId, ImportResultStatus.PARTIALLY_COMPLETED)
+
+                else -> updateImportStatus(importId, ImportResultStatus.COMPLETED)
             }
             logger.info("Succeeded to add concept with external ID: $externalId from import with ID: $importId to catalog: $catalogId")
         }
 
     }
-
 
     fun processAndSaveConcepts(
         catalogId: String, conceptExtractions: List<ConceptExtraction>, user: User, jwt: Jwt, importId: String? = null
@@ -486,7 +498,7 @@ class ImportService(
         concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt,
     ) {
         try {
-            historyService.updateHistory(concept, operations, user, jwt)
+            historyService.updateHistory(concept, operations, user, jwt)//
             logger.info("Updated history for concept: ${concept.id}")
         } catch (ex: Exception) {
             logger.error("Failed to update history for concept: ${concept.id}", ex)
@@ -571,7 +583,7 @@ class ImportService(
                     status =ImportResultStatus.FAILED, importId = importId,
                     failureMessage = FAILURE_MESSAGE_NO_CONCEPTS)
             }
-            conceptExtractions.hasError -> {
+            conceptExtractions.allFailed -> {
                 checkIfAlreadyCancelled(importId)
                 saveImportResultWithConceptExtractions(
                     catalogId = catalogId, conceptExtractions = conceptExtractions,

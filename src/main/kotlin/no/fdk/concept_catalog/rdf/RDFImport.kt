@@ -62,7 +62,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
     val noOperations: List<Issue> = if (operations.isEmpty())
         listOf(
-            Issue (IssueType.ERROR, "No JsonPatchOperations detected in the concept")
+            Issue (IssueType.ERROR, "Concept is empty or was saved from a previous import.")
         )
     else emptyList()
 
@@ -97,7 +97,13 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
         extractResult = extractResult,
     )
 
-    return ConceptExtraction(updatedConcept, extractionRecord)
+    val conceptExtractionStatus = when {
+        extractResult.hasError() -> ConceptExtractionStatus.FAILED
+        else -> ConceptExtractionStatus.PENDING_CONFIRMATION
+    }
+
+    return ConceptExtraction(concept = updatedConcept, extractionRecord = extractionRecord,
+        conceptExtractionStatus = conceptExtractionStatus)
 }
 
 private fun Resource.extractVersjonsnr(): Pair<SemVer?, List<Issue>> {
