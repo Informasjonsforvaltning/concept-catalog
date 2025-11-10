@@ -34,6 +34,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @Tag("contract")
 class ImportServiceContractTest : ContractTestsBase() {
@@ -133,7 +134,32 @@ class ImportServiceContractTest : ContractTestsBase() {
         assertNotNull(importResultCompleted)
         assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
 
+    }
 
+    @Test
+    fun `should cancel import when status is pending confirmation`() {
+
+        val importResultOngoing = ImportResult(
+            id = importId,
+            catalogId = catalogId,
+            status = ImportResultStatus.IN_PROGRESS,
+            created = LocalDateTime.now()
+        )
+
+        importResultRepository.save(importResultOngoing)
+
+        val importResultWaiting = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
+        assertNotNull(importResultWaiting)
+
+        importService.cancelImport(importId)
+
+        val importResultCancelled = importResultRepository.findById(importId).let { it.get() }
+
+        assertTrue {
+            importResultCancelled.conceptExtractions.all {
+                it.conceptExtractionStatus == ConceptExtractionStatus.CANCELLED
+            }
+        }
     }
 
     @Test

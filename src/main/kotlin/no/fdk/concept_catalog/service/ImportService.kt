@@ -50,7 +50,18 @@ class ImportService(
     fun cancelImport(importId: String) {
         logger.info("Cancelling import with id: $importId")
         updateImportStatus(importId, ImportResultStatus.CANCELLED)
+        cancelConceptExtractionStatus(importId)
     }
+
+    private fun cancelConceptExtractionStatus(
+        importId: String
+    ): Unit =
+        getImportResult(importId).let {
+            val updatedExtractions = it.conceptExtractions.map { conceptExtraction ->
+                conceptExtraction.copy(conceptExtractionStatus = ConceptExtractionStatus.CANCELLED)
+            }
+            importResultRepository.save(it.copy(conceptExtractions = updatedExtractions))
+        }
 
     fun updateImportStatus(importId: String, status: ImportResultStatus, failureMessage: String? = null) =
         getImportResult(importId).let {

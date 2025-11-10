@@ -1,7 +1,7 @@
 package no.fdk.concept_catalog.model
 
 enum class ConceptExtractionStatus {
-    FAILED, PENDING_CONFIRMATION, SAVING, SAVING_FAILED, COMPLETED
+    FAILED, PENDING_CONFIRMATION, SAVING, CANCELLED, SAVING_FAILED, COMPLETED
 }
 
 data class ConceptExtraction(
