@@ -509,7 +509,7 @@ class ImportService(
         concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt,
     ) {
         try {
-            historyService.updateHistory(concept, operations, user, jwt)//
+            historyService.updateHistory(concept, operations, user, jwt)
             logger.info("Updated history for concept: ${concept.id}")
         } catch (ex: Exception) {
             logger.error("Failed to update history for concept: ${concept.id}", ex)

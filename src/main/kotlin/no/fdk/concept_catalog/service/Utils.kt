@@ -17,6 +17,10 @@ fun String?.isValidURI(): Boolean =
         }
     }
 
+fun isEncodedUri(encodedUri: String): Boolean {
+    val regex = Regex("%[0-9A-Fa-f]{2}")
+    return regex.containsMatchIn(encodedUri)
+}
 
 fun statusFromString(str: String?): Status? =
     when (str?.lowercase()) {

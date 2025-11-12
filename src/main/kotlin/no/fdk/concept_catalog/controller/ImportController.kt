@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
+import no.fdk.concept_catalog.service.isEncodedUri
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -16,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import java.net.URI
+import java.net.URLDecoder
 import java.util.concurrent.Executor
 
 @CrossOrigin
@@ -80,10 +82,17 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                importService.addConceptToCatalog(catalogId, importId, externalId, user, jwt)
+
+                val decodedExternalId = when {
+                    isEncodedUri(externalId) -> URLDecoder.decode(externalId, "UTF-8")
+                    else -> externalId
+                }
+
+                importService.addConceptToCatalog(catalogId, importId, decodedExternalId, user, jwt)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
+
             }
         }
     }
