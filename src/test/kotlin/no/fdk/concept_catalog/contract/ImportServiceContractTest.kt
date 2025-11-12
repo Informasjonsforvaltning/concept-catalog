@@ -9,14 +9,11 @@ import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.User
 import no.fdk.concept_catalog.model.Virksomhet
-import no.fdk.concept_catalog.model.allExtractionRecords
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.HistoryService
 import no.fdk.concept_catalog.service.ImportService
 import org.apache.jena.riot.Lang
-import org.apache.jena.sparql.function.library.uuid
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
@@ -32,9 +29,6 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @Tag("contract")
 class ImportServiceContractTest : ContractTestsBase() {
@@ -113,109 +107,6 @@ class ImportServiceContractTest : ContractTestsBase() {
     }
 
     @Test
-    fun `should succeed when importing concepts that has not been imported before`() {
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
-
-        importResultRepository.save(importResultOngoing)
-
-        val importResultWaiting = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
-        assertNotNull(importResultWaiting)
-        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultWaiting.status)
-        assertFalse(importResultWaiting.conceptExtractions.allExtractionRecords.isEmpty())
-
-        importService.confirmImportAndSave(catalogId, importId, user, jwt)
-
-        val importResultCompleted = importResultRepository.findById(importId)?.let { it.get() }
-        assertNotNull(importResultCompleted)
-        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
-
-    }
-
-    @Test
-    fun `should cancel import when status is pending confirmation`() {
-
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
-
-        importResultRepository.save(importResultOngoing)
-
-        val importResultWaiting = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
-        assertNotNull(importResultWaiting)
-
-        importService.cancelImport(importId)
-
-        val importResultCancelled = importResultRepository.findById(importId).let { it.get() }
-
-        assertTrue {
-            importResultCancelled.conceptExtractions.all {
-                it.conceptExtractionStatus == ConceptExtractionStatus.CANCELLED
-            }
-        }
-    }
-
-    @Test
-    fun `should save concept after confirmation`() {
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
-
-        importResultRepository.save(importResultOngoing)
-        importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
-        importService.confirmImportAndSave(catalogId, importId, user, jwt)
-
-        assertEquals(1, conceptRepository.findAll().size)
-
-    }
-
-    @Test
-    @Disabled
-    fun `should fail to import a concept that was imported before`() {
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
-
-        importResultRepository.save(importResultOngoing)
-        val importResultPending = importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
-        assertFalse { importResultPending.conceptExtractions.isEmpty() }
-        assertFalse { importResultPending.conceptExtractions.allExtractionRecords.isEmpty() }
-        assertEquals(
-            ImportResultStatus.PENDING_CONFIRMATION,
-            importResultRepository.findById(importId)?.let { it.get() }?.status
-        )
-
-        importService.confirmImportAndSave(catalogId, importId, user, jwt)
-        val importResultCompleted = importResultRepository.findById(importId)?.let { it.get() }
-
-        assertEquals(1, conceptRepository.findAll().size)
-        assertNotNull(importResultCompleted)
-        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
-
-        val newImportResultOngoing = importService.createImportResult(catalogId)
-        val importResultFailed = importService.importConcepts(listOf(begrepToImport), catalogId,
-            user, jwt, newImportResultOngoing.id)
-
-        assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
-        assertEquals(1, conceptRepository.findAll().size)
-        assertEquals(2, importResultRepository.findAll().size)
-
-    }
-
-    @Test
     fun `should fail to process and throw exception if there is no import result with in progress`() {
         assertThrows<ResponseStatusException> {
             importService.importConcepts(listOf(begrepToImport), catalogId, user, jwt, importId)
@@ -267,89 +158,6 @@ class ImportServiceContractTest : ContractTestsBase() {
         assertEquals(ImportResultStatus.CANCELLED,
             importResultRepository.findById(importId)?.let { it.get() }?.status)
 
-    }
-
-    @Test
-    fun `should fail when the same RDF is uploaded multiple times`() {
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
-
-        importResultRepository.save(importResultOngoing)
-        importService.importRdf(
-            catalogId = catalogId,
-            importId = importId,
-            concepts = turtle,
-            lang = lang,
-            user = user,
-            jwt = jwt
-        )
-        val importResultWaiting = importResultRepository.findById(importId).get()
-
-        assertEquals(importResultWaiting.extractedConcepts, importResultWaiting.totalConcepts)
-
-        importService.confirmImportAndSave(catalogId, importId, user, jwt)
-
-        val importResult = importResultRepository.findById(importId).let { it.get() }
-
-        assertEquals(ImportResultStatus.COMPLETED, importResult.status)
-
-        val importIdNew = UUID.randomUUID().toString()
-        val importResultOngoingNew = ImportResult(
-            id = importIdNew,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
-
-        importResultRepository.save(importResultOngoingNew)
-        importService.importRdf(
-            catalogId = catalogId,
-            importId = importIdNew,
-            concepts = turtle,
-            lang = lang,
-            user = user,
-            jwt = jwt
-        )
-
-        val importResultFailed = importResultRepository.findById(importIdNew).let { it.get() }
-
-        assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
-    }
-
-    @Test
-    fun `should raise exception when history service fails`() {
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
-
-        importResultRepository.save(importResultOngoing)
-        importService.importRdf(
-            catalogId = catalogId,
-            importId = importId,
-            concepts = turtle,
-            lang = lang,
-            user = user,
-            jwt = jwt
-        )
-
-        doThrow(RuntimeException("History service failed"))
-            .whenever(historyService)
-            .updateHistory(any(), any(), any(), any())
-
-        doThrow(RuntimeException("History service failed"))
-            .whenever(historyService)
-            .removeHistoryUpdate(any(), any())
-
-        assertThrows <Exception>{
-            importService.confirmImportAndSave(catalogId, importId, user, jwt)
-        }
     }
 
     @Test

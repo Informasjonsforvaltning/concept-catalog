@@ -48,26 +48,6 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         }
     }
 
-    @PutMapping(value = ["/{importId}/confirm"])
-    fun confirmImport(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable catalogId: String,
-        @PathVariable importId: String
-    ): ResponseEntity<String> {
-        val user = endpointPermissions.getUser(jwt)
-        return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
-
-            else -> {
-                importService.confirmImportAndSave(catalogId, importId, user, jwt)
-                return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importId}"))
-                    .build()
-            }
-        }
-    }
-
     @PutMapping(value = ["/{importId}/confirmConceptImport"])
     fun confirmConceptImport(
         @AuthenticationPrincipal jwt: Jwt,
