@@ -257,7 +257,7 @@ class ImportService(
     ): List<ConceptExtraction> {
         val counter = AtomicInteger(0)
         return conceptsByUri.mapNotNull { (uri, resource) ->
-            val concept = findLatestConceptByUri(uri) ?: createNewConcept(Virksomhet(id = catalogId), user)
+            val concept = findLatestConceptByUri(uri, catalogId) ?: createNewConcept(Virksomhet(id = catalogId), user)
             val conceptExtraction = resource.extract(concept, objectMapper)
             importId?.let {
                 checkIfAlreadyCancelled(it)
@@ -295,18 +295,17 @@ class ImportService(
         )
     )
 
-    private fun findLatestConceptByUri(uri: String): BegrepDBO? {
-        return findExistingConceptId(uri)
+    private fun findLatestConceptByUri(uri: String, catalogId: String): BegrepDBO? {
+        return findExistingConceptId(uri, catalogId)
             ?.let { conceptRepository.findById(it).orElse(null) }
             ?.let { concept ->
                 conceptRepository.getByOriginaltBegrep(concept.originaltBegrep).maxByOrNull { it.versjonsnr }
             }
     }
 
-    private fun findExistingConceptId(externalId: String): String? {
-        return importResultRepository.findFirstByStatusAndConceptExtractionsExtractionRecordExternalId(
-            ImportResultStatus.COMPLETED,
-            externalId
+    private fun findExistingConceptId(externalId: String, catalogId: String): String? {
+        return importResultRepository.findFirstByCatalogIdAndStatusAndConceptExtractionsExtractionRecordExternalId(
+            catalogId, ImportResultStatus.COMPLETED, externalId
         )?.conceptExtractions
             ?.allExtractionRecords
             ?.firstOrNull { it.externalId == externalId }
@@ -418,7 +417,7 @@ class ImportService(
             extractionRecordMap = concepts.map { begrepDTO ->
                 checkIfAlreadyCancelled(importId)
                 val uuid = UUID.randomUUID().toString()
-                val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id ?: uuid) ?: createNewConcept(
+                val begrepDTOWithUri = findLatestConceptByUri(begrepDTO.id ?: uuid, catalogId) ?: createNewConcept(
                     begrepDTO.ansvarligVirksomhet,
                     user
                 )
