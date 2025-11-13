@@ -535,6 +535,14 @@ private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<
 
     return listOf(associativeConceptRelations, partitiveConceptRelations, genericConceptRelations)
         .flatten()
+        .sortedWith(
+            compareBy<BegrepsRelasjon> { it.relasjon }
+                .thenBy { it.relasjonsType ?: "" }
+                .thenBy { it.relatertBegrep ?: "" }
+                .thenBy { it.inndelingskriterium?.toString() ?: "" }
+                .thenBy { it.beskrivelse?.toString() ?:  ""}
+                .thenBy { it.relatertBegrep ?: "" }
+        )
         .let { it to issues }
 }
 
