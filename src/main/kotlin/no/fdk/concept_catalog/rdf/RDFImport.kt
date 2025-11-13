@@ -62,7 +62,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
     val noOperations: List<Issue> = if (operations.isEmpty())
         listOf(
-            Issue (IssueType.ERROR, "Concept is empty or was saved from a previous import.")
+            Issue (IssueType.ERROR, "Begrepet mangler innhold eller er identisk med gjeldende versjon i katalogen.")
         )
     else emptyList()
 
