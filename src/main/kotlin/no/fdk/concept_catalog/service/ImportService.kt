@@ -76,11 +76,6 @@ class ImportService(
             }
         }
 
-    @Async("import-executor")
-    fun confirmImport(importId: String) {
-        updateImportStatus(importId = importId, status = ImportResultStatus.SAVING)
-    }
-
     private fun getImportResult(importId: String): ImportResult = importResultRepository.findById(importId)
         .orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
@@ -367,11 +362,6 @@ class ImportService(
             logger.info("Succeeded to add concept with external ID: $externalId from import with ID: $importId to catalog: $catalogId")
         }
 
-    }
-
-    @Transactional(rollbackFor = [Exception::class])
-    fun saveAllConceptsDB(concepts: List<BegrepDBO>): List<BegrepDBO> {
-        return conceptRepository.saveAll(concepts)
     }
 
     fun saveConceptDB(concept: BegrepDBO): BegrepDBO {

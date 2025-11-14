@@ -13,8 +13,5 @@ data class ConceptExtraction(
 val Iterable<ConceptExtraction>.allFailed: Boolean
     get() = all { it.conceptExtractionStatus == ConceptExtractionStatus.FAILED }
 
-val Iterable<ConceptExtraction>.hasError: Boolean
-    get() = any { it.extractionRecord.extractResult.hasError() }
-
 val Iterable<ConceptExtraction>.allExtractionRecords: List<ExtractionRecord>
     get() = map { it.extractionRecord }

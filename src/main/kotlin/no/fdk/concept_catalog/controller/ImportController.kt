@@ -2,6 +2,7 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
+import no.fdk.concept_catalog.model.ImportResultSummary
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
@@ -176,7 +177,7 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     fun result(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-    ): ResponseEntity<List<ImportResult>> {
+    ): ResponseEntity<List<ImportResultSummary>> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {
