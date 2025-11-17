@@ -2,11 +2,11 @@ package no.fdk.concept_catalog.controller
 
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
-import no.fdk.concept_catalog.model.ImportResultSummary
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
+import no.fdk.concept_catalog.service.IdPair
 import no.fdk.concept_catalog.service.ImportService
-import no.fdk.concept_catalog.service.isEncodedUri
+import no.fdk.concept_catalog.service.createHash
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -16,7 +16,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 import java.net.URI
-import java.net.URLDecoder
 import java.util.concurrent.Executor
 
 @CrossOrigin
@@ -51,21 +50,16 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable importId: String,
-        @RequestBody externalId: String
+        @RequestBody idPair: IdPair
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            createHash(idPair.encodedId) != idPair.hashedId -> ResponseEntity(HttpStatus.BAD_REQUEST)
 
             else -> {
-
-                val decodedExternalId = when {
-                    isEncodedUri(externalId) -> URLDecoder.decode(externalId, "UTF-8")
-                    else -> externalId
-                }
-
-                importService.addConceptToCatalog(catalogId, importId, decodedExternalId, user, jwt)
+                importService.addConceptToCatalog(catalogId, importId, idPair.encodedId, user, jwt)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
@@ -177,7 +171,7 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     fun result(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-    ): ResponseEntity<List<ImportResultSummary>> {
+    ): ResponseEntity<List<ImportResult>> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {

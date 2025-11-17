@@ -13,7 +13,8 @@ import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
-import no.fdk.concept_catalog.rdf.RDFImportTests.Companion.createConceptExtraction
+import no.fdk.concept_catalog.service.IdPair
+import no.fdk.concept_catalog.service.createHash
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
 import org.junit.jupiter.api.Tag
@@ -222,8 +223,6 @@ class ImportControllerTests : ContractTestsBase() {
 
         importResultRepository.save(importResult)
 
-        val conceptExtraction = createConceptExtraction(turtle)
-
         authorizedRequest(
             path = "/import/${catalogId}/${importId}",
             body = turtle,
@@ -237,9 +236,15 @@ class ImportControllerTests : ContractTestsBase() {
 
         assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
 
+        val body = IdPair(
+            encodedId = importResultPending.conceptExtractions.first().extractionRecord.externalId,
+            hashedId = createHash(importResultPending.conceptExtractions.first().extractionRecord.externalId)
+            )
+        val jsonBody = objectMapper.writeValueAsString(body)
+
         val responseUnauthorized = authorizedRequest(
             path = "/import/${catalogId}/${importId}/confirmConceptImport",
-            body = importResultPending.conceptExtractions.first().extractionRecord.externalId,
+            body = jsonBody,
             token = JwtToken(Access.ORG_READ).toString(),
             httpMethod = HttpMethod.PUT,
         )
@@ -248,7 +253,7 @@ class ImportControllerTests : ContractTestsBase() {
 
         val responseAuthorized = authorizedRequest(
             path = "/import/${catalogId}/${importId}/confirmConceptImport",
-            body = importResultPending.conceptExtractions.first().extractionRecord.externalId,
+            body = jsonBody,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.PUT,
         )

@@ -3,7 +3,9 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.model.Status
 import org.apache.jena.datatypes.xsd.XSDDateTime
 import java.net.URI
+import java.security.MessageDigest
 import java.time.LocalDate
+import java.util.Base64
 
 fun String?.isValidURI(): Boolean =
     if (this.isNullOrBlank()) {
@@ -17,10 +19,19 @@ fun String?.isValidURI(): Boolean =
         }
     }
 
-fun isEncodedUri(encodedUri: String): Boolean {
-    val regex = Regex("%[0-9A-Fa-f]{2}")
-    return regex.containsMatchIn(encodedUri)
+fun encodeBase64(input: String): String {
+    return Base64.getEncoder().encodeToString(input.toByteArray())
 }
+
+fun createHash(input: String): String {
+    val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
+    return bytes.joinToString("") { "%02x".format(it) }
+}
+
+data class IdPair(
+    val encodedId: String,
+    val hashedId: String
+)
 
 fun statusFromString(str: String?): Status? =
     when (str?.lowercase()) {

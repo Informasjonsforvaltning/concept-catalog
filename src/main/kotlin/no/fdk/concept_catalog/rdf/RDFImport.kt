@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.rdf
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.service.createPatchOperations
+import no.fdk.concept_catalog.service.encodeBase64
 import no.fdk.concept_catalog.service.isValidURI
 import org.apache.jena.rdf.model.Literal
 import org.apache.jena.rdf.model.Property
@@ -92,7 +93,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val extractResult = ExtractResult(operations, issues)
 
     val extractionRecord = ExtractionRecord(
-        externalId = uri,
+        externalId = encodeBase64(uri),
         internalId = updatedConcept.id,
         extractResult = extractResult,
     )

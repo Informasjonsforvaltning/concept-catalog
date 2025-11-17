@@ -12,6 +12,7 @@ import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.service.ConceptService
 import no.fdk.concept_catalog.service.HistoryService
 import no.fdk.concept_catalog.service.ImportService
+import no.fdk.concept_catalog.service.encodeBase64
 import org.apache.jena.riot.Lang
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Tag
@@ -183,7 +184,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         importService.addConceptToCatalog(
             catalogId = catalogId,
             importId = importId,
-            externalId = conceptUri,
+            externalId = encodeBase64(conceptUri),
             user = user,
             jwt = jwt
         )
@@ -220,7 +221,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         importService.addConceptToCatalog(
             catalogId = catalogId,
             importId = importId,
-            externalId = conceptUri,
+            externalId = encodeBase64(conceptUri),
             user = user,
             jwt = jwt
         )
@@ -275,12 +276,12 @@ class ImportServiceContractTest : ContractTestsBase() {
 
         val importResultPending = importResultRepository.findById(importId).let { it.get() }
 
-        var externalId = importResultPending.conceptExtractions.first().extractionRecord.externalId
+        var encodedExternalId = importResultPending.conceptExtractions.first().extractionRecord.externalId
 
         importService.addConceptToCatalog(
             catalogId = catalogId,
             importId = importId,
-            externalId = externalId,
+            externalId = encodedExternalId,
             user = user,
             jwt = jwt
         )
@@ -288,12 +289,12 @@ class ImportServiceContractTest : ContractTestsBase() {
         var importResultPartial = importResultRepository.findById(importId).let { it.get() }
 
         assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
-        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == externalId }
+        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == encodedExternalId }
             ?.let {
                 assertEquals(ConceptExtractionStatus.COMPLETED, it.conceptExtractionStatus)
             }
 
-        externalId = importResultPending.conceptExtractions.last().extractionRecord.externalId
+        encodedExternalId = importResultPending.conceptExtractions.last().extractionRecord.externalId
 
         doThrow(RuntimeException("History service failed"))
             .whenever(historyService)
@@ -303,7 +304,7 @@ class ImportServiceContractTest : ContractTestsBase() {
             importService.addConceptToCatalog(
                 catalogId = catalogId,
                 importId = importId,
-                externalId = externalId,
+                externalId = encodedExternalId,
                 user = user,
                 jwt = jwt
             )
@@ -312,7 +313,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         importResultPartial = importResultRepository.findById(importId).let { it.get() }
 
         assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
-        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == externalId }
+        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == encodedExternalId }
             ?.let {
                 assertEquals(ConceptExtractionStatus.SAVING_FAILED, it.conceptExtractionStatus)
             }

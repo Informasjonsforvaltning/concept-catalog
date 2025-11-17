@@ -252,7 +252,7 @@ class ImportService(
     ): List<ConceptExtraction> {
         val counter = AtomicInteger(0)
         return conceptsByUri.mapNotNull { (uri, resource) ->
-            val concept = findLatestConceptByUri(uri, catalogId) ?: createNewConcept(Virksomhet(id = catalogId), user)
+            val concept = findLatestConceptByUri(encodeBase64(uri), catalogId) ?: createNewConcept(Virksomhet(id = catalogId), user)
             val conceptExtraction = resource.extract(concept, objectMapper)
             importId?.let {
                 checkIfAlreadyCancelled(it)
@@ -425,7 +425,7 @@ class ImportService(
                 updateImportProgress(importId = importId, extractedConcepts = counter.incrementAndGet())
 
                 begrepDBO to ExtractionRecord(
-                    externalId = begrepUriMap[begrepDBO] ?: begrepDBO?.id ?: uuid,
+                    externalId = encodeBase64(begrepUriMap[begrepDBO] ?: begrepDBO?.id ?: uuid),
                     internalId = begrepDBO.id,
                     extractResult = extractionResult
                 )
