@@ -22,7 +22,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.Async
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.io.StringReader
 import java.time.LocalDateTime
@@ -228,9 +227,9 @@ class ImportService(
         return importResultRepository.save(importResult)
     }
 
-    fun getResults(catalogId: String): List<ImportResult> {
+    fun getResults(catalogId: String) : List<ImportResultSummary> {
         logger.info("Getting import results for catalog with id: $catalogId")
-        return importResultRepository.findAllByCatalogId(catalogId);
+        return importResultRepository.findAllByCatalogId(catalogId).toImportResultSummaries
     }
 
     fun getResult(statusId: String): ImportResult? {
