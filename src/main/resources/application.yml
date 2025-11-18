@@ -15,8 +15,8 @@ spring:
     database: conceptCatalog
     auto-index-creation: true
   security.oauth2.resourceserver.jwt:
-    jwk-set-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk/protocol/openid-connect/certs
-    issuer-uri: ${SSO_HOST:https://sso.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk
+    jwk-set-uri: ${SSO_HOST:https://auth.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk/protocol/openid-connect/certs
+    issuer-uri: ${SSO_HOST:https://auth.staging.fellesdatakatalog.digdir.no}/auth/realms/fdk
   rabbitmq:
     host: rabbitmq
     port: 5672
@@ -54,7 +54,7 @@ spring:
     password: admin
     authentication-database: admin
     replica-set-name: null
-  security.oauth2.resourceserver.jwt.jwk-set-uri: https://sso.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
+  security.oauth2.resourceserver.jwt.jwk-set-uri: https://auth.staging.fellesdatakatalog.digdir.no/auth/realms/fdk/protocol/openid-connect/certs
   rabbitmq.host: 127.0.0.1
 application:
   cors.originPatterns: "*"
