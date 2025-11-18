@@ -239,7 +239,7 @@ class ImportControllerTests : ContractTestsBase() {
         val jsonBody = objectMapper.writeValueAsString(body)
 
         val responseUnauthorized = authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirmConceptImport",
+            path = "/import/${catalogId}/${importId}/confirm-concept-import",
             body = body,
             token = JwtToken(Access.ORG_READ).toString(),
             httpMethod = HttpMethod.PUT,
@@ -248,7 +248,7 @@ class ImportControllerTests : ContractTestsBase() {
         assertEquals(HttpStatus.FORBIDDEN, responseUnauthorized.statusCode)
 
         val responseAuthorized = authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirmConceptImport",
+            path = "/import/${catalogId}/${importId}/confirm-concept-import",
             body = body,
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.PUT,
@@ -266,7 +266,7 @@ class ImportControllerTests : ContractTestsBase() {
     @Test
     fun `Should not accept non-base 64`() {
         val responseBad = authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirmConceptImport",
+            path = "/import/${catalogId}/${importId}/confirm-concept-import",
             body = "Not base 64 string",
             token = JwtToken(Access.ORG_WRITE).toString(),
             httpMethod = HttpMethod.PUT,
@@ -373,7 +373,7 @@ class ImportControllerTests : ContractTestsBase() {
     @Test
     fun `should fail to create import for non admin org`() {
         val response = authorizedRequest(
-            path = "/import/${catalogId}/createImportId",
+            path = "/import/${catalogId}/create-import-id",
             token = JwtToken(Access.ORG_READ).toString(),
             httpMethod = HttpMethod.GET
         )
@@ -405,7 +405,7 @@ class ImportControllerTests : ContractTestsBase() {
     }
 
     fun createImportResult(id: String? = null, access: Access? = null) = authorizedRequest(
-        path = "/import/${id?: catalogId}/createImportId",
+        path = "/import/${id?: catalogId}/create-import-id",
         token = JwtToken(access?: Access.ORG_WRITE).toString(),
         httpMethod = HttpMethod.GET
     )

@@ -44,7 +44,7 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         }
     }
 
-    @PutMapping(value = ["/{importId}/confirmConceptImport"])
+    @PutMapping(value = ["/{importId}/confirm-concept-import"])
     fun confirmConceptImport(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
@@ -68,7 +68,7 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     }
 
     @GetMapping(
-        value = ["/createImportId"],
+        value = ["/create-import-id"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun createImportId(
