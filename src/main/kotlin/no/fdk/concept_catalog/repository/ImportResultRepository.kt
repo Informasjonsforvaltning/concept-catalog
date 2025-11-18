@@ -7,7 +7,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ImportResultRepository : MongoRepository<ImportResult, String> {
-    fun findFirstByStatusAndExtractionRecordsExternalId(
+    fun findFirstByCatalogIdAndStatusAndConceptExtractionsExtractionRecordExternalId(
+        catalogId: String,
         importResultStatus: ImportResultStatus,
         externalId: String
     ): ImportResult?

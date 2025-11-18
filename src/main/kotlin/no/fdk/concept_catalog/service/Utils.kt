@@ -4,6 +4,7 @@ import no.fdk.concept_catalog.model.Status
 import org.apache.jena.datatypes.xsd.XSDDateTime
 import java.net.URI
 import java.time.LocalDate
+import java.util.Base64
 
 fun String?.isValidURI(): Boolean =
     if (this.isNullOrBlank()) {
@@ -17,6 +18,17 @@ fun String?.isValidURI(): Boolean =
         }
     }
 
+fun encodeBase64(input: String): String {
+    return Base64.getEncoder().encodeToString(input.toByteArray())
+}
+
+fun isBase64Encoded(value: String): Boolean =
+    try {
+        Base64.getDecoder().decode(value)
+        true
+    } catch (e: IllegalArgumentException) {
+        false
+    }
 
 fun statusFromString(str: String?): Status? =
     when (str?.lowercase()) {

@@ -5,8 +5,7 @@ import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
 import no.fdk.concept_catalog.service.ImportService
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.fdk.concept_catalog.service.isBase64Encoded
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -23,7 +22,6 @@ import java.util.concurrent.Executor
 @RequestMapping(value = ["/import/{catalogId}"])
 class ImportController(@Qualifier("import-executor") private val importExecutor: Executor,
                        private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
-    private val logger: Logger = LoggerFactory.getLogger(ImportService::class.java)
 
     @PutMapping(value = ["/{importId}/cancel"])
     fun cancelImport(
@@ -46,28 +44,31 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         }
     }
 
-    @PutMapping(value = ["/{importId}/confirm"])
-    fun confirmImport(
+    @PutMapping(value = ["/{importId}/confirm-concept-import"])
+    fun confirmConceptImport(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @PathVariable importId: String
+        @PathVariable importId: String,
+        @RequestBody externalId: String
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            !isBase64Encoded(externalId) -> ResponseEntity(HttpStatus.BAD_REQUEST)
 
             else -> {
-                importService.confirmImportAndSave(catalogId, importId, user, jwt)
+                importService.addConceptToCatalog(catalogId, importId, externalId, user, jwt)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
+
             }
         }
     }
 
     @GetMapping(
-        value = ["/createImportId"],
+        value = ["/create-import-id"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun createImportId(
@@ -76,18 +77,13 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> {
-                logger.debug("Unauthorized import, user data is missing")
+            user == null ->
                 ResponseEntity(HttpStatus.UNAUTHORIZED)
-            }
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
-                logger.debug("Import cancelled, not permitted")
-                ResponseEntity(HttpStatus.FORBIDDEN)
-            }
 
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
+                ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                logger.debug("Import initialized, creating result")
                 val importResult = importService.createImportResult(catalogId)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importResult.id}"))
@@ -112,19 +108,13 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         val user = endpointPermissions.getUser(jwt)
 
         return when {
-            user == null -> {
-                logger.debug("Unauthorized import, user data is missing")
+            user == null ->
                 ResponseEntity(HttpStatus.UNAUTHORIZED)
-            }
 
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
-                logger.debug("Import cancelled, not permitted")
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
-            }
 
             else -> {
-
-                logger.debug("Importing RDF data now")
                 importExecutor.execute {
                     importService.importRdf(
                         catalogId = catalogId,
@@ -162,7 +152,6 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
             concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.FORBIDDEN)
 
             else -> {
-                logger.debug("Importing Concepts in csv format")
                 importExecutor.execute {
                     importService.importConcepts(concepts, catalogId, user, jwt, importId)
                 }

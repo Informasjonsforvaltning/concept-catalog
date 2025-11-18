@@ -7,10 +7,9 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.ConceptExtractionStatus
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
-import no.fdk.concept_catalog.model.Paginated
-import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.Status
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.Virksomhet
@@ -21,11 +20,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 
 @Tag("contract")
@@ -84,7 +81,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = invalidCatalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResultOnGoing)
 
@@ -150,84 +147,6 @@ class ImportControllerTests : ContractTestsBase() {
     }
 
     @Test
-    fun `Created with location on minimum viable skos-ap-no`() {
-        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
-
-        val turtle = """
-            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-            
-            <https://example.com/concept>
-                    rdf:type              skos:Concept ;
-                    skos:prefLabel        "anbefaltTerm"@nb, "recommendedTerm"@en .
-        """.trimIndent()
-
-        val importResultOnGoing = ImportResult(
-            id = importId,
-            created = LocalDateTime.now(),
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
-        )
-        importResultRepository.save(importResultOnGoing)
-
-        val response = authorizedRequest(
-            path = "/import/${catalogId}/${importId}",
-            body = turtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.POST,
-            contentType = MediaType.valueOf("text/turtle")
-        )
-
-        assertEquals(HttpStatus.CREATED, response.statusCode)
-
-        val statusResponse = authorizedRequest(
-            path = response.headers.location.toString(),
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        assertEquals(HttpStatus.OK, statusResponse.statusCode)
-
-        val importResultPending = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
-
-        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending!!.status)
-
-        val statusResponseConfirmSave = authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirm",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.PUT
-        )
-
-        assertEquals(HttpStatus.CREATED, statusResponseConfirmSave.statusCode)
-
-        val statusResponseImportResult = authorizedRequest(
-            path = "/import/${catalogId}/results/${importId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        val importResultCompleted = objectMapper.readValue(statusResponseImportResult.body,
-            ImportResult::class.java)
-
-        assertEquals(1, importResultCompleted.extractionRecords.size)
-        val extractionRecord = importResultCompleted.extractionRecords.first()
-
-        val conceptResponse = authorizedRequest(
-            path = "/begreper/${extractionRecord.internalId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        assertEquals(HttpStatus.OK, conceptResponse.statusCode)
-
-        val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
-
-        assertEquals(catalogId, concept.ansvarligVirksomhet.id)
-        assertEquals("anbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
-    }
-
-    @Test
     fun `Created with location on invalid skos-ap-no`() {
         val turtle = """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -242,7 +161,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResultOnGoing)
 
@@ -270,7 +189,7 @@ class ImportControllerTests : ContractTestsBase() {
     }
 
     @Test
-    fun `Updated with location on minimum viable skos-ap-no`() {
+    fun `should save an imported concept for admin org only`() {
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
         val turtle = """
@@ -287,205 +206,22 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
+
         importResultRepository.save(importResultOnGoing)
 
-        val response = authorizedRequest(
-            path = "/import/${catalogId}/${importId}",
-            body = turtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.POST,
-            contentType = MediaType.valueOf("text/turtle")
-        )
-
-        assertEquals(HttpStatus.CREATED, response.statusCode)
-
-        authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirm",
-            body = turtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.POST,
-            contentType = MediaType.valueOf("text/turtle")
-        )
-
-        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
-
-        val updateTurtle = """
-            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-            
-            <https://example.com/concept>
-                    rdf:type              skos:Concept ;
-                    skos:prefLabel        "oppdatertAnbefaltTerm"@nb, "recommendedTerm"@en .
-        """.trimIndent()
-
-        val importIdUpdate = UUID.randomUUID().toString()
-        importResultRepository.save(importResultOnGoing.copy(id = importIdUpdate))
-
-        val updateResponse = authorizedRequest(
-            path = "/import/${catalogId}/${importIdUpdate}",
-            body = updateTurtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.POST,
-            contentType = MediaType.valueOf("text/turtle")
-        )
-
-        assertEquals(HttpStatus.CREATED, updateResponse.statusCode)
-
-        authorizedRequest(
-            path = "/import/${catalogId}/${importIdUpdate}/confirm",
-            body = turtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.PUT,
-            contentType = MediaType.valueOf("text/turtle")
-        )
-
-
-        val countResponse = authorizedRequest(
-            path = "/import/${catalogId}/results",
-            body = updateTurtle,
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET,
-            contentType = MediaType.valueOf(APPLICATION_JSON_VALUE)
-        )
-
-        assertEquals(HttpStatus.OK, countResponse.statusCode)
-
-        val importResults = objectMapper.readValue(countResponse.body, object : TypeReference<List<ImportResult>>() {})
-        assertEquals(2, importResults.size)
-
-        val statusResponse = authorizedRequest(
-            path = "/import/${catalogId}/results/${importIdUpdate}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        assertEquals(HttpStatus.OK, statusResponse.statusCode)
-
-        val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
-
-        assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
-        assertEquals(1, importResult.extractionRecords.size)
-
-        val extractionRecord = importResult.extractionRecords.first()
-
-        val conceptResponse = authorizedRequest(
-            path = "/begreper/${extractionRecord.internalId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        assertEquals(HttpStatus.OK, conceptResponse.statusCode)
-
-        val concept = objectMapper.readValue(conceptResponse.body, Begrep::class.java)
-
-        assertEquals("123456789", concept.ansvarligVirksomhet.id)
-        assertEquals("oppdatertAnbefaltTerm", concept.anbefaltTerm!!.navn["nb"])
-    }
-
-    @Test
-    fun `Created with location on maximum viable skos-ap-no`() {
-        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
-
-        val turtle = """
-            @prefix owl:   <http://www.w3.org/2002/07/owl#> .
-            @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-            @prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
-            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-            @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
-            @prefix dct:   <http://purl.org/dc/terms/> .
-            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-            @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-            @prefix dcat:  <http://www.w3.org/ns/dcat#> .
-            @prefix euvoc:  <http://publications.europa.eu/ontology/euvoc#> .
-            @prefix relationship-with-source-type: <https://data.norge.no/vocabulary/relationship-with-source-type#> .
-            @prefix audience-type: <https://data.norge.no/vocabulary/audience-type#> .
-            
-            <https://example.com/concept>
-                    rdf:type              skos:Concept ;
-                    euvoc:status          <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
-                    owl:versionInfo       "1.0.0" ;
-                    skos:prefLabel        "anbefaltTerm"@nb ;
-                    skos:altLabel         "tillattTerm"@nb ;
-                    skos:hiddenLabel      "fraraadetTerm"@nb ;
-                    skos:scopeNote        "merknad"@nb ;
-                    skos:example          "eksempel"@nb ;
-                    dct:subject           "fagområde"@nb ;
-                    skosno:valueRange     "omfang"@nb ;
-                    euvoc:startDate       "2020-12-31"^^xsd:date ;
-                    euvoc:endDate         "2030-12-31"^^xsd:date ;
-                    rdfs:seeAlso          <https://example.com/seeAlsoConcept> ;
-                    dct:isReplacedBy      <https://example.com/isReplacedByConcept> ;
-                    dcat:contactPoint     
-                          [ 
-                            rdf:type                vcard:Organization ;
-                            vcard:hasEmail          <mailto:organization@example.com> ;
-                            vcard:hasTelephone      <tel:+123-456-789> ;
-                          ] ;
-                    euvoc:xlDefinition                   
-                          [ 
-                            rdf:type                        euvoc:XlNote ;
-                            rdf:value                       "definisjon"@nb ;
-                            skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
-                            dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
-                          ] ;
-                    euvoc:xlDefinition                   
-                          [ 
-                            rdf:type                        euvoc:XlNote ;
-                            rdf:value                       "definisjon for spesialister"@nb ;
-                            dct:audience                    audience-type:specialist ;
-                            skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
-                          ] ;
-                    euvoc:xlDefinition                    
-                          [ 
-                            rdf:type                        euvoc:XlNote ;
-                            rdf:value                       "definisjon for allmennheten"@nb ;
-                            dct:audience                    audience-type:public ;
-                            skosno:relationshipWithSource   relationship-with-source-type:derived-from-source ;
-                          ] ;
-                    skosno:isFromConceptIn 
-                          [ 
-                            rdf:type                        skosno:AssociativeConceptRelation ;
-                            skosno:hasToConcept             <https://example.com/topConcept> ; 
-                            skosno:relationRole             "muliggjør"@nb ;
-                          ] ;
-                    skosno:hasPartitiveConceptRelation    
-                          [ 
-                            rdf:type                        skosno:PartitiveConceptRelation ;
-                            dct:description                 "inndelingskriterium"@nb ;
-                            skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
-                          ] ;
-                    skosno:hasPartitiveConceptRelation    
-                          [ 
-                            rdf:type                        skosno:PartitiveConceptRelation ;
-                            dct:description                 "inndelingskriterium"@nb ;
-                            skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
-                          ] ;
-                    skosno:hasGenericConceptRelation      
-                          [ 
-                            rdf:type                        skosno:GenericConceptRelation ;
-                            dct:description                 "inndelingskriterium"@nb ;
-                            skosno:hasGenericConcept        <https://example.com/genericConcept>
-                          ] ;
-                    skosno:hasGenericConceptRelation     
-                          [ 
-                            rdf:type                        skosno:GenericConceptRelation ;
-                            dct:description                 "inndelingskriterium"@nb ;
-                            skosno:hasSpecificConcept       <https://example.com/specificConcept>
-                          ] .
-        """.trimIndent()
-
-        val importResultOnGoing = ImportResult(
+        val importResult = ImportResult(
             id = importId,
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
-        importResultRepository.save(importResultOnGoing)
 
-        val response = authorizedRequest(
+        importResultRepository.save(importResult)
+
+        authorizedRequest(
             path = "/import/${catalogId}/${importId}",
             body = turtle,
             token = JwtToken(Access.ORG_WRITE).toString(),
@@ -493,43 +229,50 @@ class ImportControllerTests : ContractTestsBase() {
             contentType = MediaType.valueOf("text/turtle")
         )
 
-        assertEquals(HttpStatus.CREATED, response.statusCode)
 
-        authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirm",
+        val importResultPending = importResultRepository.findById(importResult.id).get()
+
+        assertEquals(ImportResultStatus.PENDING_CONFIRMATION, importResultPending.status)
+
+        val body = importResultPending.conceptExtractions.first().extractionRecord.externalId
+
+        val jsonBody = objectMapper.writeValueAsString(body)
+
+        val responseUnauthorized = authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirm-concept-import",
+            body = body,
+            token = JwtToken(Access.ORG_READ).toString(),
+            httpMethod = HttpMethod.PUT,
+        )
+
+        assertEquals(HttpStatus.FORBIDDEN, responseUnauthorized.statusCode)
+
+        val responseAuthorized = authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirm-concept-import",
+            body = body,
             token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.PUT
+            httpMethod = HttpMethod.PUT,
         )
 
-        val statusResponse = authorizedRequest(
-            path = response.headers.location.toString(),
+        assertEquals(HttpStatus.CREATED, responseAuthorized.statusCode)
+
+        val importResultCompleted = importResultRepository.findById(importResult.id).get()
+
+        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
+        assertEquals(ConceptExtractionStatus.COMPLETED, importResultCompleted
+            .conceptExtractions.first().conceptExtractionStatus)
+    }
+
+    @Test
+    fun `Should not accept non-base 64`() {
+        val responseBad = authorizedRequest(
+            path = "/import/${catalogId}/${importId}/confirm-concept-import",
+            body = "Not base 64 string",
             token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
+            httpMethod = HttpMethod.PUT,
         )
 
-        assertEquals(HttpStatus.OK, statusResponse.statusCode)
-
-        val importResult = objectMapper.readValue(statusResponse.body, ImportResult::class.java)
-
-        assertEquals(ImportResultStatus.COMPLETED, importResult!!.status)
-
-        val begreperResponse = authorizedRequest(
-            path = "/begreper/search?orgNummer=123456789",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.POST,
-            body = objectMapper.writeValueAsString(
-                SearchOperation(query = "")
-            )
-        )
-
-        // get number of concepts in the response
-        val searchHits: Paginated = objectMapper.readValue(
-            begreperResponse.body,
-            Paginated::class.java
-        )
-
-        assertEquals(HttpStatus.OK, begreperResponse.statusCode)
-        assertNotEquals(0, searchHits?.hits?.size)
+        assertEquals(HttpStatus.BAD_REQUEST, responseBad.statusCode)
 
     }
 
@@ -558,7 +301,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.COMPLETED,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResult)
 
@@ -630,7 +373,7 @@ class ImportControllerTests : ContractTestsBase() {
     @Test
     fun `should fail to create import for non admin org`() {
         val response = authorizedRequest(
-            path = "/import/${catalogId}/createImportId",
+            path = "/import/${catalogId}/create-import-id",
             token = JwtToken(Access.ORG_READ).toString(),
             httpMethod = HttpMethod.GET
         )
@@ -662,7 +405,7 @@ class ImportControllerTests : ContractTestsBase() {
     }
 
     fun createImportResult(id: String? = null, access: Access? = null) = authorizedRequest(
-        path = "/import/${id?: catalogId}/createImportId",
+        path = "/import/${id?: catalogId}/create-import-id",
         token = JwtToken(access?: Access.ORG_WRITE).toString(),
         httpMethod = HttpMethod.GET
     )
@@ -706,52 +449,6 @@ class ImportControllerTests : ContractTestsBase() {
     }
 
     @Test
-    fun `should confirm import for admin org only`() {
-        val response = createImportResult()
-
-        assertEquals(HttpStatus.CREATED, response.statusCode)
-
-        val importId = response?.headers?.get("location")?.first()?.split("/")?.last() ?: ""
-
-        var responseImportResult = authorizedRequest(
-            path = "/import/${catalogId}/results/${importId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        assertNotNull(importId)
-
-        val importResultOngoing = mapper.readValue(responseImportResult.body, ImportResult::class.java)
-        importResultRepository.save(importResultOngoing.copy(status = ImportResultStatus.PENDING_CONFIRMATION))
-
-        val responseForbidden = authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirm",
-            token = JwtToken(Access.ORG_READ).toString(),
-            httpMethod = HttpMethod.PUT
-        )
-
-        assertEquals(HttpStatus.FORBIDDEN, responseForbidden.statusCode)
-
-        val responseConfirm = authorizedRequest(
-            path = "/import/${catalogId}/${importId}/confirm",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.PUT
-        )
-
-        assertEquals(HttpStatus.CREATED, responseConfirm.statusCode)
-
-        responseImportResult = authorizedRequest(
-            path = "/import/${catalogId}/results/${importId}",
-            token = JwtToken(Access.ORG_WRITE).toString(),
-            httpMethod = HttpMethod.GET
-        )
-
-        val importResultCompleted = mapper.readValue(responseImportResult.body, ImportResult::class.java)
-        assertEquals(ImportResultStatus.COMPLETED, importResultCompleted?.status)
-
-    }
-
-    @Test
     fun `Success for org admin access`() {
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -760,7 +457,7 @@ class ImportControllerTests : ContractTestsBase() {
             created = LocalDateTime.now(),
             catalogId = catalogId,
             status = ImportResultStatus.IN_PROGRESS,
-            extractionRecords = emptyList()
+            conceptExtractions = emptyList()
         )
         importResultRepository.save(importResult)
 

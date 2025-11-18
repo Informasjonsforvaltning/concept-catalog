@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.rdf
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.fdk.concept_catalog.model.*
 import no.fdk.concept_catalog.service.createPatchOperations
+import no.fdk.concept_catalog.service.encodeBase64
 import no.fdk.concept_catalog.service.isValidURI
 import org.apache.jena.rdf.model.Literal
 import org.apache.jena.rdf.model.Property
@@ -62,7 +63,7 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val operations = createPatchOperations(originalConcept, updatedConcept, objectMapper)
     val noOperations: List<Issue> = if (operations.isEmpty())
         listOf(
-            Issue (IssueType.ERROR, "No JsonPatchOperations detected in the concept")
+            Issue (IssueType.ERROR, "Begrepet mangler innhold eller er identisk med gjeldende versjon i katalogen.")
         )
     else emptyList()
 
@@ -92,12 +93,18 @@ fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): Co
     val extractResult = ExtractResult(operations, issues)
 
     val extractionRecord = ExtractionRecord(
-        externalId = uri,
+        externalId = encodeBase64(uri),
         internalId = updatedConcept.id,
         extractResult = extractResult,
     )
 
-    return ConceptExtraction(updatedConcept, extractionRecord)
+    val conceptExtractionStatus = when {
+        extractResult.hasError() -> ConceptExtractionStatus.FAILED
+        else -> ConceptExtractionStatus.PENDING_CONFIRMATION
+    }
+
+    return ConceptExtraction(concept = updatedConcept, extractionRecord = extractionRecord,
+        conceptExtractionStatus = conceptExtractionStatus)
 }
 
 private fun Resource.extractVersjonsnr(): Pair<SemVer?, List<Issue>> {
@@ -529,6 +536,14 @@ private fun Resource.extractBegrepsRelasjon(): Pair<List<BegrepsRelasjon>, List<
 
     return listOf(associativeConceptRelations, partitiveConceptRelations, genericConceptRelations)
         .flatten()
+        .sortedWith(
+            compareBy<BegrepsRelasjon> { it.relasjon }
+                .thenBy { it.relasjonsType ?: "" }
+                .thenBy { it.relatertBegrep ?: "" }
+                .thenBy { it.inndelingskriterium?.toString() ?: "" }
+                .thenBy { it.beskrivelse?.toString() ?:  ""}
+                .thenBy { it.relatertBegrep ?: "" }
+        )
         .let { it to issues }
 }
 
