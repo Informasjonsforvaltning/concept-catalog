@@ -3,7 +3,6 @@ package no.fdk.concept_catalog.service
 import no.fdk.concept_catalog.model.Status
 import org.apache.jena.datatypes.xsd.XSDDateTime
 import java.net.URI
-import java.security.MessageDigest
 import java.time.LocalDate
 import java.util.Base64
 
@@ -23,15 +22,13 @@ fun encodeBase64(input: String): String {
     return Base64.getEncoder().encodeToString(input.toByteArray())
 }
 
-fun createHash(input: String): String {
-    val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
-    return bytes.joinToString("") { "%02x".format(it) }
-}
-
-data class IdPair(
-    val encodedId: String,
-    val hashedId: String
-)
+fun isBase64Encoded(value: String): Boolean =
+    try {
+        Base64.getDecoder().decode(value)
+        true
+    } catch (e: IllegalArgumentException) {
+        false
+    }
 
 fun statusFromString(str: String?): Status? =
     when (str?.lowercase()) {

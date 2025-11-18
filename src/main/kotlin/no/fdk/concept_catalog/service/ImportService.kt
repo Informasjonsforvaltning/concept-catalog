@@ -425,7 +425,7 @@ class ImportService(
                 updateImportProgress(importId = importId, extractedConcepts = counter.incrementAndGet())
 
                 begrepDBO to ExtractionRecord(
-                    externalId = encodeBase64(begrepUriMap[begrepDBO] ?: begrepDBO?.id ?: uuid),
+                    externalId = encodeBase64(begrepDTO.id ?: begrepDBO?.id ?: uuid),
                     internalId = begrepDBO.id,
                     extractResult = extractionResult
                 )

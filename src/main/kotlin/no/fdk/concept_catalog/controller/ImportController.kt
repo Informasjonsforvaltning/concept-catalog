@@ -4,9 +4,8 @@ import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.rdf.jenaLangFromHeader
 import no.fdk.concept_catalog.security.EndpointPermissions
-import no.fdk.concept_catalog.service.IdPair
 import no.fdk.concept_catalog.service.ImportService
-import no.fdk.concept_catalog.service.createHash
+import no.fdk.concept_catalog.service.isBase64Encoded
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -50,16 +49,16 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable importId: String,
-        @RequestBody idPair: IdPair
+        @RequestBody externalId: String
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            createHash(idPair.encodedId) != idPair.hashedId -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            !isBase64Encoded(externalId) -> ResponseEntity(HttpStatus.BAD_REQUEST)
 
             else -> {
-                importService.addConceptToCatalog(catalogId, importId, idPair.encodedId, user, jwt)
+                importService.addConceptToCatalog(catalogId, importId, externalId, user, jwt)
                 return ResponseEntity
                     .created(URI("/import/$catalogId/results/${importId}"))
                     .build()
