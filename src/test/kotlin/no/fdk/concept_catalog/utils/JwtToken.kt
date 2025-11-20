@@ -17,7 +17,7 @@ class JwtToken(private val access: Access) {
         val claimset = JWTClaimsSet.Builder()
             .audience(aud)
             .expirationTime(Date(exp))
-            .claim("iss", "https://auth.staging.fellesdatakatalog.digdir.no/auth/realms/fdk")
+            .claim("iss", "https://auth.staging.fellesdatakatalog.digdir.no/realms/fdk")
             .claim("user_name", "1924782563")
             .claim("name", "TEST USER")
             .claim("given_name", "TEST")
