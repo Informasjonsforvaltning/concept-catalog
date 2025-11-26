@@ -75,7 +75,7 @@ spring:
     password: testpassword
     authentication-database: admin
     replica-set-name: null
-  security.oauth2.resourceserver.jwt.jwk-set-uri: http://localhost:6000/auth/realms/fdk/protocol/openid-connect/certs
+  security.oauth2.resourceserver.jwt.jwk-set-uri: http://localhost:6000/realms/fdk/protocol/openid-connect/certs
 application:
   historyServiceUri: http://localhost:6000
   cors.originPatterns: "*"

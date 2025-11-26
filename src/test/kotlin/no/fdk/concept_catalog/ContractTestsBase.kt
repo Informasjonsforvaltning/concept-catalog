@@ -54,7 +54,7 @@ open class ContractTestsBase {
 
     @BeforeEach
     fun setUp() {
-        stubFor(get(urlPathEqualTo("/auth/realms/fdk/protocol/openid-connect/certs")).willReturn(okJson(JwkStore.get())))
+        stubFor(get(urlPathEqualTo("/realms/fdk/protocol/openid-connect/certs")).willReturn(okJson(JwkStore.get())))
 
         mongoOperations.findAllAndRemove<BegrepDBO>(Query(), "concepts")
         mongoOperations.findAllAndRemove<ChangeRequest>(Query(), "changeRequests")
