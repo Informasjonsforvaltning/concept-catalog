@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ConceptRepository : MongoRepository<BegrepDBO, String?> {
+interface ConceptRepository : MongoRepository<BegrepDBO, String> {
     fun countBegrepByAnsvarligVirksomhetId(orgNr: String): Long
     fun getBegrepByAnsvarligVirksomhetId(orgNr: String): List<BegrepDBO>
     fun getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: Status): List<BegrepDBO>
