@@ -68,8 +68,8 @@ open class SecurityConfig(
 }
 
 private class RDFMatcher : RequestMatcher {
-    override fun matches(request: HttpServletRequest?): Boolean =
-        request?.method == "GET" && acceptHeaderIsRDF(request.getHeader("Accept"))
+    override fun matches(request: HttpServletRequest): Boolean =
+        request.method == "GET" && acceptHeaderIsRDF(request.getHeader("Accept"))
 }
 
 private fun acceptHeaderIsRDF(accept: String?): Boolean =
