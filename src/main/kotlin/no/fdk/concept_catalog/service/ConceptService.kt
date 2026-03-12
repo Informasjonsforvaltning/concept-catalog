@@ -381,11 +381,7 @@ class ConceptService(
 
         if (begrepCount == 0L) {
             logger.info("Adding first entry for $publisherId in harvest admin...")
-            val harvestUrl = UriComponentsBuilder
-                .fromUriString(applicationProperties.collectionBaseUri)
-                .replacePath("/collections/$publisherId")
-                .build().toUriString()
-            conceptPublisher.sendNewDataSource(publisherId, harvestUrl)
+            conceptPublisher.createNewDataSource(publisherId)
         }
     }
 
@@ -419,7 +415,7 @@ class ConceptService(
             }
         }
 
-        conceptPublisher.send(concept.ansvarligVirksomhet.id)
+        conceptPublisher.triggerHarvest(concept.ansvarligVirksomhet.id)
 
         return conceptRepository.save(published)
             .also { updateRelationsToNonInternal(it) }

@@ -15,8 +15,8 @@ spring:
     database: conceptCatalog
     auto-index-creation: true
   security.oauth2.resourceserver.jwt:
-    jwk-set-uri: ${KEYCLOAK_OIDC_ISSUER:https://auth.staging.fellesdatakatalog.digdir.no/realms/fdk}/protocol/openid-connect/certs
-    issuer-uri: ${KEYCLOAK_OIDC_ISSUER:https://auth.staging.fellesdatakatalog.digdir.no/realms/fdk}
+    jwk-set-uri: ${KEYCLOAK_OIDC_ISSUER}/protocol/openid-connect/certs
+    issuer-uri: ${KEYCLOAK_OIDC_ISSUER}
   rabbitmq:
     host: rabbitmq
     port: 5672
@@ -33,9 +33,10 @@ management:
     tags:
       application: concept-catalog
 application:
-  collectionBaseUri: ${COLLECTION_BASE_URI:https://concept-catalog.fellesdatakatalog.digdir.no}
-  historyServiceUri: ${CATALOG_HISTORY_SERVICE_URI:http://localhost:9090}
-  adminServiceUri: ${CATALOG_ADMIN_SERVICE_URI:https://catalog-admin-service.fellesdatakatalog.digdir.no}
+  collectionBaseUri: ${COLLECTION_BASE_URI}
+  historyServiceUri: ${CATALOG_HISTORY_SERVICE_URI}
+  adminServiceUri: ${CATALOG_ADMIN_SERVICE_URI}
+  harvestAdminUri: ${ADMIN_API_BASE_URI}
   cors.originPatterns: "${CORS_ORIGIN_PATTERNS}"
   elasticsearch:
     username: ${ELASTIC_USERNAME}
@@ -75,9 +76,14 @@ spring:
     password: testpassword
     authentication-database: admin
     replica-set-name: null
-  security.oauth2.resourceserver.jwt.jwk-set-uri: http://localhost:6000/realms/fdk/protocol/openid-connect/certs
+  security.oauth2.resourceserver.jwt:
+    jwk-set-uri: http://localhost:6000/realms/fdk/protocol/openid-connect/certs
+    issuer-uri: http://localhost:6000/realms/fdk
 application:
+  collectionBaseUri: https://concept-catalog.fellesdatakatalog.digdir.no
   historyServiceUri: http://localhost:6000
+  adminServiceUri: http://localhost:6000
+  harvestAdminUri: http://localhost:6000
   cors.originPatterns: "*"
   elasticsearch:
     username: elastic
