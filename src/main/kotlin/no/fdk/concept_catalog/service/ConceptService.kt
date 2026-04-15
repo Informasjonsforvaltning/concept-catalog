@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import org.springframework.web.util.UriComponentsBuilder
 import java.time.Instant
 import kotlin.math.ceil
 import kotlin.math.roundToLong
@@ -41,7 +40,7 @@ class ConceptService(
         if (newCurrent == null && currentConceptRepository.existsById(originalId)) {
             currentConceptRepository.deleteById(originalId)
         } else if (newCurrent != null) {
-            val latestArchivedId = allVersions.filter { it.isArchived }
+            val latestArchivedId = allVersions.filter { it.isArchived == true }
                 .maxByOrNull { it.versjonsnr }
                 ?.id
             currentConceptRepository.save(CurrentConcept(newCurrent, latestArchivedId))
@@ -233,7 +232,7 @@ class ConceptService(
         val validation = patched.validateSchema()
 
         when {
-            concept.isArchived -> {
+            concept.isArchived == true -> {
                 val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to patch archived concepts")
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
@@ -254,7 +253,7 @@ class ConceptService(
                 throw badRequestException
             }
 
-            patched.erPublisert || patched.publiseringsTidspunkt != null -> {
+            patched.erPublisert == true || patched.publiseringsTidspunkt != null -> {
                 val badRequest = ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Unable to publish concepts as part of normal update"
@@ -263,7 +262,7 @@ class ConceptService(
                 throw badRequest
             }
 
-            patched.isArchived -> {
+            patched.isArchived == true -> {
                 val badRequest = ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Unable to archive concepts as part of normal update"
@@ -296,7 +295,7 @@ class ConceptService(
     fun isPublishedAndNotValid(concept: Begrep): Boolean {
         val published = getLastPublished(concept.originaltBegrep)
         return when {
-            !concept.erPublisert -> false
+            concept.erPublisert != true -> false
             concept.versjonsnr == null -> true
             !concept.isValid() -> true
             published?.versjonsnr == null -> false
@@ -320,14 +319,14 @@ class ConceptService(
         if (originaltBegrep == null) null
         else {
             conceptRepository.getByOriginaltBegrep(originaltBegrep)
-                .filter { it.erPublisert }
+                .filter { it.erPublisert == true }
                 .maxByOrNull { concept -> concept.versjonsnr }
                 ?.toDTO()
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
         conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
-            .filter { it.erPublisert }
+            .filter { it.erPublisert == true }
             .sortedByDescending { concept -> concept.versjonsnr }
             .distinctBy { concept -> concept.originaltBegrep }
             .map { it.toDTO() }
@@ -398,7 +397,7 @@ class ConceptService(
         )
 
         when {
-            concept.erPublisert -> {
+            concept.erPublisert == true -> {
                 val badRequest =
                     ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to publish already published concepts")
                 logger.error("aborting publish of ${concept.id}", badRequest)
@@ -488,7 +487,7 @@ class ConceptService(
 
     fun findIdOfUnarchivedRevision(concept: BegrepDBO): String? =
         when {
-            !concept.isArchived -> null
+            concept.isArchived != true -> null
             else -> conceptRepository.getByOriginaltBegrepAndIsArchived(
                 originaltBegrep = concept.originaltBegrep,
                 isArchived = false

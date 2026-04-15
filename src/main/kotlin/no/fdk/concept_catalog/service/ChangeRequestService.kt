@@ -92,7 +92,7 @@ class ChangeRequestService(
             dbConcept == null -> createNewConcept(Virksomhet(id=catalogId), user)
                 .updateLastChangedAndByWhom(user)
                 .let { conceptRepository.save(it) }
-            dbConcept.isArchived -> dbConcept.createNewRevision()
+            dbConcept.isArchived == true -> dbConcept.createNewRevision()
                 .updateLastChangedAndByWhom(user)
                 .let { conceptRepository.save(it) }
             else -> dbConcept

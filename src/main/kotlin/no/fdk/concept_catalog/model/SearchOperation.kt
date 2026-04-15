@@ -1,25 +1,39 @@
 package no.fdk.concept_catalog.model
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchOperation(
     val query: String?,
-    val fields: QueryFields = QueryFields(),
-    val filters: SearchFilters = SearchFilters(),
+    @JsonProperty("fields", required = false)
+    fields: QueryFields? = null,
+    @JsonProperty("filters", required = false)
+    filters: SearchFilters? = null,
     val sort: SortField? = null,
-    val pagination: Pagination = Pagination()
-)
+    @JsonProperty("pagination", required = false)
+    pagination: Pagination? = null,
+) {
+    val fields: QueryFields = fields ?: QueryFields()
+    val filters: SearchFilters = filters ?: SearchFilters()
+    val pagination: Pagination = pagination ?: Pagination()
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class QueryFields(
-    val anbefaltTerm: Boolean = true,
-    val frarådetTerm: Boolean = true,
-    val tillattTerm: Boolean = true,
-    val definisjon: Boolean = true,
-    val merknad: Boolean = true
-)
+    anbefaltTerm: Boolean? = null,
+    frarådetTerm: Boolean? = null,
+    tillattTerm: Boolean? = null,
+    definisjon: Boolean? = null,
+    merknad: Boolean? = null,
+) {
+    val anbefaltTerm: Boolean = anbefaltTerm ?: true
+    val frarådetTerm: Boolean = frarådetTerm ?: true
+    val tillattTerm: Boolean = tillattTerm ?: true
+    val definisjon: Boolean = definisjon ?: true
+    val merknad: Boolean = merknad ?: true
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchFilters(

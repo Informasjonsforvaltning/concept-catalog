@@ -1,8 +1,10 @@
 package no.fdk.concept_catalog.elastic
 
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy
-import org.apache.http.ssl.SSLContextBuilder
-import org.apache.http.ssl.SSLContexts
+import co.elastic.clients.transport.TransportOptions
+import co.elastic.clients.transport.rest5_client.Rest5ClientOptions
+import co.elastic.clients.transport.rest5_client.low_level.RequestOptions
+import org.apache.hc.core5.ssl.SSLContextBuilder
+import org.apache.hc.core5.ssl.SSLContexts
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.elasticsearch.client.ClientConfiguration
@@ -18,8 +20,7 @@ open class ElasticsearchConfig(private val elasticProperties: ElasticProperties)
 
         builder.loadTrustMaterial(
             File(elasticProperties.storePath),
-            elasticProperties.storePass.toCharArray(),
-            TrustSelfSignedStrategy()
+            elasticProperties.storePass.toCharArray()
         )
 
         return builder.build()
@@ -38,6 +39,16 @@ open class ElasticsearchConfig(private val elasticProperties: ElasticProperties)
         )
 
         return builder.build()
+    }
+
+    override fun transportOptions(): TransportOptions {
+        val acceptRequestOptions = RequestOptions.DEFAULT
+            .toBuilder()
+            .addHeader("Accept", "application/vnd.elasticsearch+json;compatible-with=8")
+            .addHeader("Content-Type", "application/vnd.elasticsearch+json;compatible-with=8")
+            .build()
+
+        return Rest5ClientOptions(acceptRequestOptions, false)
     }
 
 }

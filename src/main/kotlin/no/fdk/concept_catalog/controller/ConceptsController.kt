@@ -128,7 +128,7 @@ class ConceptsController(
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
 
-            !concept.isArchived -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            concept.isArchived != true -> ResponseEntity(HttpStatus.BAD_REQUEST)
             conceptService.findIdOfUnarchivedRevision(concept) != null -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
@@ -162,7 +162,7 @@ class ConceptsController(
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
 
-            concept.isArchived -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            concept.isArchived == true -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("deleting concept $id")
                 conceptService.deleteConcept(concept)
@@ -256,7 +256,7 @@ class ConceptsController(
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
 
-            concept.isArchived -> {
+            concept.isArchived == true -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
                 conceptService.createRevisionOfConcept(patchOperations, concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
