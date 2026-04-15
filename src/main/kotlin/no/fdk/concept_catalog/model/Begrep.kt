@@ -3,6 +3,10 @@ package no.fdk.concept_catalog.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.fasterxml.jackson.annotation.Nulls
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.CompoundIndexes
@@ -25,8 +29,11 @@ data class BegrepDBO (
     val revisjonAv: String?,
     val status: Status?,
     val statusURI: String? = null,
-    val erPublisert: Boolean = false,
-    val isArchived: Boolean = false,
+    val erPublisert: Boolean? = false,
+    @param:JsonAlias("archived")
+    @param:JsonProperty("isArchived")
+    @get:JsonProperty("isArchived")
+    val isArchived: Boolean? = false,
     
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
@@ -69,8 +76,13 @@ data class Begrep (
     val revisjonAv: String? = null,
     val status: Status? = null,
     val statusURI: String? = null,
-    val erPublisert: Boolean = false,
-    val isArchived: Boolean = false,
+    @param:JsonSetter(nulls = Nulls.SKIP)
+    val erPublisert: Boolean? = false,
+    @param:JsonAlias("archived")
+    @param:JsonProperty("isArchived")
+    @get:JsonProperty("isArchived")
+    @param:JsonSetter(nulls = Nulls.SKIP)
+    val isArchived: Boolean? = false,
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
     val anbefaltTerm: Term? = null,

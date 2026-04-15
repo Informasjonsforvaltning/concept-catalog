@@ -96,4 +96,4 @@ fun Begrep.fromDBO() = copy(sistPublisertId = null)
 
 fun Begrep.asCurrentConcept(latestPublishedId: String? = null) =
     if (latestPublishedId != null) CurrentConcept(toDBO(), latestPublishedId)
-    else CurrentConcept(toDBO(), if (erPublisert) id else null)
+    else CurrentConcept(toDBO(), if (erPublisert == true) id else null)

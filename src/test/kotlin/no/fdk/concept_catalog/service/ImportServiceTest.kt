@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.IssueType
@@ -100,10 +101,10 @@ class ImportServiceTest {
     @BeforeEach
     fun setupMockResponse() {
         whenever(jwt.tokenValue).thenReturn("mocked-token")
-        whenever(conceptRepository.save(any())).thenAnswer { invocation ->
-            invocation.arguments[0]
+        whenever(conceptRepository.save(any<BegrepDBO>())).thenAnswer { invocation ->
+            invocation.arguments[0] as BegrepDBO
         }
-        whenever(importResultRepository.save(any())).thenAnswer { invocation ->
+        whenever(importResultRepository.save(any<ImportResult>())).thenAnswer { invocation ->
             invocation.arguments[0] as ImportResult
         }
     }

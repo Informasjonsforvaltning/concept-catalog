@@ -59,7 +59,7 @@ class SuggestConcepts : ContractTestsBase() {
             Suggestion(
                 id = BEGREP_1.id!!,
                 originaltBegrep = BEGREP_1.originaltBegrep!!,
-                erPublisert = BEGREP_1.erPublisert,
+                erPublisert = BEGREP_1.erPublisert == true,
                 anbefaltTerm = BEGREP_1.anbefaltTerm,
                 definisjon = BEGREP_1.definisjon?.copy(kildebeskrivelse = null)
             )
@@ -86,7 +86,7 @@ class SuggestConcepts : ContractTestsBase() {
             Suggestion(
                 id = BEGREP_1.id!!,
                 originaltBegrep = BEGREP_1.originaltBegrep!!,
-                erPublisert = BEGREP_1.erPublisert,
+                erPublisert = BEGREP_1.erPublisert == true,
                 anbefaltTerm = BEGREP_1.anbefaltTerm,
                 definisjon = BEGREP_1.definisjon?.copy(kildebeskrivelse = null)
             )
@@ -134,7 +134,7 @@ class SuggestConcepts : ContractTestsBase() {
             Suggestion(
                 id = BEGREP_0.id!!,
                 originaltBegrep = BEGREP_0.originaltBegrep!!,
-                erPublisert = BEGREP_0.erPublisert,
+                erPublisert = BEGREP_0.erPublisert == true,
                 anbefaltTerm = BEGREP_0.anbefaltTerm,
                 definisjon = BEGREP_0.definisjon?.copy(kildebeskrivelse = null)
             )
@@ -144,7 +144,7 @@ class SuggestConcepts : ContractTestsBase() {
             Suggestion(
                 id = BEGREP_1.id!!,
                 originaltBegrep = BEGREP_1.originaltBegrep!!,
-                erPublisert = BEGREP_1.erPublisert,
+                erPublisert = BEGREP_1.erPublisert == true,
                 anbefaltTerm = BEGREP_1.anbefaltTerm,
                 definisjon = BEGREP_1.definisjon?.copy(kildebeskrivelse = null)
             )

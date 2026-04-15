@@ -2,6 +2,8 @@ package no.fdk.concept_catalog.model
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
@@ -11,7 +13,7 @@ import org.springframework.data.elasticsearch.annotations.Setting
 import java.time.Instant
 import java.time.LocalDate
 
-@Document(indexName = "concepts-current")
+@Document(indexName = "concepts-current", createIndex = false)
 @Setting(settingPath = "/elasticsearch/current-concept-settings.json")
 @Mapping(mappingPath = "/elasticsearch/current-concept-mappings.json")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -23,6 +25,9 @@ data class CurrentConcept(
     val status: Status?,
     val statusURI: String? = null,
     val erPublisert: Boolean = false,
+    @param:JsonAlias("archived")
+    @param:JsonProperty("isArchived")
+    @get:JsonProperty("isArchived")
     val isArchived: Boolean = false,
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     @Field(type = FieldType.Date)
@@ -62,8 +67,8 @@ data class CurrentConcept(
 ) {
     constructor(dbo: BegrepDBO, latestPublishedId: String?) : this(
         dbo.id, dbo.originaltBegrep, dbo.versjonsnr, dbo.revisjonAv,
-        dbo.status, dbo.statusURI, dbo.erPublisert, dbo.isArchived, dbo.publiseringsTidspunkt,
-        dbo.anbefaltTerm, dbo.tillattTerm, dbo.frarådetTerm, dbo.definisjon,
+        dbo.status, dbo.statusURI, dbo.erPublisert == true, dbo.isArchived == true,
+        dbo.publiseringsTidspunkt, dbo.anbefaltTerm, dbo.tillattTerm, dbo.frarådetTerm, dbo.definisjon,
         dbo.definisjonForAllmennheten, dbo.definisjonForSpesialister,
         dbo.merknad, dbo.merkelapp, dbo.ansvarligVirksomhet, dbo.eksempel,
         dbo.fagområde, dbo.fagområdeKoder?.filterNotNull(), dbo.omfang, dbo.kontaktpunkt,

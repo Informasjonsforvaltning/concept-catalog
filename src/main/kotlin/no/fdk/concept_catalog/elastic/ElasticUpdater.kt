@@ -29,7 +29,7 @@ class ElasticUpdater(
 
             val idsOfHighestPublishedVersion: Map<String, String?> = groupedByOriginalId.mapValues {
                 it.value
-                    .filter { concept -> concept.erPublisert }
+                    .filter { concept -> concept.erPublisert == true }
                     .maxByOrNull { concept -> concept.versjonsnr }
                     ?.id
             }

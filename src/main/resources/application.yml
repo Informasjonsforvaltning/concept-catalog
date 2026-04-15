@@ -5,7 +5,7 @@ logging:
   level.org.springframework: WARN
   level.org.springframework.web: WARN
 spring:
-  data.mongodb:
+  mongodb:
     host: ${MONGODB_HOST}
     username: ${MONGODB_USER}
     password: ${MONGODB_PASSWORD}
@@ -13,15 +13,9 @@ spring:
     replica-set-name: ${MONGODB_REPLICASET}
     port: 27017
     database: conceptCatalog
-    auto-index-creation: true
   security.oauth2.resourceserver.jwt:
     jwk-set-uri: ${KEYCLOAK_OIDC_ISSUER}/protocol/openid-connect/certs
     issuer-uri: ${KEYCLOAK_OIDC_ISSUER}
-  rabbitmq:
-    host: rabbitmq
-    port: 5672
-    username: ${RABBIT_USERNAME:admin}
-    password: ${RABBIT_PASSWORD:admin}
 management:
   endpoints:
     web:
@@ -49,14 +43,13 @@ application:
 ---
 spring:
   config.activate.on-profile: develop
-  data.mongodb:
+  mongodb:
     host: localhost
     username: admin
     password: admin
     authentication-database: admin
     replica-set-name: null
   security.oauth2.resourceserver.jwt.jwk-set-uri: https://auth.staging.fellesdatakatalog.digdir.no/realms/fdk/protocol/openid-connect/certs
-  rabbitmq.host: 127.0.0.1
 application:
   cors.originPatterns: "*"
   elasticsearch:
@@ -70,7 +63,7 @@ spring:
   config.activate.on-profile: contract-test
   main:
     allow-bean-definition-overriding: true
-  data.mongodb:
+  mongodb:
     host: localhost
     username: testuser
     password: testpassword

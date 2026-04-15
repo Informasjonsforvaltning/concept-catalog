@@ -13,7 +13,6 @@ import no.fdk.concept_catalog.utils.JwkStore
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
@@ -21,7 +20,10 @@ import org.springframework.data.elasticsearch.core.query.DeleteQuery
 import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.http.*
+import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.web.client.HttpStatusCodeException
+import org.springframework.web.client.RestTemplate
 import org.wiremock.spring.ConfigureWireMock
 import org.wiremock.spring.EnableWireMock
 
@@ -49,8 +51,7 @@ open class ContractTestsBase {
     @Autowired
     lateinit var conceptRepository: ConceptRepository
 
-    @Autowired
-    lateinit var testRestTemplate: TestRestTemplate
+    val restTemplate: RestTemplate = RestTemplate(JdkClientHttpRequestFactory())
 
     @BeforeEach
     fun setUp() {
@@ -60,11 +61,17 @@ open class ContractTestsBase {
         mongoOperations.findAllAndRemove<ChangeRequest>(Query(), "changeRequests")
         mongoOperations.findAllAndRemove<ImportResult>(Query(), "importResults")
 
+        val indexOps = elasticsearchOperations.indexOps(CurrentConcept::class.java)
+        if (indexOps.exists()) {
+            indexOps.delete()
+        }
+        indexOps.createWithMapping()
+
         elasticsearchOperations.delete(
             DeleteQuery.builder(org.springframework.data.elasticsearch.core.query.Query.findAll()).build(),
             CurrentConcept::class.java
         )
-        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+        indexOps.refresh()
 
         importResultRepository.deleteAll()
         conceptRepository.deleteAll()
@@ -88,7 +95,11 @@ open class ContractTestsBase {
 
         val httpEntity: HttpEntity<String> = HttpEntity(httpHeaders)
 
-        return testRestTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
+        return try {
+            restTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
+        } catch (e: HttpStatusCodeException) {
+            ResponseEntity.status(e.statusCode).headers(e.responseHeaders ?: HttpHeaders()).body(e.responseBodyAsString)
+        }
     }
 
     fun authorizedRequest(
@@ -109,6 +120,10 @@ open class ContractTestsBase {
 
         val httpEntity: HttpEntity<String> = HttpEntity(body, headers)
 
-        return testRestTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
+        return try {
+            restTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
+        } catch (e: HttpStatusCodeException) {
+            ResponseEntity.status(e.statusCode).headers(e.responseHeaders ?: HttpHeaders()).body(e.responseBodyAsString)
+        }
     }
 }
