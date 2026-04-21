@@ -106,13 +106,6 @@ class ConceptService(
                 .size
         )
 
-    fun createRevisionOfConcept(revisionValues: Begrep, concept: BegrepDBO, user: User, jwt: Jwt): Begrep {
-        val newRevision = concept.createNewRevision().updateLastChangedAndByWhom(user)
-        val operations =
-            createPatchOperations(newRevision, newRevision.addUpdatableFieldsFromDTO(revisionValues), mapper)
-        return createRevisionOfConcept(operations, concept, user, jwt)
-    }
-
     fun createRevisionOfConcept(
         operations: List<JsonPatchOperation>,
         concept: BegrepDBO,
@@ -209,11 +202,27 @@ class ConceptService(
             .also { logger.debug("concept ${it.id} successfully updated") }
     }
 
+    private fun String.isValidPathForArchivedConcept(): Boolean =
+        when {
+            this == "/interneFelt" || startsWith("/interneFelt/") -> true
+            this == "/assignedUser" -> true
+            this == "/merkelapp" || startsWith("/merkelapp/") -> true
+            this == "/abbreviatedLabel" -> true
+            else -> false
+        }
+
     private fun patchAndValidateConcept(
         concept: BegrepDBO,
         operations: List<JsonPatchOperation>,
         user: User
     ): BegrepDBO {
+        val invalidPaths = operations.filter { !it.path.isValidPathForArchivedConcept() }.map { it.path }
+        if (concept.isArchived == true && invalidPaths.isNotEmpty()) {
+            val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Patch operations include non-updateable paths for archived concepts: $invalidPaths")
+            logger.error("aborting update of ${concept.id}", badRequest)
+            throw badRequest
+        }
+
         val patched = try {
             concept
                 .addUpdatableFieldsFromDTO(
@@ -232,12 +241,6 @@ class ConceptService(
         val validation = patched.validateSchema()
 
         when {
-            concept.isArchived == true -> {
-                val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to patch archived concepts")
-                logger.error("aborting update of ${concept.id}", badRequest)
-                throw badRequest
-            }
-
             !validation.isValid -> {
                 val badRequest = ResponseStatusException(HttpStatus.BAD_REQUEST, validation.results().toString())
                 logger.error("aborting update of ${concept.id}, update failed validation", badRequest)
@@ -253,19 +256,19 @@ class ConceptService(
                 throw badRequestException
             }
 
-            patched.erPublisert == true || patched.publiseringsTidspunkt != null -> {
+            patched.erPublisert != concept.erPublisert || patched.publiseringsTidspunkt != concept.publiseringsTidspunkt -> {
                 val badRequest = ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Unable to publish concepts as part of normal update"
+                    "Unable to change published status as part of normal update"
                 )
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
             }
 
-            patched.isArchived == true -> {
+            patched.isArchived != concept.isArchived -> {
                 val badRequest = ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Unable to archive concepts as part of normal update"
+                    "Unable to change archived status as part of normal update"
                 )
                 logger.error("aborting update of ${concept.id}", badRequest)
                 throw badRequest
@@ -293,13 +296,10 @@ class ConceptService(
     }
 
     fun isPublishedAndNotValid(concept: Begrep): Boolean {
-        val published = getLastPublished(concept.originaltBegrep)
         return when {
             concept.erPublisert != true -> false
             concept.versjonsnr == null -> true
-            !concept.isValid() -> true
-            published?.versjonsnr == null -> false
-            else -> published.versjonsnr >= concept.versjonsnr
+            else -> !concept.isValid()
         }
     }
 

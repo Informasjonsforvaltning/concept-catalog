@@ -330,28 +330,10 @@ val BEGREP_5 = Begrep(
     internErstattesAv = null
 )
 
-val BEGREP_REVISION = Begrep(
-    versjonsnr = SemVer(1, 0, 1),
-    status = Status.UTKAST,
-    statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
-    erPublisert = true,
-    isArchived = true,
-    publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
-    anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep revisjon"))),
-    definisjon = Definisjon(
-        kildebeskrivelse = Kildebeskrivelse(
-            forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-            kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"))
-        )
-    ),
-    fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
-    gyldigTom = LocalDate.of(2030, 10, 10),
-    kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
-    ansvarligVirksomhet = Virksomhet(
-        id = "111222333"
-    ),
-    interneFelt = null,
-    internErstattesAv = null
+val BEGREP_REVISION = listOf(
+    JsonPatchOperation(op = OpEnum.REPLACE, "/statusURI", "http://publications.europa.eu/resource/authority/concept-status/DRAFT"),
+    JsonPatchOperation(op = OpEnum.REPLACE, "/versjonsnr", SemVer(1, 0, 1)),
+    JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm", Term(navn = mapOf(Pair("en", "Begrep revisjon"))))
 )
 
 val BEGREP_6 = Begrep(
