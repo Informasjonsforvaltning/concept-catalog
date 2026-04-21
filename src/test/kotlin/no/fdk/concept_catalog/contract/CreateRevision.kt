@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.SemVer
-import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
@@ -21,7 +21,7 @@ class CreateRevision : ContractTestsBase() {
     @Test
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon",
+            "/begreper/${BEGREP_4.id}/revision",
             mapper.writeValueAsString(BEGREP_REVISION), null, HttpMethod.POST
         )
 
@@ -33,7 +33,7 @@ class CreateRevision : ContractTestsBase() {
         mongoOperations.insert(BEGREP_4.toDBO())
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon", mapper.writeValueAsString(BEGREP_REVISION),
+            "/begreper/${BEGREP_4.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
         )
 
@@ -45,7 +45,7 @@ class CreateRevision : ContractTestsBase() {
         mongoOperations.insert(BEGREP_2.toDBO())
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_2.id}/revisjon", mapper.writeValueAsString(BEGREP_REVISION),
+            "/begreper/${BEGREP_2.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
@@ -57,7 +57,7 @@ class CreateRevision : ContractTestsBase() {
         mongoOperations.insert(BEGREP_HAS_REVISION.toDBO())
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_HAS_REVISION.id}/revisjon",
+            "/begreper/${BEGREP_HAS_REVISION.id}/revision",
 
             mapper.writeValueAsString(BEGREP_UNPUBLISHED_REVISION),
             JwtToken(Access.ORG_WRITE).toString(),
@@ -79,7 +79,7 @@ class CreateRevision : ContractTestsBase() {
         )
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon", mapper.writeValueAsString(BEGREP_REVISION),
+            "/begreper/${BEGREP_4.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
         )
 
@@ -102,9 +102,9 @@ class CreateRevision : ContractTestsBase() {
 
         assertEquals(BEGREP_4.originaltBegrep, revision?.originaltBegrep)
         assertEquals(SemVer(1, 0, 1), revision?.versjonsnr)
-        assertEquals(Status.UTKAST, revision?.status)
+        assertEquals("http://publications.europa.eu/resource/authority/concept-status/DRAFT", revision?.statusURI)
         assertEquals(false, revision?.erPublisert)
-        assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
+        assertEquals(Term(navn = mapOf(Pair("en", "Begrep revisjon"))), revision?.anbefaltTerm)
         assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
     }
 
@@ -120,9 +120,9 @@ class CreateRevision : ContractTestsBase() {
         )
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon",
+            "/begreper/${BEGREP_4.id}/revision",
 
-            mapper.writeValueAsString(BEGREP_REVISION.copy(versjonsnr = null)),
+            mapper.writeValueAsString(BEGREP_REVISION.filter { it.path != "/versjonsnr" }),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
@@ -145,9 +145,9 @@ class CreateRevision : ContractTestsBase() {
 
         assertEquals(BEGREP_4.originaltBegrep, revision?.originaltBegrep)
         assertEquals(SemVer(1, 0, 1), revision?.versjonsnr)
-        assertEquals(Status.UTKAST, revision?.status)
+        assertEquals("http://publications.europa.eu/resource/authority/concept-status/DRAFT", revision?.statusURI)
         assertEquals(false, revision?.erPublisert)
-        assertEquals(BEGREP_REVISION.anbefaltTerm, revision?.anbefaltTerm)
+        assertEquals(Term(navn = mapOf(Pair("en", "Begrep revisjon"))), revision?.anbefaltTerm)
         assertEquals(BEGREP_4.ansvarligVirksomhet, revision?.ansvarligVirksomhet)
     }
 
@@ -156,9 +156,9 @@ class CreateRevision : ContractTestsBase() {
         mongoOperations.insert(BEGREP_4.toDBO())
 
         val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revisjon",
+            "/begreper/${BEGREP_4.id}/revision",
 
-            mapper.writeValueAsString(BEGREP_REVISION.copy(versjonsnr = SemVer(1, 0, 0))),
+            mapper.writeValueAsString(BEGREP_REVISION.map { if (it.path == "/versjonsnr") it.copy(value = SemVer(1, 0, 0)) else it} ),
             JwtToken(Access.ORG_WRITE).toString(),
             HttpMethod.POST
         )
