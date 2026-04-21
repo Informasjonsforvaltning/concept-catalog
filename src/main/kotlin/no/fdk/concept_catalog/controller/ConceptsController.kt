@@ -114,11 +114,11 @@ class ConceptsController(
         }
     }
 
-    @PostMapping(value = ["/{id}/revisjon"])
+    @PostMapping(value = ["/{id}/revision"])
     fun createRevision(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable("id") id: String,
-        @RequestBody revision: Begrep
+        @RequestBody patchOperations: List<JsonPatchOperation>
     ): ResponseEntity<Begrep> {
         val concept = conceptService.getConceptDBO(id)
         val user = endpointPermissions.getUser(jwt)
@@ -132,7 +132,7 @@ class ConceptsController(
             conceptService.findIdOfUnarchivedRevision(concept) != null -> ResponseEntity(HttpStatus.BAD_REQUEST)
             else -> {
                 logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
-                conceptService.createRevisionOfConcept(revision, concept, user, jwt).id
+                conceptService.createRevisionOfConcept(patchOperations, concept, user, jwt).id
                     ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
                     ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
             }
@@ -255,13 +255,6 @@ class ConceptsController(
             user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
             !endpointPermissions.hasOrgWritePermission(jwt, concept.ansvarligVirksomhet.id) ->
                 ResponseEntity(HttpStatus.FORBIDDEN)
-
-            concept.isArchived == true -> {
-                logger.info("creating revision of ${concept.id} for ${concept.ansvarligVirksomhet.id}")
-                conceptService.createRevisionOfConcept(patchOperations, concept, user, jwt).id
-                    ?.let { ResponseEntity(locationHeaderForCreated(newId = it), HttpStatus.CREATED) }
-                    ?: ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR)
-            }
 
             else -> ResponseEntity(conceptService.updateConcept(concept, patchOperations, user, jwt), HttpStatus.OK)
         }
