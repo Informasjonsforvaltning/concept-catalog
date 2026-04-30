@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
-import java.net.URI
+import org.springframework.web.util.UriComponentsBuilder
 import java.util.concurrent.Executor
 
 @CrossOrigin
@@ -38,7 +38,8 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
             else -> {
                 importService.cancelImport(importId)
                 ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
+                        .buildAndExpand(catalogId, importId).toUri())
                     .build()
             }
         }
@@ -60,7 +61,8 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
             else -> {
                 importService.addConceptToCatalog(catalogId, importId, externalId, user, jwt)
                 return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
+                        .buildAndExpand(catalogId, importId).toUri())
                     .build()
 
             }
@@ -86,7 +88,8 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
             else -> {
                 val importResult = importService.createImportResult(catalogId)
                 return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importResult.id}"))
+                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
+                        .buildAndExpand(catalogId, importResult.id).toUri())
                     .build()
             }
         }
@@ -127,7 +130,8 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
                 }
 
                 ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
+                        .buildAndExpand(catalogId, importId).toUri())
                     .build()
             }
         }
@@ -157,7 +161,8 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
                 }
 
                 return ResponseEntity
-                    .created(URI("/import/$catalogId/results/${importId}"))
+                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
+                        .buildAndExpand(catalogId, importId).toUri())
                     .build()
             }
         }
