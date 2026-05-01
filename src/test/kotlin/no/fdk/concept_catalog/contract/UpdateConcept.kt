@@ -307,10 +307,8 @@ class UpdateConcept : ContractTestsBase() {
     }
 
     @Test
-    fun `Patch of archived concept creates new revision`() {
+    fun `Bad request when trying to patch archived concept`() {
         mongoOperations.insert(BEGREP_0.toDBO())
-
-        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
 
@@ -320,48 +318,23 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.CREATED, response.statusCode)
-
-        val responseHeaders: HttpHeaders = response.headers
-        val location = responseHeaders.location
-
-        assertNotNull(location)
-
-        val getRsp = authorizedRequest(
-            location.toString(),
-            null,
-            JwtToken(Access.ORG_READ).toString(), HttpMethod.GET
-        )
-
-        assertEquals(HttpStatus.OK, getRsp.statusCode)
-        
-        // Verify the revision is not archived
-        val revisionResult: Begrep = mapper.readValue(getRsp.body as String)
-        assertEquals(false, revisionResult.isArchived)
-    }
-
-    @Test
-    fun `Bad request when patching old version`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_0_OLD.toDBO()))
-
-        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
-
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_0_OLD.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
-
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
 
     @Test
-    fun `Bad request when trying to patch archived concept which already has new revision`() {
+    fun `Able to patch internal fields on archived concept`() {
         val archivedConcept = BEGREP_0_OLD.copy()
         mongoOperations.insert(archivedConcept.toDBO())
         mongoOperations.insert(BEGREP_0.toDBO())
 
-        val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
+        stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
+
+        val operations = listOf(
+            JsonPatchOperation(op = OpEnum.ADD, "/assignedUser", "User McUser"),
+            JsonPatchOperation(op = OpEnum.REPLACE, "/interneFelt", mapOf(Pair("felt-id", InterntFelt("ny feltverdi")))),
+            JsonPatchOperation(op = OpEnum.ADD, "/abbreviatedLabel", "ASDF"),
+            JsonPatchOperation(op = OpEnum.ADD, "/merkelapp", listOf("merk merk"))
+        )
 
         val response = authorizedRequest(
             "/begreper/${archivedConcept.id}",
@@ -369,6 +342,13 @@ class UpdateConcept : ContractTestsBase() {
             JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
         )
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
+
+        assertEquals(HttpStatus.OK, response.statusCode)
+
+        val result: Begrep = mapper.readValue(response.body as String)
+        assertEquals("User McUser", result.assignedUser)
+        assertEquals(mapOf(Pair("felt-id", InterntFelt("ny feltverdi"))), result.interneFelt)
+        assertEquals("ASDF", result.abbreviatedLabel)
+        assertEquals(listOf("merk merk"), result.merkelapp)
     }
 }
