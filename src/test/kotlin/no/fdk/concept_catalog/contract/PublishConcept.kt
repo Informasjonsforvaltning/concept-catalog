@@ -7,6 +7,7 @@ import no.fdk.concept_catalog.model.Paginated
 import no.fdk.concept_catalog.model.SearchFilter
 import no.fdk.concept_catalog.model.SearchFilters
 import no.fdk.concept_catalog.model.SearchOperation
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
@@ -31,7 +32,7 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Forbidden for wrong orgnr`() {
-        mongoOperations.insert(BEGREP_WRONG_ORG.toDBO())
+        conceptRepository.save(BEGREP_WRONG_ORG.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_WRONG_ORG.id}/publish",
@@ -59,7 +60,7 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Forbidden for read access`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
@@ -74,7 +75,7 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when publishing Concept that does not validate`() {
-        mongoOperations.insert(BEGREP_TO_BE_DELETED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_DELETED.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_DELETED.id}/publish",
@@ -89,7 +90,7 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Ok for write access`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
@@ -138,11 +139,11 @@ class PublishConcept : ContractTestsBase() {
 
     @Test
     fun `Internal relations are changed to non-internal on publish`() {
-        mongoOperations.insertAll(
+        conceptRepository.saveAll(
             listOf(
-                BEGREP_TO_BE_UPDATED.toDBO(),
-                BEGREP_HAS_REVISION.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION.toDBO()
+                BEGREP_TO_BE_UPDATED.toDBO().toEntity(),
+                BEGREP_HAS_REVISION.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity()
             )
         )
 

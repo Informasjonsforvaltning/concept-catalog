@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.*
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -22,7 +23,7 @@ class GetConceptRevisions : ContractTestsBase() {
 
     @Test
     fun `Forbidden for wrong orgnr`() {
-        mongoOperations.insert(BEGREP_WRONG_ORG.toDBO())
+        conceptRepository.save(BEGREP_WRONG_ORG.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_WRONG_ORG.id}/revisions",
@@ -50,7 +51,7 @@ class GetConceptRevisions : ContractTestsBase() {
 
     @Test
     fun `Ok for read access`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_0_OLD.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_0.id}/revisions",
@@ -71,7 +72,7 @@ class GetConceptRevisions : ContractTestsBase() {
 
     @Test
     fun `Ok for write access`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_0_OLD.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_0.id}/revisions",

@@ -2,10 +2,8 @@ package no.fdk.concept_catalog
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import no.fdk.concept_catalog.model.BegrepDBO
-import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.CurrentConcept
-import no.fdk.concept_catalog.model.ImportResult
+import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.repository.ImportResultRepository
 import no.fdk.concept_catalog.test_config.SyncConfig
@@ -17,8 +15,6 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.query.DeleteQuery
-import org.springframework.data.mongodb.core.MongoOperations
-import org.springframework.data.mongodb.core.query.Query
 import org.springframework.http.*
 import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.test.context.ActiveProfiles
@@ -40,9 +36,6 @@ open class ContractTestsBase {
     lateinit var mapper: ObjectMapper
 
     @Autowired
-    lateinit var mongoOperations: MongoOperations
-
-    @Autowired
     lateinit var elasticsearchOperations: ElasticsearchOperations
 
     @Autowired
@@ -51,15 +44,18 @@ open class ContractTestsBase {
     @Autowired
     lateinit var conceptRepository: ConceptRepository
 
+    @Autowired
+    lateinit var changeRequestRepository: ChangeRequestRepository
+
     val restTemplate: RestTemplate = RestTemplate(JdkClientHttpRequestFactory())
 
     @BeforeEach
     fun setUp() {
         stubFor(get(urlPathEqualTo("/realms/fdk/protocol/openid-connect/certs")).willReturn(okJson(JwkStore.get())))
 
-        mongoOperations.findAllAndRemove<BegrepDBO>(Query(), "concepts")
-        mongoOperations.findAllAndRemove<ChangeRequest>(Query(), "changeRequests")
-        mongoOperations.findAllAndRemove<ImportResult>(Query(), "importResults")
+        conceptRepository.deleteAll()
+        changeRequestRepository.deleteAll()
+        importResultRepository.deleteAll()
 
         val indexOps = elasticsearchOperations.indexOps(CurrentConcept::class.java)
         if (indexOps.exists()) {
@@ -72,9 +68,6 @@ open class ContractTestsBase {
             CurrentConcept::class.java
         )
         indexOps.refresh()
-
-        importResultRepository.deleteAll()
-        conceptRepository.deleteAll()
     }
 
     fun addToElasticsearchIndex(concept: CurrentConcept) {

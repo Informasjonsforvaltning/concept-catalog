@@ -13,6 +13,7 @@ import kotlin.test.assertNotNull
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.BegrepDBO
+import no.fdk.concept_catalog.model.ConceptEntity
 import no.fdk.concept_catalog.model.ImportResult
 import no.fdk.concept_catalog.model.ImportResultStatus
 import no.fdk.concept_catalog.model.IssueType
@@ -101,8 +102,8 @@ class ImportServiceTest {
     @BeforeEach
     fun setupMockResponse() {
         whenever(jwt.tokenValue).thenReturn("mocked-token")
-        whenever(conceptRepository.save(any<BegrepDBO>())).thenAnswer { invocation ->
-            invocation.arguments[0] as BegrepDBO
+        whenever(conceptRepository.save(any<ConceptEntity>())).thenAnswer { invocation ->
+            invocation.arguments[0] as ConceptEntity
         }
         whenever(importResultRepository.save(any<ImportResult>())).thenAnswer { invocation ->
             invocation.arguments[0] as ImportResult

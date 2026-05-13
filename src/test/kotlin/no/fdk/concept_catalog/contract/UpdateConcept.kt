@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.*
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -32,7 +33,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Forbidden for read access`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "req"))
 
@@ -47,7 +48,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Add new values`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -72,7 +73,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Remove value`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -93,7 +94,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Replace existing value`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -114,7 +115,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Move value`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -137,7 +138,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Copy value`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -160,7 +161,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when patch path is wrong`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/nn"))
 
@@ -175,7 +176,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when patch value is invalid`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         val operations =
             listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/eksempel/en", value = listOf("invalid")))
@@ -191,7 +192,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when trying to publish as part of normal update`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/erPublisert", value = true))
 
@@ -206,7 +207,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when trying to add published date`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         val operations = listOf(
             JsonPatchOperation(
@@ -227,7 +228,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Able to add new Kildebeskrivelse`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -250,7 +251,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Able to add new Bruker`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -271,7 +272,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Replace tildeltBruker`() {
-        mongoOperations.insert(BEGREP_TO_BE_UPDATED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -291,7 +292,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Patch fails when history-service fails`() {
-        mongoOperations.insert(BEGREP_TO_BE_DELETED.toDBO())
+        conceptRepository.save(BEGREP_TO_BE_DELETED.toDBO().toEntity())
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -308,7 +309,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Patch of archived concept creates new revision`() {
-        mongoOperations.insert(BEGREP_0.toDBO())
+        conceptRepository.save(BEGREP_0.toDBO().toEntity())
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -342,7 +343,7 @@ class UpdateConcept : ContractTestsBase() {
 
     @Test
     fun `Bad request when patching old version`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_0_OLD.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
 
@@ -358,8 +359,8 @@ class UpdateConcept : ContractTestsBase() {
     @Test
     fun `Bad request when trying to patch archived concept which already has new revision`() {
         val archivedConcept = BEGREP_0_OLD.copy()
-        mongoOperations.insert(archivedConcept.toDBO())
-        mongoOperations.insert(BEGREP_0.toDBO())
+        conceptRepository.save(archivedConcept.toDBO().toEntity())
+        conceptRepository.save(BEGREP_0.toDBO().toEntity())
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
 

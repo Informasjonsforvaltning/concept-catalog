@@ -4,6 +4,7 @@ import no.fdk.concept_catalog.configuration.ApplicationProperties
 import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.SemVer
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.utils.BEGREP_5
 import no.fdk.concept_catalog.utils.toDBO
@@ -11,7 +12,6 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.data.mongodb.core.MongoOperations
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -20,18 +20,17 @@ class Validation {
     private val conceptRepository: ConceptRepository = mock()
     private val conceptSearch: ConceptSearchService = mock()
     private val currentConceptRepository: CurrentConceptRepository = mock()
-    private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
     private val historyService: HistoryService = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, conceptSearch, currentConceptRepository, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, currentConceptRepository, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
 
     @Test
     fun `New non draft concepts has higher version than what is published`() {
-        whenever(conceptRepository.getByOriginaltBegrep("id5"))
-            .thenReturn(listOf(BEGREP_5, BEGREP_5.copy(id = "id7", versjonsnr = SemVer(12,10, 0)), BEGREP_5.copy(id = "id6", versjonsnr = SemVer(9, 9, 1))).map { it.toDBO() })
+        whenever(conceptRepository.findByOriginaltBegrep("id5"))
+            .thenReturn(listOf(BEGREP_5, BEGREP_5.copy(id = "id7", versjonsnr = SemVer(12,10, 0)), BEGREP_5.copy(id = "id6", versjonsnr = SemVer(9, 9, 1))).map { it.toDBO().toEntity() })
 
         assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 10, 1))) }
         assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 11, 0))) }
@@ -44,8 +43,8 @@ class Validation {
 
     @Test
     fun `Is valid when any definition is defined for the concept`() {
-        whenever(conceptRepository.getByOriginaltBegrep("id5"))
-            .thenReturn(listOf(BEGREP_5.toDBO()))
+        whenever(conceptRepository.findByOriginaltBegrep("id5"))
+            .thenReturn(listOf(BEGREP_5.toDBO().toEntity()))
 
         val validVersion = BEGREP_5.copy(versjonsnr = SemVer(1, 0, 1))
 

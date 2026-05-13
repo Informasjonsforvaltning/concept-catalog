@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrepssamling
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
@@ -24,23 +25,23 @@ class GetCollections : ContractTestsBase() {
 
     @Test
     fun `All collections for root access`() {
-        mongoOperations.insertAll(
+        conceptRepository.saveAll(
             listOf(
-                BEGREP_0.toDBO(),
-                BEGREP_1.toDBO(),
-                BEGREP_2.toDBO(),
-                BEGREP_WRONG_ORG.toDBO(),
-                BEGREP_TO_BE_DELETED.toDBO(),
-                BEGREP_TO_BE_UPDATED.toDBO(),
-                BEGREP_4.toDBO(),
-                BEGREP_5.toDBO(),
-                BEGREP_0_OLD.toDBO(),
-                BEGREP_6.toDBO(),
-                BEGREP_HAS_REVISION.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION.toDBO(),
-                BEGREP_HAS_MULTIPLE_REVISIONS.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO()
+                BEGREP_0.toDBO().toEntity(),
+                BEGREP_1.toDBO().toEntity(),
+                BEGREP_2.toDBO().toEntity(),
+                BEGREP_WRONG_ORG.toDBO().toEntity(),
+                BEGREP_TO_BE_DELETED.toDBO().toEntity(),
+                BEGREP_TO_BE_UPDATED.toDBO().toEntity(),
+                BEGREP_4.toDBO().toEntity(),
+                BEGREP_5.toDBO().toEntity(),
+                BEGREP_0_OLD.toDBO().toEntity(),
+                BEGREP_6.toDBO().toEntity(),
+                BEGREP_HAS_REVISION.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity(),
+                BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()
             )
         )
 
@@ -64,23 +65,23 @@ class GetCollections : ContractTestsBase() {
 
     @Test
     fun `Only permitted collections for write access`() {
-        mongoOperations.insertAll(
+        conceptRepository.saveAll(
             listOf(
-                BEGREP_0.toDBO(),
-                BEGREP_1.toDBO(),
-                BEGREP_2.toDBO(),
-                BEGREP_WRONG_ORG.toDBO(),
-                BEGREP_TO_BE_DELETED.toDBO(),
-                BEGREP_TO_BE_UPDATED.toDBO(),
-                BEGREP_4.toDBO(),
-                BEGREP_5.toDBO(),
-                BEGREP_0_OLD.toDBO(),
-                BEGREP_6.toDBO(),
-                BEGREP_HAS_REVISION.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION.toDBO(),
-                BEGREP_HAS_MULTIPLE_REVISIONS.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO()
+                BEGREP_0.toDBO().toEntity(),
+                BEGREP_1.toDBO().toEntity(),
+                BEGREP_2.toDBO().toEntity(),
+                BEGREP_WRONG_ORG.toDBO().toEntity(),
+                BEGREP_TO_BE_DELETED.toDBO().toEntity(),
+                BEGREP_TO_BE_UPDATED.toDBO().toEntity(),
+                BEGREP_4.toDBO().toEntity(),
+                BEGREP_5.toDBO().toEntity(),
+                BEGREP_0_OLD.toDBO().toEntity(),
+                BEGREP_6.toDBO().toEntity(),
+                BEGREP_HAS_REVISION.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity(),
+                BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()
             )
         )
 
@@ -102,23 +103,23 @@ class GetCollections : ContractTestsBase() {
 
     @Test
     fun `Only permitted collections for read access`() {
-        mongoOperations.insertAll(
+        conceptRepository.saveAll(
             listOf(
-                BEGREP_0.toDBO(),
-                BEGREP_1.toDBO(),
-                BEGREP_2.toDBO(),
-                BEGREP_WRONG_ORG.toDBO(),
-                BEGREP_TO_BE_DELETED.toDBO(),
-                BEGREP_TO_BE_UPDATED.toDBO(),
-                BEGREP_4.toDBO(),
-                BEGREP_5.toDBO(),
-                BEGREP_0_OLD.toDBO(),
-                BEGREP_6.toDBO(),
-                BEGREP_HAS_REVISION.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION.toDBO(),
-                BEGREP_HAS_MULTIPLE_REVISIONS.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO()
+                BEGREP_0.toDBO().toEntity(),
+                BEGREP_1.toDBO().toEntity(),
+                BEGREP_2.toDBO().toEntity(),
+                BEGREP_WRONG_ORG.toDBO().toEntity(),
+                BEGREP_TO_BE_DELETED.toDBO().toEntity(),
+                BEGREP_TO_BE_UPDATED.toDBO().toEntity(),
+                BEGREP_4.toDBO().toEntity(),
+                BEGREP_5.toDBO().toEntity(),
+                BEGREP_0_OLD.toDBO().toEntity(),
+                BEGREP_6.toDBO().toEntity(),
+                BEGREP_HAS_REVISION.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity(),
+                BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO().toEntity(),
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()
             )
         )
 

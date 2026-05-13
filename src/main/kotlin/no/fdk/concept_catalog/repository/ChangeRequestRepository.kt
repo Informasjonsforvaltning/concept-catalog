@@ -2,15 +2,15 @@ package no.fdk.concept_catalog.repository
 
 import no.fdk.concept_catalog.model.ChangeRequest
 import no.fdk.concept_catalog.model.ChangeRequestStatus
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ChangeRequestRepository: MongoRepository<ChangeRequest, String>{
-    fun getByCatalogId(catalogId: String): List<ChangeRequest>
-    fun getByCatalogIdAndStatus(catalogId: String, status: ChangeRequestStatus): List<ChangeRequest>
-    fun getByCatalogIdAndConceptId(catalogId: String, conceptId: String): List<ChangeRequest>
-    fun getByCatalogIdAndStatusAndConceptId(catalogId: String, status: ChangeRequestStatus, conceptId: String): List<ChangeRequest>
-    fun getByConceptIdAndStatus(conceptId: String, status: ChangeRequestStatus): List<ChangeRequest>
-    fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest?
+interface ChangeRequestRepository : JpaRepository<ChangeRequest, String> {
+    fun findByCatalogId(catalogId: String): List<ChangeRequest>
+    fun findByCatalogIdAndStatus(catalogId: String, status: ChangeRequestStatus): List<ChangeRequest>
+    fun findByCatalogIdAndConceptId(catalogId: String, conceptId: String): List<ChangeRequest>
+    fun findByCatalogIdAndStatusAndConceptId(catalogId: String, status: ChangeRequestStatus, conceptId: String): List<ChangeRequest>
+    fun findByConceptIdAndStatus(conceptId: String, status: ChangeRequestStatus): List<ChangeRequest>
+    fun findByIdAndCatalogId(id: String, catalogId: String): ChangeRequest?
 }

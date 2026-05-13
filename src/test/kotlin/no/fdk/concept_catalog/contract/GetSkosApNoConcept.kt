@@ -1,6 +1,7 @@
 package no.fdk.concept_catalog.contract
 
 import no.fdk.concept_catalog.ContractTestsBase
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.BEGREP_0
 import no.fdk.concept_catalog.utils.BEGREP_6
 import no.fdk.concept_catalog.utils.TestResponseReader
@@ -21,7 +22,7 @@ class GetSkosApNoConcept : ContractTestsBase() {
 
     @Test
     fun `Get SKOS-AP-NO Concept`() {
-        mongoOperations.insert(BEGREP_0.toDBO())
+        conceptRepository.save(BEGREP_0.toDBO().toEntity())
 
         val expected = TestResponseReader().parseTurtleFile("concept.ttl")
 
@@ -38,7 +39,7 @@ class GetSkosApNoConcept : ContractTestsBase() {
 
     @Test
     fun `Handles Blank URIs in Omfang and Kildebeskrivelse`() {
-        mongoOperations.insert(BEGREP_6.toDBO())
+        conceptRepository.save(BEGREP_6.toDBO().toEntity())
 
         val rdfXml =
             request("/collections/987654321/concepts/id6", MediaType.valueOf("application/rdf+xml"), HttpMethod.GET)

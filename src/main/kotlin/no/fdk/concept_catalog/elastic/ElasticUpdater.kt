@@ -2,18 +2,17 @@ package no.fdk.concept_catalog.elastic
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import no.fdk.concept_catalog.model.BegrepDBO
 import no.fdk.concept_catalog.model.CurrentConcept
+import no.fdk.concept_catalog.model.toDBO
+import no.fdk.concept_catalog.repository.ConceptRepository
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.findAll
 import org.springframework.stereotype.Service
 
 private val logger = LoggerFactory.getLogger(ElasticUpdater::class.java)
 
 @Service
 class ElasticUpdater(
-    private val conceptRepository: MongoTemplate,
+    private val conceptRepository: ConceptRepository,
     private val currentConceptRepository: CurrentConceptRepository
 ) {
 
@@ -24,7 +23,8 @@ class ElasticUpdater(
                 currentConceptRepository.deleteAll()
             } catch (_: Exception) { }
 
-            val groupedByOriginalId = conceptRepository.findAll<BegrepDBO>()
+            val groupedByOriginalId = conceptRepository.findAll()
+                .map { it.toDBO() }
                 .groupBy { concept -> concept.originaltBegrep }
 
             val idsOfHighestPublishedVersion: Map<String, String?> = groupedByOriginalId.mapValues {
