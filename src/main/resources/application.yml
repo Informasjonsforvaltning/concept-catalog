@@ -7,7 +7,7 @@ logging:
 spring:
   datasource:
     url: jdbc:postgresql://${POSTGRESQL_HOST}:5432/${POSTGRESQL_DB}
-    username: ${POSTGRESQL_USERNAME}
+    username: ${POSTGRESQL_USER}
     password: ${POSTGRESQL_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
