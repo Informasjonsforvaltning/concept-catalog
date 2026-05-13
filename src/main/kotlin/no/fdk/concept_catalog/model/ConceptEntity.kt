@@ -17,9 +17,8 @@ data class ConceptEntity(
     @Column(name = "ansvarlig_virksomhet_id", nullable = false)
     val ansvarligVirksomhetId: String = "",
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    val status: Status? = null,
+    val status: String? = null,
 
     @Column(name = "er_publisert")
     val erPublisert: Boolean? = false,
@@ -37,7 +36,7 @@ fun BegrepDBO.toEntity(): ConceptEntity =
         id = id,
         originaltBegrep = originaltBegrep,
         ansvarligVirksomhetId = ansvarligVirksomhet.id,
-        status = status,
+        status = status?.value,
         erPublisert = erPublisert,
         isArchived = isArchived,
         data = this

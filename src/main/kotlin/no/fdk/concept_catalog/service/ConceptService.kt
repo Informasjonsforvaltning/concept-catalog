@@ -312,7 +312,7 @@ class ConceptService(
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
         if (status == null) conceptRepository.findByAnsvarligVirksomhetId(orgNr).map { it.toDBO().toDTO() }
-        else conceptRepository.findByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.toDBO().toDTO() }
+        else conceptRepository.findByAnsvarligVirksomhetIdAndStatus(orgNr, status.value).map { it.toDBO().toDTO() }
 
     fun getAllPublisherIds(): List<String> =
         conceptRepository.findDistinctAnsvarligVirksomhetIds()
