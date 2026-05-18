@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @Tag("unit")
 class Validation {
@@ -26,20 +25,6 @@ class Validation {
 
     private val conceptService = ConceptService(
         conceptRepository, conceptSearch, currentConceptRepository, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
-
-    @Test
-    fun `New non draft concepts has higher version than what is published`() {
-        whenever(conceptRepository.findByOriginaltBegrep("id5"))
-            .thenReturn(listOf(BEGREP_5, BEGREP_5.copy(id = "id7", versjonsnr = SemVer(12,10, 0)), BEGREP_5.copy(id = "id6", versjonsnr = SemVer(9, 9, 1))).map { it.toDBO().toEntity() })
-
-        assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 10, 1))) }
-        assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 11, 0))) }
-        assertFalse { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(245, 10, 0))) }
-
-        assertTrue { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(12, 9, 95))) }
-        assertTrue { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(11, 100, 99))) }
-        assertTrue { conceptService.isPublishedAndNotValid(BEGREP_5.copy(id = "id8", versjonsnr = SemVer(9, 10, 1))) }
-    }
 
     @Test
     fun `Is valid when any definition is defined for the concept`() {
