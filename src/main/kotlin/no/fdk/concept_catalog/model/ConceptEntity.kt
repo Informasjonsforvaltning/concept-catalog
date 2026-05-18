@@ -9,22 +9,22 @@ import org.hibernate.type.SqlTypes
 data class ConceptEntity(
     @Id
     @Column(name = "id")
-    val id: String = "",
+    val id: String,
 
     @Column(name = "originalt_begrep", nullable = false)
-    val originaltBegrep: String = "",
+    val originaltBegrep: String,
 
     @Column(name = "ansvarlig_virksomhet_id", nullable = false)
-    val ansvarligVirksomhetId: String = "",
+    val ansvarligVirksomhetId: String,
 
     @Column(name = "status")
-    val status: String? = null,
+    val status: String?,
 
     @Column(name = "er_publisert")
-    val erPublisert: Boolean? = false,
+    val erPublisert: Boolean?,
 
     @Column(name = "is_archived")
-    val isArchived: Boolean? = false,
+    val isArchived: Boolean?,
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "data", nullable = false, columnDefinition = "jsonb")

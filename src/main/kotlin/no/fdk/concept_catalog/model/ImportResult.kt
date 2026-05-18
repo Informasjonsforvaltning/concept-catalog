@@ -12,17 +12,17 @@ enum class ImportResultStatus { FAILED, COMPLETED, PARTIALLY_COMPLETED, IN_PROGR
 data class ImportResult(
     @Id
     @Column(name = "id")
-    val id: String = "",
+    val id: String,
 
     @Column(name = "created", nullable = false)
-    val created: LocalDateTime = LocalDateTime.now(),
+    val created: LocalDateTime,
 
     @Column(name = "catalog_id", nullable = false)
-    val catalogId: String = "",
+    val catalogId: String,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    val status: ImportResultStatus = ImportResultStatus.IN_PROGRESS,
+    val status: ImportResultStatus,
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "concept_extractions", nullable = false, columnDefinition = "jsonb")

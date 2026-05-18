@@ -11,35 +11,35 @@ import java.time.Instant
 data class ChangeRequest(
     @Id
     @Column(name = "id")
-    val id: String = "",
+    val id: String,
 
     @Column(name = "concept_id")
-    val conceptId: String? = null,
+    val conceptId: String?,
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "concept_snapshot", columnDefinition = "jsonb")
-    val conceptSnapshot: Begrep? = null,
+    val conceptSnapshot: Begrep?,
 
     @Column(name = "catalog_id", nullable = false)
-    val catalogId: String = "",
+    val catalogId: String,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    val status: ChangeRequestStatus = ChangeRequestStatus.OPEN,
+    val status: ChangeRequestStatus,
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "operations", nullable = false, columnDefinition = "jsonb")
-    val operations: List<JsonPatchOperation> = emptyList(),
+    val operations: List<JsonPatchOperation>,
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "proposed_by", nullable = false, columnDefinition = "jsonb")
-    val proposedBy: User = User(id = "", name = "", email = null),
+    val proposedBy: User,
 
     @Column(name = "time_for_proposal", nullable = false)
-    val timeForProposal: Instant = Instant.now(),
+    val timeForProposal: Instant,
 
     @Column(name = "title", nullable = false)
-    val title: String = ""
+    val title: String
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
