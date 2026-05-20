@@ -6,6 +6,7 @@ import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Term
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
 import no.fdk.concept_catalog.utils.JwtToken
@@ -30,7 +31,7 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Forbidden for read access`() {
-        mongoOperations.insert(BEGREP_4.toDBO())
+        conceptRepository.save(BEGREP_4.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_4.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
@@ -42,7 +43,7 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Bad request when attempting to create revision of unpublished concept`() {
-        mongoOperations.insert(BEGREP_2.toDBO())
+        conceptRepository.save(BEGREP_2.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_2.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
@@ -54,7 +55,7 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Bad request when attempting to create revision of concept with existing unpublished revision`() {
-        mongoOperations.insert(BEGREP_HAS_REVISION.toDBO())
+        conceptRepository.save(BEGREP_HAS_REVISION.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_HAS_REVISION.id}/revision",
@@ -69,7 +70,7 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Ok - Created with version - for write access`() {
-        mongoOperations.insert(BEGREP_4.toDBO())
+        conceptRepository.save(BEGREP_4.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111222333/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -110,7 +111,7 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Ok - Created without version - for write access`() {
-        mongoOperations.insert(BEGREP_4.toDBO())
+        conceptRepository.save(BEGREP_4.toDBO().toEntity())
 
         stubFor(post(urlMatching("/111222333/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -153,7 +154,7 @@ class CreateRevision : ContractTestsBase() {
 
     @Test
     fun `Bad request - Created with invalid version - for write access`() {
-        mongoOperations.insert(BEGREP_4.toDBO())
+        conceptRepository.save(BEGREP_4.toDBO().toEntity())
 
         val response = authorizedRequest(
             "/begreper/${BEGREP_4.id}/revision",

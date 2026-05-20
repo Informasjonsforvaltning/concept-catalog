@@ -8,19 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.annotation.Nulls
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import org.springframework.data.mongodb.core.index.CompoundIndex
-import org.springframework.data.mongodb.core.index.CompoundIndexes
-import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 import java.time.LocalDate
 
-@Document(collection = "concepts")
-@CompoundIndexes(value = [
-    CompoundIndex(name = "ansvarlig_virksomhet", def = "{'ansvarligVirksomhet.id' : 1}"),
-    CompoundIndex(name = "ansvarlig_virksomhet_status", def = "{'ansvarligVirksomhet.id' : 1, 'status': 1}"),
-    CompoundIndex(name = "originalt_begrep", def = "{'originaltBegrep' : 1}"),
-    CompoundIndex(name = "originalt_begrep_er_publisert", def = "{'originaltBegrep' : 1, 'erPublisert': 1}")
-])
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class BegrepDBO (
     val id: String,

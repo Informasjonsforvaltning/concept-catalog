@@ -1,15 +1,18 @@
 package no.fdk.concept_catalog.repository
 
-import no.fdk.concept_catalog.model.BegrepDBO
-import no.fdk.concept_catalog.model.Status
-import org.springframework.data.mongodb.repository.MongoRepository
+import no.fdk.concept_catalog.model.ConceptEntity
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ConceptRepository : MongoRepository<BegrepDBO, String> {
-    fun countBegrepByAnsvarligVirksomhetId(orgNr: String): Long
-    fun getBegrepByAnsvarligVirksomhetId(orgNr: String): List<BegrepDBO>
-    fun getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: Status): List<BegrepDBO>
-    fun getByOriginaltBegrep(originaltBegrep: String): List<BegrepDBO>
-    fun getByOriginaltBegrepAndIsArchived(originaltBegrep: String, isArchived: Boolean): List<BegrepDBO>
+interface ConceptRepository : JpaRepository<ConceptEntity, String> {
+    fun countByAnsvarligVirksomhetId(orgNr: String): Long
+    fun findByAnsvarligVirksomhetId(orgNr: String): List<ConceptEntity>
+    fun findByAnsvarligVirksomhetIdAndStatus(orgNr: String, status: String): List<ConceptEntity>
+    fun findByOriginaltBegrep(originaltBegrep: String): List<ConceptEntity>
+    fun findByOriginaltBegrepAndIsArchived(originaltBegrep: String, isArchived: Boolean): List<ConceptEntity>
+
+    @Query("SELECT DISTINCT c.ansvarligVirksomhetId FROM ConceptEntity c")
+    fun findDistinctAnsvarligVirksomhetIds(): List<String>
 }

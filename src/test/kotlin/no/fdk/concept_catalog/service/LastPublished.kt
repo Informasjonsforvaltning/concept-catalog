@@ -5,6 +5,7 @@ import no.fdk.concept_catalog.configuration.JacksonConfigurer
 import no.fdk.concept_catalog.elastic.CurrentConceptRepository
 import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.repository.ConceptRepository
 import no.fdk.concept_catalog.utils.BEGREP_3
 import no.fdk.concept_catalog.utils.BEGREP_4
@@ -14,7 +15,6 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.springframework.data.mongodb.core.MongoOperations
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -24,23 +24,22 @@ class LastPublished {
     private val conceptRepository: ConceptRepository = mock()
     private val conceptSearch: ConceptSearchService = mock()
     private val currentConceptRepository: CurrentConceptRepository = mock()
-    private val mongoOperations: MongoOperations = mock()
     private val applicationProperties: ApplicationProperties = mock()
     private val conceptPublisher: ConceptPublisher = mock()
     private val historyService: HistoryService = mock()
 
     private val conceptService = ConceptService(
-        conceptRepository, conceptSearch, currentConceptRepository, mongoOperations, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
+        conceptRepository, conceptSearch, currentConceptRepository, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
 
     @Test
     fun `Able to get a list with the highest version of concepts for a publisher`() {
-        whenever(conceptRepository.getBegrepByAnsvarligVirksomhetId("111222333"))
+        whenever(conceptRepository.findByAnsvarligVirksomhetId("111222333"))
             .thenReturn(listOf(BEGREP_3, BEGREP_4, BEGREP_3.copy(id = "id3-2", versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1"),
                 BEGREP_3.copy(id = "id3-1", versjonsnr = SemVer(1, 9, 1), revisjonAv = "id3"), BEGREP_5,
                 BEGREP_4.copy(id = "id4-1", versjonsnr = SemVer(1, 0, 1), revisjonAv = "id4"),
                 BEGREP_4.copy(id = "id4-2", versjonsnr = SemVer(3, 0, 0), revisjonAv = "id4-1"),
                 BEGREP_5.copy(id = "id5-1", versjonsnr = SemVer(9, 9, 1), revisjonAv = "id5"),
-                BEGREP_5.copy(id = "id5-2", versjonsnr = SemVer(12, 10, 0), revisjonAv = "id5-1")).map { it.toDBO() })
+                BEGREP_5.copy(id = "id5-2", versjonsnr = SemVer(12, 10, 0), revisjonAv = "id5-1")).map { it.toDBO().toEntity() })
 
         val result = conceptService.getLastPublishedForOrganization("111222333").map { it.id }
 
@@ -57,11 +56,11 @@ class LastPublished {
         val ok = BEGREP_3.copy(id = "id3-3", sistPublisertId = null, versjonsnr = SemVer(2, 10, 0), revisjonAv = "id3-1", status = Status.UTKAST, erPublisert = false)
 
         whenever(conceptRepository.findById("id3-2"))
-            .thenReturn(Optional.of(invalid.toDBO()))
+            .thenReturn(Optional.of(invalid.toDBO().toEntity()))
         whenever(conceptRepository.findById("id3-3"))
-            .thenReturn(Optional.of(ok.toDBO()))
-        whenever(conceptRepository.getByOriginaltBegrep("id3"))
-            .thenReturn(listOf(BEGREP_3.toDBO(), newPublished.toDBO()))
+            .thenReturn(Optional.of(ok.toDBO().toEntity()))
+        whenever(conceptRepository.findByOriginaltBegrep("id3"))
+            .thenReturn(listOf(BEGREP_3.toDBO().toEntity(), newPublished.toDBO().toEntity()))
 
         val resultInvalid = conceptService.getConceptById("id3-2")
         val resultOk = conceptService.getConceptById("id3-3")

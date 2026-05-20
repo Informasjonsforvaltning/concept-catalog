@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
@@ -114,7 +115,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with assignedUser filter returns correct results`() {
-        mongoOperations.insert(BEGREP_0.toDBO())
+        conceptRepository.save(BEGREP_0.toDBO().toEntity())
 
         addToElasticsearchIndex(BEGREP_0.asCurrentConcept())
 
@@ -141,7 +142,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with originalId filter returns correct results`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity()))
 
         addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept()))
 
@@ -168,7 +169,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with published filter returns correct results`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO(), BEGREP_2.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity()))
 
         addToElasticsearchIndex(
             listOf(
@@ -218,7 +219,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with subjects filter returns correct results`() {
-        mongoOperations.insertAll(listOf(BEGREP_4.toDBO(), BEGREP_5.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_4.toDBO().toEntity(), BEGREP_5.toDBO().toEntity()))
 
         addToElasticsearchIndex(listOf(BEGREP_4.asCurrentConcept(), BEGREP_5.asCurrentConcept()))
 
@@ -267,7 +268,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with internalFields filter returns correct results`() {
-        mongoOperations.insert(BEGREP_4.toDBO())
+        conceptRepository.save(BEGREP_4.toDBO().toEntity())
 
         addToElasticsearchIndex(BEGREP_4.asCurrentConcept())
 
@@ -309,7 +310,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with label filter returns correct results`() {
-        mongoOperations.insert(BEGREP_0.toDBO())
+        conceptRepository.save(BEGREP_0.toDBO().toEntity())
 
         addToElasticsearchIndex(BEGREP_0.asCurrentConcept())
 
@@ -431,7 +432,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Empty query returns all current versions`() {
-        mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_1.toDBO().toEntity(), BEGREP_0.toDBO().toEntity()))
 
         addToElasticsearchIndex(
             listOf(
@@ -497,7 +498,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns correct results when searching in terms`() {
-        mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_1.toDBO().toEntity(), BEGREP_0.toDBO().toEntity()))
 
         addToElasticsearchIndex(
             listOf(
@@ -549,7 +550,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query with current version filter returns correct results`() {
-        mongoOperations.insert(BEGREP_0.toDBO())
+        conceptRepository.save(BEGREP_0.toDBO().toEntity())
 
         addToElasticsearchIndex(BEGREP_0.asCurrentConcept())
 
@@ -586,7 +587,7 @@ class SearchConcepts : ContractTestsBase() {
 
         @Test
         fun `Paginate handles invalid values`() {
-            mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
+            conceptRepository.saveAll(listOf(BEGREP_1.toDBO().toEntity(), BEGREP_0.toDBO().toEntity()))
 
             addToElasticsearchIndex(
                 listOf(
@@ -636,7 +637,7 @@ class SearchConcepts : ContractTestsBase() {
 
         @Test
         fun `Pages handled correctly`() {
-            mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
+            conceptRepository.saveAll(listOf(BEGREP_1.toDBO().toEntity(), BEGREP_0.toDBO().toEntity()))
 
             addToElasticsearchIndex(
                 listOf(
@@ -687,7 +688,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns sorted results ordered by sistEndret ascending`() {
-        mongoOperations.insertAll(listOf(BEGREP_1.toDBO(), BEGREP_0.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_1.toDBO().toEntity(), BEGREP_0.toDBO().toEntity()))
 
         addToElasticsearchIndex(
             listOf(
@@ -803,7 +804,7 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Handle concepts with multiple unpublished revisions`() {
-        mongoOperations.insertAll(listOf(BEGREP_HAS_MULTIPLE_REVISIONS.toDBO(), BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(), BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()))
 
         addToElasticsearchIndex(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.asCurrentConcept(BEGREP_HAS_MULTIPLE_REVISIONS.id))
 

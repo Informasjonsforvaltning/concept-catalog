@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.rdf.CONCEPT_STATUS
 import no.fdk.concept_catalog.utils.*
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -38,7 +39,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToGetChangeRequestsForAllOrgRoles() {
-            mongoOperations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
+            changeRequestRepository.saveAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
 
             val responseRead = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             val responseWrite =
@@ -62,7 +63,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToGetChangeRequestsFilteredByStatus() {
-            mongoOperations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
+            changeRequestRepository.saveAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_1, CHANGE_REQUEST_2))
 
             val responseOpen =
                 authorizedRequest("$path?status=OPEN", null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
@@ -134,7 +135,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToGetChangeRequestForAllOrgRoles() {
-            mongoOperations.insert(CHANGE_REQUEST_0)
+            changeRequestRepository.save(CHANGE_REQUEST_0)
 
             val responseRead = authorizedRequest(path, null, JwtToken(Access.ORG_READ).toString(), HttpMethod.GET)
             val responseWrite =
@@ -153,7 +154,8 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun getChangeRequestByConceptId() {
-            mongoOperations.insertAll(listOf(BEGREP_2.toDBO(), CHANGE_REQUEST_4, CHANGE_REQUEST_6))
+            conceptRepository.save(BEGREP_2.toDBO().toEntity())
+            changeRequestRepository.saveAll(listOf(CHANGE_REQUEST_4, CHANGE_REQUEST_6))
 
             val responseWrite = authorizedRequest(
                 "/123456789/endringsforslag?concept=${BEGREP_2.id}",
@@ -172,7 +174,8 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun getChangeRequestByConceptIdAndStatus() {
-            mongoOperations.insertAll(listOf(BEGREP_2.toDBO(), CHANGE_REQUEST_4))
+            conceptRepository.save(BEGREP_2.toDBO().toEntity())
+            changeRequestRepository.save(CHANGE_REQUEST_4)
 
             val responseWrite = authorizedRequest(
                 "/123456789/endringsforslag?concept=${BEGREP_2.id}&status=open",
@@ -229,7 +232,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToDeleteChangeRequest() {
-            mongoOperations.insert(CHANGE_REQUEST_0)
+            changeRequestRepository.save(CHANGE_REQUEST_0)
 
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.DELETE)
 
@@ -328,7 +331,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToCreateChangeRequest() {
-            mongoOperations.insertAll(listOf(BEGREP_TO_BE_UPDATED.toDBO(), CHANGE_REQUEST_UPDATE_BODY_0))
+            conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
             val response = authorizedRequest(
                 path,
@@ -416,7 +419,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToUpdateChangeRequest() {
-            mongoOperations.insertAll(listOf(CHANGE_REQUEST_0, CHANGE_REQUEST_UPDATE_BODY_UPDATE))
+            changeRequestRepository.save(CHANGE_REQUEST_0)
 
             val response = authorizedRequest(
                 path,
@@ -552,7 +555,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun badRequestWhenRejectingNonOpen() {
-            mongoOperations.insert(CHANGE_REQUEST_0)
+            changeRequestRepository.save(CHANGE_REQUEST_0)
 
             val alreadyAccepted = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_0.id}/reject",
@@ -563,7 +566,7 @@ class ChangeRequests : ContractTestsBase() {
 
             assertEquals(HttpStatus.BAD_REQUEST, alreadyAccepted.statusCode)
 
-            mongoOperations.insert(CHANGE_REQUEST_1)
+            changeRequestRepository.save(CHANGE_REQUEST_1)
 
             val alreadyRejected = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_1.id}/reject",
@@ -577,7 +580,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun ableToRejectChangeRequest() {
-            mongoOperations.insert(CHANGE_REQUEST_2)
+            changeRequestRepository.save(CHANGE_REQUEST_2)
 
             val response = authorizedRequest(path, null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST)
 
@@ -624,7 +627,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun badRequestWhenAcceptingNonOpen() {
-            mongoOperations.insert(CHANGE_REQUEST_0)
+            changeRequestRepository.save(CHANGE_REQUEST_0)
 
             val alreadyAccepted = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_0.id}/accept",
@@ -635,7 +638,7 @@ class ChangeRequests : ContractTestsBase() {
 
             assertEquals(HttpStatus.BAD_REQUEST, alreadyAccepted.statusCode)
 
-            mongoOperations.insert(CHANGE_REQUEST_1)
+            changeRequestRepository.save(CHANGE_REQUEST_1)
 
             val alreadyRejected = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_1.id}/accept",
@@ -649,7 +652,8 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptOfChangeRequestToPublishedConceptCreatesNewRevision() {
-            mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), CHANGE_REQUEST_3))
+            conceptRepository.save(BEGREP_0.toDBO().toEntity())
+            changeRequestRepository.save(CHANGE_REQUEST_3)
 
             stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -695,7 +699,8 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptOfChangeRequestToUnpublishedConceptUpdatesExistingConcept() {
-            mongoOperations.insertAll(listOf(BEGREP_2.toDBO(), CHANGE_REQUEST_4))
+            conceptRepository.save(BEGREP_2.toDBO().toEntity())
+            changeRequestRepository.save(CHANGE_REQUEST_4)
 
             stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -738,7 +743,8 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptOfChangeRequestWithNoAssociatedConceptCreatesNewConcept() {
-            mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), CHANGE_REQUEST_5))
+            conceptRepository.save(BEGREP_0.toDBO().toEntity())
+            changeRequestRepository.save(CHANGE_REQUEST_5)
 
             stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
@@ -794,7 +800,7 @@ class ChangeRequests : ContractTestsBase() {
 
         @Test
         fun acceptIsRevertedWhenUpdateOfHistoryServiceFails() {
-            mongoOperations.insert(CHANGE_REQUEST_2)
+            changeRequestRepository.save(CHANGE_REQUEST_2)
 
             val response = authorizedRequest(
                 "/111111111/endringsforslag/${CHANGE_REQUEST_2.id}/accept",

@@ -5,14 +5,16 @@ logging:
   level.org.springframework: WARN
   level.org.springframework.web: WARN
 spring:
-  mongodb:
-    host: ${MONGODB_HOST}
-    username: ${MONGODB_USER}
-    password: ${MONGODB_PASSWORD}
-    authentication-database: ${MONGODB_AUTH}
-    replica-set-name: ${MONGODB_REPLICASET}
-    port: 27017
-    database: conceptCatalog
+  datasource:
+    url: jdbc:postgresql://${POSTGRESQL_HOST}:5432/${POSTGRESQL_DB}
+    username: ${POSTGRESQL_USER}
+    password: ${POSTGRESQL_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
   security.oauth2.resourceserver.jwt:
     jwk-set-uri: ${KEYCLOAK_OIDC_ISSUER}/protocol/openid-connect/certs
     issuer-uri: ${KEYCLOAK_OIDC_ISSUER}
@@ -43,12 +45,10 @@ application:
 ---
 spring:
   config.activate.on-profile: develop
-  mongodb:
-    host: localhost
+  datasource:
+    url: jdbc:postgresql://localhost:5432/concept_catalog
     username: admin
     password: admin
-    authentication-database: admin
-    replica-set-name: null
   security.oauth2.resourceserver.jwt.jwk-set-uri: https://auth.staging.fellesdatakatalog.digdir.no/realms/fdk/protocol/openid-connect/certs
 application:
   cors.originPatterns: "*"
@@ -63,12 +63,10 @@ spring:
   config.activate.on-profile: contract-test
   main:
     allow-bean-definition-overriding: true
-  mongodb:
-    host: localhost
+  datasource:
+    url: jdbc:postgresql://localhost:5432/concept_catalog
     username: testuser
     password: testpassword
-    authentication-database: admin
-    replica-set-name: null
   security.oauth2.resourceserver.jwt:
     jwk-set-uri: http://localhost:6000/realms/fdk/protocol/openid-connect/certs
     issuer-uri: http://localhost:6000/realms/fdk

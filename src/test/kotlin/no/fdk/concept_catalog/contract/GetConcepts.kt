@@ -3,6 +3,7 @@ package no.fdk.concept_catalog.contract
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.toEntity
 import no.fdk.concept_catalog.utils.*
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -33,7 +34,7 @@ class GetConcepts : ContractTestsBase() {
 
     @Test
     fun `Ok for read access`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO(), BEGREP_2.toDBO(), BEGREP_0_OLD.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
         val response = authorizedRequest(
             "/begreper?orgNummer=123456789",
@@ -45,12 +46,12 @@ class GetConcepts : ContractTestsBase() {
 
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()), result)
+        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy { it.id }, result.sortedBy { it.id })
     }
 
     @Test
     fun `Ok for write access`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO(), BEGREP_2.toDBO(), BEGREP_0_OLD.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
         val response = authorizedRequest(
             "/begreper?orgNummer=123456789",
@@ -62,12 +63,12 @@ class GetConcepts : ContractTestsBase() {
 
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()), result)
+        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy { it.id }, result.sortedBy { it.id })
     }
 
     @Test
     fun `Ok for specific status`() {
-        mongoOperations.insertAll(listOf(BEGREP_0.toDBO(), BEGREP_1.toDBO(), BEGREP_2.toDBO(), BEGREP_0_OLD.toDBO()))
+        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
         val hearing = authorizedRequest(
             "/begreper?orgNummer=123456789&status=Høring",
@@ -98,6 +99,6 @@ class GetConcepts : ContractTestsBase() {
         assertEquals(listOf(BEGREP_1.fromDBO()), resultAccepted)
 
         val resultPublished: List<Begrep> = mapper.readValue(published.body as String)
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_0_OLD.fromDBO()), resultPublished)
+        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy { it.id }, resultPublished.sortedBy { it.id })
     }
 }

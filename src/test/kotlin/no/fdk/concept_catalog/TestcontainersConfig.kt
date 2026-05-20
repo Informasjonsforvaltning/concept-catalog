@@ -3,16 +3,21 @@ package no.fdk.concept_catalog
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.elasticsearch.ElasticsearchContainer
+
+class KPostgreSQLContainer(imageName: String) : PostgreSQLContainer<KPostgreSQLContainer>(imageName)
 
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfig {
 
     @Bean
     @ServiceConnection
-    fun mongoDBContainer(): MongoDBContainer {
-        return MongoDBContainer("mongo:latest")
+    fun postgresContainer(): KPostgreSQLContainer {
+        return KPostgreSQLContainer("postgres:16")
+            .withDatabaseName("concept_catalog")
+            .withUsername("testuser")
+            .withPassword("testpassword")
     }
 
     @Bean

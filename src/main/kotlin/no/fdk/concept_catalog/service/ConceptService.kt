@@ -10,10 +10,10 @@ import no.fdk.concept_catalog.validation.validateSchema
 import org.apache.jena.riot.Lang
 import org.openapi4j.core.validation.ValidationResults
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.http.HttpStatus
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.time.Instant
 import kotlin.math.ceil
@@ -26,7 +26,6 @@ class ConceptService(
     private val conceptRepository: ConceptRepository,
     private val conceptSearchService: ConceptSearchService,
     private val currentConceptRepository: CurrentConceptRepository,
-    private val mongoOperations: MongoOperations,
     private val applicationProperties: ApplicationProperties,
     private val conceptPublisher: ConceptPublisher,
     private val historyService: HistoryService,
@@ -34,7 +33,7 @@ class ConceptService(
 ) {
 
     fun updateCurrentConceptForOriginalId(originalId: String) {
-        val allVersions = conceptRepository.getByOriginaltBegrep(originalId)
+        val allVersions = conceptRepository.findByOriginaltBegrep(originalId).map { it.toDBO() }
         val newCurrent = allVersions.maxByOrNull { it.versjonsnr }
 
         if (newCurrent == null && currentConceptRepository.existsById(originalId)) {
@@ -47,19 +46,21 @@ class ConceptService(
         }
     }
 
+    @Transactional
     fun deleteConcept(concept: BegrepDBO) {
-        conceptRepository.delete(concept)
+        conceptRepository.deleteById(concept.id)
             .also { logger.debug("deleted concept ${concept.id}") }
 
         updateCurrentConceptForOriginalId(concept.originaltBegrep)
     }
 
     fun getConceptById(id: String): Begrep? =
-        conceptRepository.findById(id).orElse(null)?.toDTO()
+        conceptRepository.findById(id).orElse(null)?.toDBO()?.toDTO()
 
     fun getConceptDBO(id: String): BegrepDBO? =
-        conceptRepository.findById(id).orElse(null)
+        conceptRepository.findById(id).orElse(null)?.toDBO()
 
+    @Transactional
     fun createConcept(concept: Begrep, user: User, jwt: Jwt): Begrep {
         val newDefaultConcept: BegrepDBO = createNewConcept(concept.ansvarligVirksomhet, user)
             .also { publishNewCollectionIfFirstSavedConcept(concept.ansvarligVirksomhet.id) }
@@ -106,6 +107,7 @@ class ConceptService(
                 .size
         )
 
+    @Transactional
     fun createRevisionOfConcept(
         operations: List<JsonPatchOperation>,
         concept: BegrepDBO,
@@ -141,6 +143,7 @@ class ConceptService(
             .also { logger.debug("new revision ${it.id} successfully created") }
     }
 
+    @Transactional
     fun createConcepts(concepts: List<Begrep>, user: User, jwt: Jwt) {
         concepts.map { it.ansvarligVirksomhet.id }
             .distinct()
@@ -195,6 +198,7 @@ class ConceptService(
          */
     }
 
+    @Transactional
     fun updateConcept(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): Begrep {
         val patched = patchAndValidateConcept(concept, operations, user)
         return saveConceptsAndUpdateHistory(mapOf(Pair(patched, operations)), user, jwt)
@@ -285,7 +289,9 @@ class ConceptService(
     ): List<Begrep> {
         val locations = conceptsAndOperations.map { historyService.updateHistory(it.key, it.value, user, jwt) }
         try {
-            return conceptRepository.saveAll(conceptsAndOperations.keys)
+            val entities = conceptsAndOperations.keys.map { it.toEntity() }
+            return conceptRepository.saveAll(entities)
+                .map { it.toDBO() }
                 .onEach { updateCurrentConceptForOriginalId(it.originaltBegrep) }
                 .map { it.toDTO() }
         } catch (ex: Exception) {
@@ -304,35 +310,33 @@ class ConceptService(
     }
 
     fun getConceptsForOrganization(orgNr: String, status: Status?): List<Begrep> =
-        if (status == null) conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr).map { it.toDTO() }
-        else conceptRepository.getBegrepByAnsvarligVirksomhetIdAndStatus(orgNr, status).map { it.toDTO() }
+        if (status == null) conceptRepository.findByAnsvarligVirksomhetId(orgNr).map { it.toDBO().toDTO() }
+        else conceptRepository.findByAnsvarligVirksomhetIdAndStatus(orgNr, status.value).map { it.toDBO().toDTO() }
 
-    fun getAllPublisherIds(): List<String> {
-        return mongoOperations
-            .query(BegrepDBO::class.java)
-            .distinct("ansvarligVirksomhet.id")
-            .`as`(String::class.java)
-            .all()
-    }
+    fun getAllPublisherIds(): List<String> =
+        conceptRepository.findDistinctAnsvarligVirksomhetIds()
 
     fun getLastPublished(originaltBegrep: String?): Begrep? =
         if (originaltBegrep == null) null
         else {
-            conceptRepository.getByOriginaltBegrep(originaltBegrep)
+            conceptRepository.findByOriginaltBegrep(originaltBegrep)
+                .map { it.toDBO() }
                 .filter { it.erPublisert == true }
                 .maxByOrNull { concept -> concept.versjonsnr }
                 ?.toDTO()
         }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> =
-        conceptRepository.getBegrepByAnsvarligVirksomhetId(orgNr)
+        conceptRepository.findByAnsvarligVirksomhetId(orgNr)
+            .map { it.toDBO() }
             .filter { it.erPublisert == true }
             .sortedByDescending { concept -> concept.versjonsnr }
             .distinctBy { concept -> concept.originaltBegrep }
             .map { it.toDTO() }
 
     fun getLatestVersion(originalId: String): BegrepDBO? =
-        conceptRepository.getByOriginaltBegrep(originalId)
+        conceptRepository.findByOriginaltBegrep(originalId)
+            .map { it.toDBO() }
             .maxByOrNull { it.versjonsnr }
 
     fun searchConcepts(orgNumber: String, search: SearchOperation): Paginated {
@@ -375,7 +379,7 @@ class ConceptService(
 
     fun publishNewCollectionIfFirstSavedConcept(publisherId: String?) {
         val begrepCount = publisherId?.let {
-            conceptRepository.countBegrepByAnsvarligVirksomhetId(it)
+            conceptRepository.countByAnsvarligVirksomhetId(it)
         }
 
         if (begrepCount == 0L) {
@@ -385,9 +389,10 @@ class ConceptService(
     }
 
     fun findRevisions(concept: BegrepDBO): List<Begrep> =
-        conceptRepository.getByOriginaltBegrep(concept.originaltBegrep)
-            .map { it.toDTO() }
+        conceptRepository.findByOriginaltBegrep(concept.originaltBegrep)
+            .map { it.toDBO().toDTO() }
 
+    @Transactional
     fun publish(concept: BegrepDBO): Begrep {
         val published = concept.copy(
             erPublisert = true,
@@ -416,16 +421,17 @@ class ConceptService(
 
         conceptPublisher.triggerHarvest(concept.ansvarligVirksomhet.id)
 
-        return conceptRepository.save(published)
-            .also { updateRelationsToNonInternal(it) }
-            .also { updateCurrentConceptForOriginalId(it.originaltBegrep) }
-            .toDTO()
+        val savedDBO = conceptRepository.save(published.toEntity()).toDBO()
+        updateRelationsToNonInternal(savedDBO)
+        updateCurrentConceptForOriginalId(savedDBO.originaltBegrep)
+        return savedDBO.toDTO()
     }
 
     private fun updateRelationsToNonInternal(concept: BegrepDBO) {
         val collectionURI = getCollectionUri(applicationProperties.collectionBaseUri, concept.ansvarligVirksomhet.id)
         val conceptURI = getConceptUri(collectionURI, concept.originaltBegrep)
-        conceptRepository.getBegrepByAnsvarligVirksomhetId(concept.ansvarligVirksomhet.id)
+        conceptRepository.findByAnsvarligVirksomhetId(concept.ansvarligVirksomhet.id)
+            .map { it.toDBO() }
             .filter {
                 it.internSeOgså?.contains(concept.id) == true ||
                         it.internErstattesAv?.contains(concept.id) == true ||
@@ -468,6 +474,7 @@ class ConceptService(
                     it
                 }
             }
+            .map { it.toEntity() }
             .run { conceptRepository.saveAll(this) }
     }
 
@@ -480,7 +487,8 @@ class ConceptService(
     }
 
     private fun BegrepDBO.isHighestVersion(): Boolean =
-        conceptRepository.getByOriginaltBegrep(originaltBegrep)
+        conceptRepository.findByOriginaltBegrep(originaltBegrep)
+            .map { it.toDBO() }
             .maxByOrNull { it.versjonsnr }
             ?.let { it.id == id }
             ?: true
@@ -488,10 +496,11 @@ class ConceptService(
     fun findIdOfUnarchivedRevision(concept: BegrepDBO): String? =
         when {
             concept.isArchived != true -> null
-            else -> conceptRepository.getByOriginaltBegrepAndIsArchived(
+            else -> conceptRepository.findByOriginaltBegrepAndIsArchived(
                 originaltBegrep = concept.originaltBegrep,
                 isArchived = false
-            ).maxByOrNull { it.opprettet?.epochSecond ?: 0 }?.id
+            ).map { it.toDBO() }
+                .maxByOrNull { it.opprettet?.epochSecond ?: 0 }?.id
         }
 
     fun BegrepDBO.validateMinimumVersion(): Boolean =

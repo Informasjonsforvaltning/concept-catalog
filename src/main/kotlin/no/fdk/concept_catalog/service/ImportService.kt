@@ -292,15 +292,17 @@ class ImportService(
 
     private fun findLatestConceptByUri(uri: String, catalogId: String): BegrepDBO? {
         return findExistingConceptId(uri, catalogId)
-            ?.let { conceptRepository.findById(it).orElse(null) }
+            ?.let { conceptRepository.findById(it).orElse(null)?.toDBO() }
             ?.let { concept ->
-                conceptRepository.getByOriginaltBegrep(concept.originaltBegrep).maxByOrNull { it.versjonsnr }
+                conceptRepository.findByOriginaltBegrep(concept.originaltBegrep)
+                    .map { it.toDBO() }
+                    .maxByOrNull { it.versjonsnr }
             }
     }
 
     private fun findExistingConceptId(externalId: String, catalogId: String): String? {
-        return importResultRepository.findFirstByCatalogIdAndStatusAndConceptExtractionsExtractionRecordExternalId(
-            catalogId, ImportResultStatus.COMPLETED, externalId
+        return importResultRepository.findFirstByCatalogIdAndStatusAndExternalId(
+            catalogId, ImportResultStatus.COMPLETED.name, externalId
         )?.conceptExtractions
             ?.allExtractionRecords
             ?.firstOrNull { it.externalId == externalId }
@@ -365,7 +367,7 @@ class ImportService(
     }
 
     fun saveConceptDB(concept: BegrepDBO): BegrepDBO {
-        return conceptRepository.save(concept)
+        return conceptRepository.save(concept.toEntity()).toDBO()
     }
 
     fun updateHistory(
