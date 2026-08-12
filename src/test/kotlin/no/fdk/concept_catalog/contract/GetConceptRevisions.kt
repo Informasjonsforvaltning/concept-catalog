@@ -4,7 +4,13 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_0_OLD
+import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
+import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.fromDBO
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -13,7 +19,6 @@ import kotlin.test.assertEquals
 
 @Tag("contract")
 class GetConceptRevisions : ContractTestsBase() {
-
     @Test
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begreper/${BEGREP_0.id}/revisions", null, null, HttpMethod.GET)
@@ -25,26 +30,26 @@ class GetConceptRevisions : ContractTestsBase() {
     fun `Forbidden for wrong orgnr`() {
         conceptRepository.save(BEGREP_WRONG_ORG.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_WRONG_ORG.id}/revisions",
-
-            null,
-            JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_WRONG_ORG.id}/revisions",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
     fun `Not found`() {
-        val response = authorizedRequest(
-            "/begreper/not-found/revisions",
-
-            null,
-            JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/not-found/revisions",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
     }
@@ -53,13 +58,13 @@ class GetConceptRevisions : ContractTestsBase() {
     fun `Ok for read access`() {
         conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_0.id}/revisions",
-
-            null,
-            JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_0.id}/revisions",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -74,13 +79,13 @@ class GetConceptRevisions : ContractTestsBase() {
     fun `Ok for write access`() {
         conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_0.id}/revisions",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_0.id}/revisions",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 

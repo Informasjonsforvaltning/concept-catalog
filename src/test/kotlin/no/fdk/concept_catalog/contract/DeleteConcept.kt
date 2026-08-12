@@ -7,7 +7,15 @@ import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.model.Paginated
 import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_0_OLD
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_DELETED
+import no.fdk.concept_catalog.utils.BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED
+import no.fdk.concept_catalog.utils.CHANGE_REQUEST_TO_BE_DELETED
+import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.asCurrentConcept
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -16,7 +24,6 @@ import kotlin.test.assertEquals
 
 @Tag("contract")
 class DeleteConcept : ContractTestsBase() {
-
     @Test
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begreper/${BEGREP_0.id}", null, null, HttpMethod.DELETE)
@@ -38,12 +45,13 @@ class DeleteConcept : ContractTestsBase() {
     fun `Bad request when published`() {
         conceptRepository.save(BEGREP_0.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_0.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.DELETE
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_0.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.DELETE,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -52,28 +60,31 @@ class DeleteConcept : ContractTestsBase() {
     fun `Is deleted for write access`() {
         conceptRepository.save(BEGREP_TO_BE_DELETED.toDBO().toEntity())
 
-        val before = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val before =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
         assertEquals(HttpStatus.OK, before.statusCode)
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.DELETE
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.DELETE,
+            )
         assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
 
-        val after = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val after =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
         assertEquals(HttpStatus.NOT_FOUND, after.statusCode)
     }
 
@@ -82,47 +93,52 @@ class DeleteConcept : ContractTestsBase() {
         conceptRepository.save(BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.toDBO().toEntity())
         changeRequestRepository.save(CHANGE_REQUEST_TO_BE_DELETED)
 
-        val before = authorizedRequest(
-            "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val before =
+            authorizedRequest(
+                "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
         assertEquals(HttpStatus.OK, before.statusCode)
 
-        val beforeChangeRequest = authorizedRequest(
-            "/111111111/endringsforslag?concept=${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val beforeChangeRequest =
+            authorizedRequest(
+                "/111111111/endringsforslag?concept=${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.OK, beforeChangeRequest.statusCode)
         val beforeChangeRequestResult: List<ChangeRequest> = mapper.readValue(beforeChangeRequest.body as String)
         assertEquals(listOf(CHANGE_REQUEST_TO_BE_DELETED), beforeChangeRequestResult)
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.DELETE
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.DELETE,
+            )
         assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
 
-        val after = authorizedRequest(
-            "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val after =
+            authorizedRequest(
+                "/begreper/${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
         assertEquals(HttpStatus.NOT_FOUND, after.statusCode)
 
-        val afterChangeRequest = authorizedRequest(
-            "/111111111/endringsforslag?concept=${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
-            null,
-            JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val afterChangeRequest =
+            authorizedRequest(
+                "/111111111/endringsforslag?concept=${BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED.id}",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
         assertEquals(HttpStatus.OK, afterChangeRequest.statusCode)
 
         val afterChangeRequestResult: List<ChangeRequest> = mapper.readValue(afterChangeRequest.body as String)
@@ -131,32 +147,35 @@ class DeleteConcept : ContractTestsBase() {
 
     @Test
     fun `Previous version is added to search when current is deleted`() {
-        conceptRepository.saveAll(listOf(BEGREP_0_OLD.toDBO().toEntity(), BEGREP_0.copy(erPublisert = false, isArchived = false).toDBO().toEntity()))
+        conceptRepository.saveAll(
+            listOf(BEGREP_0_OLD.toDBO().toEntity(), BEGREP_0.copy(erPublisert = false, isArchived = false).toDBO().toEntity()),
+        )
         addToElasticsearchIndex(listOf(BEGREP_0.copy(erPublisert = false, isArchived = false).asCurrentConcept()))
 
-        val deleteResponse = authorizedRequest(
-            "/begreper/${BEGREP_0.id}",
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.DELETE
-        )
+        val deleteResponse =
+            authorizedRequest(
+                "/begreper/${BEGREP_0.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.DELETE,
+            )
         assertEquals(HttpStatus.NO_CONTENT, deleteResponse.statusCode)
 
-        val searchResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(SearchOperation("")),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val searchResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("")),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
         assertEquals(HttpStatus.OK, searchResponse.statusCode)
 
-        val expected = BEGREP_0_OLD.copy(
-            sistPublisertId = BEGREP_0_OLD.id
-        )
+        val expected =
+            BEGREP_0_OLD.copy(
+                sistPublisertId = BEGREP_0_OLD.id,
+            )
 
         val result: Paginated = mapper.readValue(searchResponse.body as String)
         assertEquals(listOf(expected), result.hits)
     }
-
 }

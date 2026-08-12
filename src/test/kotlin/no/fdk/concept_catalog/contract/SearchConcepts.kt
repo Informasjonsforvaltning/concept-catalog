@@ -2,9 +2,28 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
-import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.BooleanFilter
+import no.fdk.concept_catalog.model.Paginated
+import no.fdk.concept_catalog.model.Pagination
+import no.fdk.concept_catalog.model.QueryFields
+import no.fdk.concept_catalog.model.SearchFilter
+import no.fdk.concept_catalog.model.SearchFilters
+import no.fdk.concept_catalog.model.SearchOperation
+import no.fdk.concept_catalog.model.SortDirection
+import no.fdk.concept_catalog.model.SortField
+import no.fdk.concept_catalog.model.SortFieldEnum
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_1
+import no.fdk.concept_catalog.utils.BEGREP_2
+import no.fdk.concept_catalog.utils.BEGREP_4
+import no.fdk.concept_catalog.utils.BEGREP_5
+import no.fdk.concept_catalog.utils.BEGREP_HAS_MULTIPLE_REVISIONS
+import no.fdk.concept_catalog.utils.BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND
+import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.asCurrentConcept
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
@@ -18,34 +37,39 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Unauthorized when access token is not included`() {
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("test")),
-            null,
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("test")),
+                null,
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
     fun `Forbidden for wrong orgnr`() {
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=999888777",
-            mapper.writeValueAsString(SearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=999888777",
+                mapper.writeValueAsString(SearchOperation("test")),
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
     fun `Ok for read access`() {
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("test")),
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -58,12 +82,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query returns correct results`() {
         addToElasticsearchIndex(listOf(BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("Begrep", sort = sortByModified)),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("Begrep", sort = sortByModified)),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -76,11 +101,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query returns correct results when searching in definisjon`() {
         addToElasticsearchIndex(BEGREP_1.asCurrentConcept())
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("SEARCHABLE")), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("SEARCHABLE")),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -93,18 +120,21 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query with status filter returns correct results`() {
         addToElasticsearchIndex(BEGREP_1.asCurrentConcept())
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "Begrep",
-                    filters = SearchFilters(status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")))
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "Begrep",
+                        filters =
+                            SearchFilters(
+                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -119,19 +149,24 @@ class SearchConcepts : ContractTestsBase() {
 
         addToElasticsearchIndex(BEGREP_0.asCurrentConcept())
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "", filters = SearchFilters(
-                        assignedUser = SearchFilter(
-                            listOf("user-id")
-                        )
-                    )
-                )
-            ), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters =
+                            SearchFilters(
+                                assignedUser =
+                                    SearchFilter(
+                                        listOf("user-id"),
+                                    ),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -146,19 +181,25 @@ class SearchConcepts : ContractTestsBase() {
 
         addToElasticsearchIndex(listOf(BEGREP_0.asCurrentConcept(), BEGREP_1.asCurrentConcept()))
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "", sort = sortByModified, filters = SearchFilters(
-                        originalId = SearchFilter(
-                            listOf("id0-old", "id1")
-                        )
-                    )
-                )
-            ), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        sort = sortByModified,
+                        filters =
+                            SearchFilters(
+                                originalId =
+                                    SearchFilter(
+                                        listOf("id0-old", "id1"),
+                                    ),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -175,37 +216,37 @@ class SearchConcepts : ContractTestsBase() {
             listOf(
                 BEGREP_0.asCurrentConcept(),
                 BEGREP_1.asCurrentConcept(),
-                BEGREP_2.asCurrentConcept()
+                BEGREP_2.asCurrentConcept(),
+            ),
+        )
+
+        val unPublishedResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        sort = sortByModified,
+                        filters = SearchFilters(published = BooleanFilter(false)),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
             )
-        )
 
-        val unPublishedResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "",
-                    sort = sortByModified,
-                    filters = SearchFilters(published = BooleanFilter(false))
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
-
-        val publishedResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "",
-                    sort = sortByModified,
-                    filters = SearchFilters(published = BooleanFilter(true))
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val publishedResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        sort = sortByModified,
+                        filters = SearchFilters(published = BooleanFilter(true)),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, publishedResponse.statusCode)
         assertEquals(HttpStatus.OK, unPublishedResponse.statusCode)
@@ -223,38 +264,40 @@ class SearchConcepts : ContractTestsBase() {
 
         addToElasticsearchIndex(listOf(BEGREP_4.asCurrentConcept(), BEGREP_5.asCurrentConcept()))
 
-        val withSubjectFagomr1Response = authorizedRequest(
-            "/begreper/search?orgNummer=111222333",
+        val withSubjectFagomr1Response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=111222333",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters = SearchFilters(subject = SearchFilter(listOf("5e6b2561-6157-4eb4-b396-d773cd00de12"))),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "",
-                    filters = SearchFilters(subject = SearchFilter(listOf("5e6b2561-6157-4eb4-b396-d773cd00de12")))
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
-
-        val withSubjectFagomr3Response = authorizedRequest(
-            "/begreper/search?orgNummer=111222333",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "",
-                    filters = SearchFilters(
-                        subject = SearchFilter(
-                            listOf(
-                                "5e6b2561-6157-4eb4-b396-d773cd00de12",
-                                "fagomr3"
-                            )
-                        )
-                    )
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val withSubjectFagomr3Response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=111222333",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters =
+                            SearchFilters(
+                                subject =
+                                    SearchFilter(
+                                        listOf(
+                                            "5e6b2561-6157-4eb4-b396-d773cd00de12",
+                                            "fagomr3",
+                                        ),
+                                    ),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, withSubjectFagomr1Response.statusCode)
         assertEquals(HttpStatus.OK, withSubjectFagomr3Response.statusCode)
@@ -272,31 +315,39 @@ class SearchConcepts : ContractTestsBase() {
 
         addToElasticsearchIndex(BEGREP_4.asCurrentConcept())
 
-        val withInternalFieldsResponse = authorizedRequest(
-            "/begreper/search?orgNummer=111222333",
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "", filters = SearchFilters(
-                        internalFields =
-                            SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("false"))))
-                    )
-                )
-            ), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val withInternalFieldsResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=111222333",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters =
+                            SearchFilters(
+                                internalFields =
+                                    SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("false")))),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
-        val withoutInternalFieldsResponse = authorizedRequest(
-            "/begreper/search?orgNummer=111222333",
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "", filters = SearchFilters(
-                        internalFields =
-                            SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("true"))))
-                    )
-                )
-            ), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val withoutInternalFieldsResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=111222333",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters =
+                            SearchFilters(
+                                internalFields =
+                                    SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("true")))),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, withInternalFieldsResponse.statusCode)
         assertEquals(HttpStatus.OK, withoutInternalFieldsResponse.statusCode)
@@ -314,30 +365,38 @@ class SearchConcepts : ContractTestsBase() {
 
         addToElasticsearchIndex(BEGREP_0.asCurrentConcept())
 
-        val withLabelResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "", filters = SearchFilters(
-                        label =
-                            SearchFilter(listOf("merkelapp1"))
-                    )
-                )
-            ), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
-        val withoutLabelResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "", filters = SearchFilters(
-                        label =
-                            SearchFilter(listOf("merkelapp3"))
-                    )
-                )
-            ), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val withLabelResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters =
+                            SearchFilters(
+                                label =
+                                    SearchFilter(listOf("merkelapp1")),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
+        val withoutLabelResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters =
+                            SearchFilters(
+                                label =
+                                    SearchFilter(listOf("merkelapp3")),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, withLabelResponse.statusCode)
         assertEquals(HttpStatus.OK, withoutLabelResponse.statusCode)
@@ -353,25 +412,28 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query filter with several values returns correct results`() {
         addToElasticsearchIndex(listOf(BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "Begrep", sort = sortByModified,
-                    filters = SearchFilters(
-                        status = SearchFilter(
-                            listOf(
-                                "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
-                                "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE"
-                            )
-                        )
-                    )
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "Begrep",
+                        sort = sortByModified,
+                        filters =
+                            SearchFilters(
+                                status =
+                                    SearchFilter(
+                                        listOf(
+                                            "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
+                                            "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE",
+                                        ),
+                                    ),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -386,42 +448,48 @@ class SearchConcepts : ContractTestsBase() {
 
         val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, tillattTerm = false)
 
-        val titleResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(SearchOperation("Begrep", sort = sortByModified, fields = queryFields)),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val titleResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("Begrep", sort = sortByModified, fields = queryFields)),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, titleResponse.statusCode)
 
         val titleResult: Paginated = mapper.readValue(titleResponse.body as String)
         assertEquals(listOf(BEGREP_1, BEGREP_2), titleResult.hits)
 
-        val descriptionResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(SearchOperation("searchable", fields = queryFields)),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val descriptionResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("searchable", fields = queryFields)),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, descriptionResponse.statusCode)
 
         val descriptionResult: Paginated = mapper.readValue(descriptionResponse.body as String)
         assertEquals(emptyList(), descriptionResult.hits)
 
-        val statusResponse = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(
-                SearchOperation(
-                    query = "Begrep", fields = queryFields,
-                    filters = SearchFilters(status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")))
-                )
-            ), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val statusResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        query = "Begrep",
+                        fields = queryFields,
+                        filters =
+                            SearchFilters(
+                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, statusResponse.statusCode)
 
@@ -438,19 +506,19 @@ class SearchConcepts : ContractTestsBase() {
             listOf(
                 BEGREP_0.asCurrentConcept(),
                 BEGREP_1.asCurrentConcept(),
-                BEGREP_2.asCurrentConcept()
-            )
+                BEGREP_2.asCurrentConcept(),
+            ),
         )
 
         val queryFields =
             QueryFields(definisjon = false, anbefaltTerm = false, frarådetTerm = false, tillattTerm = false)
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(SearchOperation("", sort = sortByModified, fields = queryFields)),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("", sort = sortByModified, fields = queryFields)),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -464,13 +532,13 @@ class SearchConcepts : ContractTestsBase() {
 
         val queryFields = QueryFields(definisjon = false, merknad = false, frarådetTerm = false, anbefaltTerm = false)
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(SearchOperation("Lorem ipsum", fields = queryFields)),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("Lorem ipsum", fields = queryFields)),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -483,11 +551,13 @@ class SearchConcepts : ContractTestsBase() {
     fun `Query returns correct results when searching in merknad`() {
         addToElasticsearchIndex(BEGREP_1.asCurrentConcept())
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("asdf")), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("asdf")),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -504,18 +574,19 @@ class SearchConcepts : ContractTestsBase() {
             listOf(
                 BEGREP_0.asCurrentConcept(),
                 BEGREP_1.asCurrentConcept(),
-                BEGREP_2.asCurrentConcept()
-            )
+                BEGREP_2.asCurrentConcept(),
+            ),
         )
 
         val queryFields = QueryFields(definisjon = false, merknad = false)
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("Lorem ipsum", fields = queryFields)),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("Lorem ipsum", fields = queryFields)),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -528,18 +599,21 @@ class SearchConcepts : ContractTestsBase() {
     fun `Status filter returns correct results`() {
         addToElasticsearchIndex(BEGREP_2.asCurrentConcept())
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "",
-                    filters = SearchFilters(status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")))
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters =
+                            SearchFilters(
+                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -554,11 +628,13 @@ class SearchConcepts : ContractTestsBase() {
 
         addToElasticsearchIndex(BEGREP_0.asCurrentConcept())
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("definisjon")), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("definisjon")),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -569,11 +645,13 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Query returns no results`() {
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(SearchOperation("zxcvbnm")), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(SearchOperation("zxcvbnm")),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -584,7 +662,6 @@ class SearchConcepts : ContractTestsBase() {
 
     @Nested
     inner class Paginate {
-
         @Test
         fun `Paginate handles invalid values`() {
             conceptRepository.saveAll(listOf(BEGREP_1.toDBO().toEntity(), BEGREP_0.toDBO().toEntity()))
@@ -593,23 +670,23 @@ class SearchConcepts : ContractTestsBase() {
                 listOf(
                     BEGREP_0.asCurrentConcept(),
                     BEGREP_1.asCurrentConcept(),
-                    BEGREP_2.asCurrentConcept()
-                )
-            )
-
-            val response = authorizedRequest(
-                "/begreper/search?orgNummer=123456789",
-
-                mapper.writeValueAsString(
-                    SearchOperation(
-                        "",
-                        sort = sortByModified,
-                        pagination = Pagination(page = -1, size = -1)
-                    )
+                    BEGREP_2.asCurrentConcept(),
                 ),
-                JwtToken(Access.ORG_WRITE).toString(),
-                HttpMethod.POST
             )
+
+            val response =
+                authorizedRequest(
+                    "/begreper/search?orgNummer=123456789",
+                    mapper.writeValueAsString(
+                        SearchOperation(
+                            "",
+                            sort = sortByModified,
+                            pagination = Pagination(page = -1, size = -1),
+                        ),
+                    ),
+                    JwtToken(Access.ORG_WRITE).toString(),
+                    HttpMethod.POST,
+                )
 
             assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -620,13 +697,13 @@ class SearchConcepts : ContractTestsBase() {
 
         @Test
         fun `Empty list when exceeding actual page count`() {
-            val response = authorizedRequest(
-                "/begreper/search?orgNummer=123456789",
-
-                mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = 99, size = 10))),
-                JwtToken(Access.ORG_WRITE).toString(),
-                HttpMethod.POST
-            )
+            val response =
+                authorizedRequest(
+                    "/begreper/search?orgNummer=123456789",
+                    mapper.writeValueAsString(SearchOperation("", pagination = Pagination(page = 99, size = 10))),
+                    JwtToken(Access.ORG_WRITE).toString(),
+                    HttpMethod.POST,
+                )
 
             assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -643,37 +720,37 @@ class SearchConcepts : ContractTestsBase() {
                 listOf(
                     BEGREP_0.asCurrentConcept(),
                     BEGREP_1.asCurrentConcept(),
-                    BEGREP_2.asCurrentConcept()
+                    BEGREP_2.asCurrentConcept(),
+                ),
+            )
+
+            val firstResponse =
+                authorizedRequest(
+                    "/begreper/search?orgNummer=123456789",
+                    mapper.writeValueAsString(
+                        SearchOperation(
+                            "",
+                            sort = sortByModified,
+                            pagination = Pagination(page = 0, size = 2),
+                        ),
+                    ),
+                    JwtToken(Access.ORG_WRITE).toString(),
+                    HttpMethod.POST,
                 )
-            )
 
-            val firstResponse = authorizedRequest(
-                "/begreper/search?orgNummer=123456789",
-
-                mapper.writeValueAsString(
-                    SearchOperation(
-                        "",
-                        sort = sortByModified,
-                        pagination = Pagination(page = 0, size = 2)
-                    )
-                ),
-                JwtToken(Access.ORG_WRITE).toString(),
-                HttpMethod.POST
-            )
-
-            val secondResponse = authorizedRequest(
-                "/begreper/search?orgNummer=123456789",
-
-                mapper.writeValueAsString(
-                    SearchOperation(
-                        "",
-                        sort = sortByModified,
-                        pagination = Pagination(page = 1, size = 2)
-                    )
-                ),
-                JwtToken(Access.ORG_WRITE).toString(),
-                HttpMethod.POST
-            )
+            val secondResponse =
+                authorizedRequest(
+                    "/begreper/search?orgNummer=123456789",
+                    mapper.writeValueAsString(
+                        SearchOperation(
+                            "",
+                            sort = sortByModified,
+                            pagination = Pagination(page = 1, size = 2),
+                        ),
+                    ),
+                    JwtToken(Access.ORG_WRITE).toString(),
+                    HttpMethod.POST,
+                )
 
             assertEquals(HttpStatus.OK, firstResponse.statusCode)
             assertEquals(HttpStatus.OK, secondResponse.statusCode)
@@ -694,20 +771,23 @@ class SearchConcepts : ContractTestsBase() {
             listOf(
                 BEGREP_0.asCurrentConcept(),
                 BEGREP_1.asCurrentConcept(),
-                BEGREP_2.asCurrentConcept()
+                BEGREP_2.asCurrentConcept(),
+            ),
+        )
+
+        val searchOp =
+            SearchOperation(
+                query = "",
+                sort = SortField(field = SortFieldEnum.SIST_ENDRET, direction = SortDirection.ASC),
             )
-        )
 
-        val searchOp = SearchOperation(
-            query = "",
-            sort = SortField(field = SortFieldEnum.SIST_ENDRET, direction = SortDirection.ASC)
-        )
-
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(searchOp),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -722,20 +802,23 @@ class SearchConcepts : ContractTestsBase() {
             listOf(
                 BEGREP_0.asCurrentConcept(),
                 BEGREP_1.asCurrentConcept(),
-                BEGREP_2.asCurrentConcept()
+                BEGREP_2.asCurrentConcept(),
+            ),
+        )
+
+        val searchOp =
+            SearchOperation(
+                query = "",
+                sort = SortField(field = SortFieldEnum.ANBEFALT_TERM, direction = SortDirection.ASC),
             )
-        )
 
-        val searchOp = SearchOperation(
-            query = "",
-            sort = SortField(field = SortFieldEnum.ANBEFALT_TERM, direction = SortDirection.ASC)
-        )
-
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(searchOp),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -752,20 +835,23 @@ class SearchConcepts : ContractTestsBase() {
             listOf(
                 BEGREP_0.asCurrentConcept(),
                 BEGREP_1.asCurrentConcept(),
-                BEGREP_2.asCurrentConcept()
+                BEGREP_2.asCurrentConcept(),
+            ),
+        )
+
+        val searchOp =
+            SearchOperation(
+                query = "",
+                sort = SortField(field = SortFieldEnum.ANBEFALT_TERM, direction = SortDirection.DESC),
             )
-        )
 
-        val searchOp = SearchOperation(
-            query = "",
-            sort = SortField(field = SortFieldEnum.ANBEFALT_TERM, direction = SortDirection.DESC)
-        )
-
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-            mapper.writeValueAsString(searchOp), JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(searchOp),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
         assertEquals(HttpStatus.OK, response.statusCode)
 
         val result: Paginated = mapper.readValue(response.body as String)
@@ -779,21 +865,22 @@ class SearchConcepts : ContractTestsBase() {
     fun `Combination of status and published filter returns correct results`() {
         addToElasticsearchIndex(BEGREP_1.asCurrentConcept())
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=123456789",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    query = "",
-                    filters = SearchFilters(
-                        status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
-                        published = BooleanFilter(false)
-                    )
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=123456789",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        query = "",
+                        filters =
+                            SearchFilters(
+                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
+                                published = BooleanFilter(false),
+                            ),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -804,21 +891,23 @@ class SearchConcepts : ContractTestsBase() {
 
     @Test
     fun `Handle concepts with multiple unpublished revisions`() {
-        conceptRepository.saveAll(listOf(BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(), BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()))
+        conceptRepository.saveAll(
+            listOf(BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(), BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()),
+        )
 
         addToElasticsearchIndex(BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.asCurrentConcept(BEGREP_HAS_MULTIPLE_REVISIONS.id))
 
-        val response = authorizedRequest(
-            "/begreper/search?orgNummer=222222222",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    query = ""
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/search?orgNummer=222222222",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        query = "",
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 

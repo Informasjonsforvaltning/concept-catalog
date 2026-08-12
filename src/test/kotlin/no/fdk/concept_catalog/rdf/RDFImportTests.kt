@@ -3,7 +3,18 @@ package no.fdk.concept_catalog.rdf
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.ConceptExtraction
+import no.fdk.concept_catalog.model.Definisjon
+import no.fdk.concept_catalog.model.ForholdTilKildeEnum
+import no.fdk.concept_catalog.model.IssueType
+import no.fdk.concept_catalog.model.Kildebeskrivelse
+import no.fdk.concept_catalog.model.Kontaktpunkt
+import no.fdk.concept_catalog.model.OpEnum
+import no.fdk.concept_catalog.model.SemVer
+import no.fdk.concept_catalog.model.Term
+import no.fdk.concept_catalog.model.URITekst
+import no.fdk.concept_catalog.model.User
+import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.service.createNewConcept
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
@@ -21,10 +32,10 @@ import kotlin.test.assertNull
 
 @Tag("unit")
 class RDFImportTests {
-
     @Test
     fun `should extract versjonsnr`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
             @prefix owl:   <http://www.w3.org/2002/07/owl#> .
@@ -33,7 +44,7 @@ class RDFImportTests {
                     rdf:type              skos:Concept ;
                     skos:prefLabel        "anbefaltTerm"@nb ;
                     owl:versionInfo       "1.0.0" .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -42,19 +53,24 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(3, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.REPLACE && it.path == "/versjonsnr/major" && it.value == 1
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.REPLACE && it.path == "/versjonsnr/major" && it.value == 1
+                },
+            )
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.REPLACE && it.path == "/versjonsnr/minor" && it.value == 0
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.REPLACE && it.path == "/versjonsnr/minor" && it.value == 0
+                },
+            )
         }
     }
 
     @Test
     fun `should fail to extract versjonsnr`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
             @prefix owl:   <http://www.w3.org/2002/07/owl#> .
@@ -63,22 +79,25 @@ class RDFImportTests {
                     rdf:type              skos:Concept ;
                     skos:prefLabel        "anbefaltTerm"@nb ;
                     owl:versionInfo       "1" .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.ERROR && it.message.startsWith("versionInfo")
-            })
+            assertTrue(
+                result.issues.any {
+                    it.type == IssueType.ERROR && it.message.startsWith("versionInfo")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract statusURI`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
             @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
@@ -87,34 +106,38 @@ class RDFImportTests {
                     rdf:type              skos:Concept ;
                     skos:prefLabel        "anbefaltTerm"@nb ;
                     euvoc:status          <http://publications.europa.eu/resource/authority/concept-status/CURRENT> .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(
             "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
-            conceptExtraction.concept.statusURI
+            conceptExtraction.concept.statusURI,
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.REPLACE && it.path == "/statusURI" && it.value == "http://publications.europa.eu/resource/authority/concept-status/CURRENT"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.REPLACE && it.path == "/statusURI" &&
+                        it.value == "http://publications.europa.eu/resource/authority/concept-status/CURRENT"
+                },
+            )
         }
     }
 
     @Test
     fun `should extract anbefaltTerm`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
             
             <https://example.com/concept>
                     rdf:type              skos:Concept ;
                     skos:prefLabel        "anbefaltTerm"@nb .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -123,15 +146,18 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/anbefaltTerm" && it.value == mapOf("navn" to mapOf("nb" to "anbefaltTerm"))
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/anbefaltTerm" && it.value == mapOf("navn" to mapOf("nb" to "anbefaltTerm"))
+                },
+            )
         }
     }
 
     @Test
     fun `should fail to extract anbefaltTerm`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
             @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
             @prefix dct:   <http://purl.org/dc/terms/> .
@@ -145,24 +171,28 @@ class RDFImportTests {
                     euvoc:status        <http://publications.europa.eu/resource/authority/concept-status/CURRENT> ;
                     skos:altLabel       "tillattTerm"@nn, "tillattTerm2"@nn ;
                     skos:hiddenLabel    "fraraadetTerm"@nb, "fraraadetTerm2"@nb, "Lorem ipsum"@nb .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
         val jsonPatches = conceptExtraction.extractionRecord.extractResult.operations
-        assertEquals (5, jsonPatches.size)
+        assertEquals(5, jsonPatches.size)
 
         val allIssues = conceptExtraction.extractionRecord.extractResult.issues
         assertEquals(1, allIssues.size)
 
-        assertTrue ( allIssues.any {
-            it.type == IssueType.ERROR && it.message.startsWith("prefLabel")
-        }, "Expected an issue with prefLabel extraction error" )
+        assertTrue(
+            allIssues.any {
+                it.type == IssueType.ERROR && it.message.startsWith("prefLabel")
+            },
+            "Expected an issue with prefLabel extraction error",
+        )
     }
 
     @Test
     fun `should extract tillatTerm`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
             
@@ -170,7 +200,7 @@ class RDFImportTests {
                     rdf:type              skos:Concept ;
                     skos:prefLabel        "anbefaltTerm"@nb ;
                     skos:altLabel         "tillattTerm"@nb .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -179,15 +209,18 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/tillattTerm/nb" && it.value == listOf("tillattTerm")
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/tillattTerm/nb" && it.value == listOf("tillattTerm")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract frarådetTerm`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
             
@@ -195,7 +228,7 @@ class RDFImportTests {
                     rdf:type              skos:Concept ;
                     skos:prefLabel        "anbefaltTerm"@nb ;
                     skos:hiddenLabel      "frarådetTerm"@nb .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -204,15 +237,18 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/frarådetTerm/nb" && it.value == listOf("frarådetTerm")
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/frarådetTerm/nb" && it.value == listOf("frarådetTerm")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract definisjon`() {
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
             @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
@@ -230,71 +266,82 @@ class RDFImportTests {
                             skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
                             dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
                           ] .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
         assertEquals(
             Definisjon(
                 tekst = mapOf("nb" to "definisjon"),
-                kildebeskrivelse = Kildebeskrivelse(
-                    forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT,
-                    kilde = listOf(
-                        URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14"),
-                        URITekst(tekst = "kap14")
-                    )
-                )
-            ), conceptExtraction.concept.definisjon
+                kildebeskrivelse =
+                    Kildebeskrivelse(
+                        forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT,
+                        kilde =
+                            listOf(
+                                URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14"),
+                                URITekst(tekst = "kap14"),
+                            ),
+                    ),
+            ),
+            conceptExtraction.concept.definisjon,
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/definisjon" && it.value == mapOf(
-                    "tekst" to mapOf("nb" to "definisjon"),
-                    "kildebeskrivelse" to mapOf(
-                        "forholdTilKilde" to "egendefinert",
-                        "kilde" to listOf(
-                            mapOf(
-                                "uri" to "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14",
-                                "tekst" to null
-                            ),
-                            mapOf(
-                                "uri" to null,
-                                "tekst" to "kap14"
-                            )
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/definisjon" && it.value ==
+                        mapOf(
+                            "tekst" to mapOf("nb" to "definisjon"),
+                            "kildebeskrivelse" to
+                                mapOf(
+                                    "forholdTilKilde" to "egendefinert",
+                                    "kilde" to
+                                        listOf(
+                                            mapOf(
+                                                "uri" to "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14",
+                                                "tekst" to null,
+                                            ),
+                                            mapOf(
+                                                "uri" to null,
+                                                "tekst" to "kap14",
+                                            ),
+                                        ),
+                                ),
                         )
-                    )
-                )
-            })
+                },
+            )
         }
     }
 
     @Test
     fun `should extract definisjon with sources`() {
-
-        val turtleSourceBlankNode = """
+        val turtleSourceBlankNode =
+            """
             [ a rdfs:Resource ;
-			rdfs:label "Definisjon – kilde - uten målgruppe - sitat fra kilde" ,
-				   "Definisjon – kjelde - uten målgruppe - sitat fra kilde" ,
-				   "Definition - source - direct from source - direct from source" ;
-			rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> ]
+            rdfs:label "Definisjon – kilde - uten målgruppe - sitat fra kilde" ,
+                       "Definisjon – kjelde - uten målgruppe - sitat fra kilde" ,
+                       "Definition - source - direct from source - direct from source" ;
+            rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> ]
             """.trimIndent()
 
-        val turtleSourceURI = """
+        val turtleSourceURI =
+            """
             <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> a rdfs:Resource ;
-			rdfs:label  "Definisjon – kilde - allmenn - egendefinert"@nb ,
-				        "Definisjon – kjelde - allmenn - egendefinert"@nn ,
-				        "Definition - source - public - selfcomposed"@en ;
-			rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> .
-        """.trimIndent()
+            rdfs:label  "Definisjon – kilde - allmenn - egendefinert"@nb ,
+                        "Definisjon – kjelde - allmenn - egendefinert"@nn ,
+                        "Definition - source - public - selfcomposed"@en ;
+            rdfs:seeAlso <https://data.norge.no/specification/skos-ap-no-begrep#Definisjon-kilde> .
+            """.trimIndent()
 
-        val turtleSourceURINoLabel = """
+        val turtleSourceURINoLabel =
+            """
             <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#nolabel> a rdfs:Resource .
-        """.trimIndent()
+            """.trimIndent()
 
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix rdfs:                           <http://www.w3.org/2000/01/rdf-schema#> .
             @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
@@ -319,10 +366,13 @@ class RDFImportTests {
             $turtleSourceURI
             
             $turtleSourceURINoLabel
-        """.trimIndent()
+            """.trimIndent()
 
-        val sourceUriTekst = URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14",
-            tekst = "Definisjon – kilde - allmenn - egendefinert")
+        val sourceUriTekst =
+            URITekst(
+                uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14",
+                tekst = "Definisjon – kilde - allmenn - egendefinert",
+            )
 
         val sourceTekst = URITekst(tekst = "Definition - source - direct from source - direct from source")
 
@@ -330,33 +380,36 @@ class RDFImportTests {
 
         val conceptExtraction = createConceptExtraction(turtle)
 
-        val sources = conceptExtraction.concept.definisjon?.kildebeskrivelse?.kilde
+        val sources =
+            conceptExtraction.concept.definisjon
+                ?.kildebeskrivelse
+                ?.kilde
 
-        assertEquals ( setOf(sourceUriTekst, sourceTekst, sourceUri), sources?.toSet() )
-
+        assertEquals(setOf(sourceUriTekst, sourceTekst, sourceUri), sources?.toSet())
     }
 
     @Test
     fun `should extract definisjonForAllmennheten`() {
-        val turtle = """
-                @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
-                @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
-                @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
-                @prefix dct:                            <http://purl.org/dc/terms/> .
-                @prefix audience-type:                  <https://data.norge.no/vocabulary/audience-type#> .
-                @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+        val turtle =
+            """
+            @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
+            @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
+            @prefix dct:                            <http://purl.org/dc/terms/> .
+            @prefix audience-type:                  <https://data.norge.no/vocabulary/audience-type#> .
+            @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
 
-                <https://example.com/concept>
-                        rdf:type              skos:Concept ;
-                        skos:prefLabel        "anbefaltTerm"@nb ;
-                        euvoc:xlDefinition
-                              [
-                                rdf:type                        euvoc:XlNote ;
-                                rdf:value                       "definisjon for allmennheten"@nb ;
-                                dct:audience                    audience-type:public ;
-                                skosno:relationshipWithSource   relationship-with-source-type:derived-from-source ;
-                              ] .
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:xlDefinition
+                          [
+                            rdf:type                        euvoc:XlNote ;
+                            rdf:value                       "definisjon for allmennheten"@nb ;
+                            dct:audience                    audience-type:public ;
+                            skosno:relationshipWithSource   relationship-with-source-type:derived-from-source ;
+                          ] .
             """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
@@ -364,42 +417,47 @@ class RDFImportTests {
         assertEquals(
             Definisjon(
                 tekst = mapOf("nb" to "definisjon for allmennheten"),
-                kildebeskrivelse = Kildebeskrivelse(
-                    forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-                )
-            ), conceptExtraction.concept.definisjonForAllmennheten
+                kildebeskrivelse =
+                    Kildebeskrivelse(
+                        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+                    ),
+            ),
+            conceptExtraction.concept.definisjonForAllmennheten,
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/definisjonForAllmennheten"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/definisjonForAllmennheten"
+                },
+            )
         }
     }
 
     @Test
     fun `should extract definisjonForSpesialister`() {
-        val turtle = """
-                @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
-                @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
-                @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
-                @prefix dct:                            <http://purl.org/dc/terms/> .
-                @prefix audience-type:                  <https://data.norge.no/vocabulary/audience-type#> .
-                @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+        val turtle =
+            """
+            @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
+            @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
+            @prefix dct:                            <http://purl.org/dc/terms/> .
+            @prefix audience-type:                  <https://data.norge.no/vocabulary/audience-type#> .
+            @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
 
-                <https://example.com/concept>
-                        rdf:type              skos:Concept ;
-                        skos:prefLabel        "anbefaltTerm"@nb ;
-                        euvoc:xlDefinition
-                              [
-                                rdf:type                        euvoc:XlNote ;
-                                rdf:value                       "definisjon for spesialister"@nb ;
-                                dct:audience                    audience-type:specialist ;
-                                skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
-                              ] .
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:xlDefinition
+                          [
+                            rdf:type                        euvoc:XlNote ;
+                            rdf:value                       "definisjon for spesialister"@nb ;
+                            dct:audience                    audience-type:specialist ;
+                            skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
+                          ] .
             """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
@@ -407,25 +465,29 @@ class RDFImportTests {
         assertEquals(
             Definisjon(
                 tekst = mapOf("nb" to "definisjon for spesialister"),
-                kildebeskrivelse = Kildebeskrivelse(
-                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-                )
-            ), conceptExtraction.concept.definisjonForSpesialister
+                kildebeskrivelse =
+                    Kildebeskrivelse(
+                        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                    ),
+            ),
+            conceptExtraction.concept.definisjonForSpesialister,
         )
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/definisjonForSpesialister"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/definisjonForSpesialister"
+                },
+            )
         }
     }
 
     @Test
     fun `should not extract EUVOC xlDefinition with no audience and SKOS definition and issue an error`() {
-
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
             @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
@@ -444,31 +506,34 @@ class RDFImportTests {
                             skosno:relationshipWithSource   relationship-with-source-type:self-composed ;
                             dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
                           ] .
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
-        assertTrue(conceptExtraction.extractionRecord.extractResult.issues.any{
-            it.type == IssueType.ERROR
-                    && it.message.contains(EUVOC.xlDefinition.localName)
-                    && it.message.contains(SKOS.definition.localName)
-        })
+        assertTrue(
+            conceptExtraction.extractionRecord.extractResult.issues.any {
+                it.type == IssueType.ERROR &&
+                    it.message.contains(EUVOC.xlDefinition.localName) &&
+                    it.message.contains(SKOS.definition.localName)
+            },
+        )
 
         assertNull(conceptExtraction.concept.definisjon)
-
     }
 
     @Test
     fun `should extract SKOS definition`() {
-
-        val expectedDefinisjon = Definisjon(
-            tekst = mapOf("nb" to "definisjon", "en" to "definition"),
-            kildebeskrivelse = Kildebeskrivelse(
-                forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT
+        val expectedDefinisjon =
+            Definisjon(
+                tekst = mapOf("nb" to "definisjon", "en" to "definition"),
+                kildebeskrivelse =
+                    Kildebeskrivelse(
+                        forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT,
+                    ),
             )
-        )
 
-        val turtle = """
+        val turtle =
+            """
             @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
             @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
             @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
@@ -481,39 +546,41 @@ class RDFImportTests {
                     skos:prefLabel        "anbefaltTerm"@nb ;
                     skos:definition        ${expectedDefinisjon.tekst?.mapNotNull { "\"${it.value}\"@${it.key}" }?.joinToString(", ") } .
                     
-        """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
-        assertFalse (conceptExtraction.extractionRecord.extractResult.issues.any{
-            it.type == IssueType.ERROR
-                    && it.message.contains(EUVOC.xlDefinition.localName)
-                    && it.message.contains(SKOS.definition.localName)
-        })
+        assertFalse(
+            conceptExtraction.extractionRecord.extractResult.issues.any {
+                it.type == IssueType.ERROR &&
+                    it.message.contains(EUVOC.xlDefinition.localName) &&
+                    it.message.contains(SKOS.definition.localName)
+            },
+        )
 
         assertEquals(expectedDefinisjon, conceptExtraction.concept.definisjon)
-
     }
 
     @Test
     fun `should fail to extract definisjon`() {
-        val turtle = """
-                @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
-                @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
-                @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
-                @prefix dct:                            <http://purl.org/dc/terms/> .
-                @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
+        val turtle =
+            """
+            @prefix rdf:                            <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:                           <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc:                          <http://publications.europa.eu/ontology/euvoc#> .
+            @prefix skosno:                         <https://data.norge.no/vocabulary/skosno#> .
+            @prefix dct:                            <http://purl.org/dc/terms/> .
+            @prefix relationship-with-source-type:  <https://data.norge.no/vocabulary/relationship-with-source-type#> .
 
-                <https://example.com/concept>
-                        rdf:type              skos:Concept ;
-                        skos:prefLabel        "anbefaltTerm"@nb ;
-                        euvoc:xlDefinition
-                              [
-                                rdf:type                        euvoc:XlNote ;
-                                dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
-                                skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
-                              ] .
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:xlDefinition
+                          [
+                            rdf:type                        euvoc:XlNote ;
+                            dct:source                      "kap14", <https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14> ;
+                            skosno:relationshipWithSource   relationship-with-source-type:direct-from-source ;
+                          ] .
             """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
@@ -521,22 +588,25 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.ERROR && it.message.startsWith("xlDefinition")
-            })
+            assertTrue(
+                result.issues.any {
+                    it.type == IssueType.ERROR && it.message.startsWith("xlDefinition")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract merknad`() {
-        val turtle = """
-                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                <https://example.com/concept>
-                        rdf:type              skos:Concept ;
-                        skos:prefLabel        "anbefaltTerm"@nb ;
-                        skos:scopeNote        "merknad"@nb .
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    skos:scopeNote        "merknad"@nb .
             """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
@@ -546,22 +616,25 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/merknad/nb"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/merknad/nb"
+                },
+            )
         }
     }
 
     @Test
     fun `should fail to extract merknad`() {
-        val turtle = """
-                @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                <https://example.com/concept>
-                        rdf:type              skos:Concept ;
-                        skos:prefLabel        "anbefaltTerm"@nb ;
-                        skos:scopeNote        "merknad uten språktag" .
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    skos:scopeNote        "merknad uten språktag" .
             """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
@@ -569,23 +642,26 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.ERROR && it.message.startsWith("scopeNote")
-            })
+            assertTrue(
+                result.issues.any {
+                    it.type == IssueType.ERROR && it.message.startsWith("scopeNote")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract eksempel`() {
-        val turtle = """
-                    @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                    @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                    <https://example.com/concept>
-                            rdf:type              skos:Concept ;
-                            skos:prefLabel        "anbefaltTerm"@nb ;
-                            skos:example          "eksempel"@nb .
-                """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    skos:example          "eksempel"@nb .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -594,24 +670,27 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/eksempel/nb"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/eksempel/nb"
+                },
+            )
         }
     }
 
     @Test
     fun `should extract fagområde`() {
-        val turtle = """
-                    @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                    @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-                    @prefix dct:   <http://purl.org/dc/terms/> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix dct:   <http://purl.org/dc/terms/> .
 
-                    <https://example.com/concept>
-                            rdf:type              skos:Concept ;
-                            skos:prefLabel        "anbefaltTerm"@nb ;
-                            dct:subject           "fagområde"@nb .
-                """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    dct:subject           "fagområde"@nb .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -620,25 +699,28 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/fagområde/nb"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/fagområde/nb"
+                },
+            )
         }
     }
 
     @Test
     fun `should extract omfang`() {
-        val turtle = """
-                    @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                    @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
-                    @prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
+        val turtle =
+            """
+            @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+            @prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
 
-                    <https://example.com/concept>
-                            rdf:type              skos:Concept ;
-                            skos:prefLabel        "anbefaltTerm"@nb ;
-                            skosno:valueRange     "omfang", <https://example.com/omfang> .
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    skosno:valueRange     "omfang", <https://example.com/omfang> .
 
-                """.trimIndent()
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -647,25 +729,28 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/omfang"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/omfang"
+                },
+            )
         }
     }
 
     @Test
     fun `should extract gyldigFom`() {
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-                        @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                euvoc:startDate       "2020-12-31"^^xsd:date .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:startDate       "2020-12-31"^^xsd:date .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -674,50 +759,56 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/gyldigFom"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/gyldigFom"
+                },
+            )
         }
     }
 
     @Test
     fun `should fail to extract gyldigFom`() {
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-                        @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                euvoc:startDate       "2020"^^xsd:date .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:startDate       "2020"^^xsd:date .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.ERROR && it.message.startsWith("startDate")
-            })
+            assertTrue(
+                result.issues.any {
+                    it.type == IssueType.ERROR && it.message.startsWith("startDate")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract gyldigTom`() {
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-                        @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                euvoc:endDate         "2025-12-31"^^xsd:date .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:endDate         "2025-12-31"^^xsd:date .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -726,55 +817,61 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/gyldigTom"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/gyldigTom"
+                },
+            )
         }
     }
 
     @Test
     fun `should fail to extract gyldigTom`() {
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-                        @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+            @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                euvoc:endDate         "2025"^^xsd:date .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    euvoc:endDate         "2025"^^xsd:date .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(1, result.issues.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.ERROR && it.message.startsWith("endDate")
-            })
+            assertTrue(
+                result.issues.any {
+                    it.type == IssueType.ERROR && it.message.startsWith("endDate")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract kontaktpunkt`() {
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
-                        @prefix dcat:  <http://www.w3.org/ns/dcat#> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+            @prefix dcat:  <http://www.w3.org/ns/dcat#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                dcat:contactPoint
-                                      [
-                                        rdf:type                vcard:Organization ;
-                                        vcard:hasEmail          <mailto:organization@example.com> ;
-                                        vcard:hasTelephone      <tel:+123-ABC-789>
-                                      ].
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    dcat:contactPoint
+                          [
+                            rdf:type                vcard:Organization ;
+                            vcard:hasEmail          <mailto:organization@example.com> ;
+                            vcard:hasTelephone      <tel:+123-ABC-789>
+                          ].
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -783,33 +880,39 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/kontaktpunkt" && it.value == mapOf(
-                    "harEpost" to "organization@example.com",
-                    "harTelefon" to null
-                )
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/kontaktpunkt" && it.value ==
+                        mapOf(
+                            "harEpost" to "organization@example.com",
+                            "harTelefon" to null,
+                        )
+                },
+            )
 
             assertEquals(1, result.issues.size)
 
-            assertTrue(result.issues.any {
-                it.type == IssueType.WARNING && it.message.startsWith("contactPoint")
-            })
+            assertTrue(
+                result.issues.any {
+                    it.type == IssueType.WARNING && it.message.startsWith("contactPoint")
+                },
+            )
         }
     }
 
     @Test
     fun `should extract seOgså`() {
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                rdfs:seeAlso          <https://example.com/seeAlsoConcept> .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    rdfs:seeAlso          <https://example.com/seeAlsoConcept> .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -818,24 +921,27 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/seOgså/0"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/seOgså/0"
+                },
+            )
         }
     }
 
     @Test
     fun `should extract erstattesAv`() {
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix dct:   <http://purl.org/dc/terms/> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix dct:   <http://purl.org/dc/terms/> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                dct:isReplacedBy      <https://example.com/isReplacedByConcept> .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    dct:isReplacedBy      <https://example.com/isReplacedByConcept> .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -844,61 +950,65 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(2, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/erstattesAv/0"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/erstattesAv/0"
+                },
+            )
         }
     }
 
     @Test
     fun `should extract begrepsRelasjon`() {
-        val turtle = """
-                        @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix dct:    <http://purl.org/dc/terms/> .
-                        @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
-                        @prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
+        val turtle =
+            """
+            @prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix dct:    <http://purl.org/dc/terms/> .
+            @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+            @prefix skosno: <https://data.norge.no/vocabulary/skosno#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                skosno:isFromConceptIn 
-                                      [ 
-                                        rdf:type                        skosno:AssociativeConceptRelation ;
-                                        skosno:hasToConcept             <https://example.com/topConcept> ; 
-                                        skosno:relationRole             "muliggjør"@nb
-                                      ] ;
-                                skosno:hasPartitiveConceptRelation    
-                                      [ 
-                                        rdf:type                        skosno:PartitiveConceptRelation ;
-                                        dct:description                 "inndelingskriterium"@nb ;
-                                        skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
-                                      ] ;
-                                skosno:hasPartitiveConceptRelation    
-                                      [ 
-                                        rdf:type                        skosno:PartitiveConceptRelation ;
-                                        dct:description                 "inndelingskriterium"@nb ;
-                                        skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
-                                      ] ;
-                                skosno:hasGenericConceptRelation      
-                                      [ 
-                                        rdf:type                        skosno:GenericConceptRelation ;
-                                        dct:description                 "inndelingskriterium"@nb ;
-                                        skosno:hasGenericConcept        <https://example.com/genericConcept>
-                                      ] ;
-                                skosno:hasGenericConceptRelation     
-                                      [ 
-                                        rdf:type                        skosno:GenericConceptRelation ;
-                                        dct:description                 "inndelingskriterium"@nb ;
-                                        skosno:hasSpecificConcept       <https://example.com/specificConcept>
-                                      ] .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    skosno:isFromConceptIn 
+                          [ 
+                            rdf:type                        skosno:AssociativeConceptRelation ;
+                            skosno:hasToConcept             <https://example.com/topConcept> ; 
+                            skosno:relationRole             "muliggjør"@nb
+                          ] ;
+                    skosno:hasPartitiveConceptRelation    
+                          [ 
+                            rdf:type                        skosno:PartitiveConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasPartitiveConcept      <https://example.com/partitiveConcept>
+                          ] ;
+                    skosno:hasPartitiveConceptRelation    
+                          [ 
+                            rdf:type                        skosno:PartitiveConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasComprehensiveConcept  <https://example.com/comprehensiveConcept>
+                          ] ;
+                    skosno:hasGenericConceptRelation      
+                          [ 
+                            rdf:type                        skosno:GenericConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasGenericConcept        <https://example.com/genericConcept>
+                          ] ;
+                    skosno:hasGenericConceptRelation     
+                          [ 
+                            rdf:type                        skosno:GenericConceptRelation ;
+                            dct:description                 "inndelingskriterium"@nb ;
+                            skosno:hasSpecificConcept       <https://example.com/specificConcept>
+                          ] .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
         conceptExtraction.concept.begrepsRelasjon!!.let { relations ->
             assertEquals(5, relations.size)
 
-            relations.first { it.relasjon == "assosiativ" }
+            relations
+                .first { it.relasjon == "assosiativ" }
                 .let { associative ->
                     assertEquals("https://example.com/topConcept", associative.relatertBegrep)
 
@@ -909,7 +1019,8 @@ class RDFImportTests {
                     }
                 }
 
-            relations.first { it.relasjon == "partitiv" && it.relasjonsType == "omfatter" }
+            relations
+                .first { it.relasjon == "partitiv" && it.relasjonsType == "omfatter" }
                 .let { partitive ->
                     assertEquals("https://example.com/partitiveConcept", partitive.relatertBegrep)
 
@@ -920,7 +1031,8 @@ class RDFImportTests {
                     }
                 }
 
-            relations.first { it.relasjon == "partitiv" && it.relasjonsType == "erDelAv" }
+            relations
+                .first { it.relasjon == "partitiv" && it.relasjonsType == "erDelAv" }
                 .let { comprehensive ->
                     assertEquals("https://example.com/comprehensiveConcept", comprehensive.relatertBegrep)
 
@@ -931,7 +1043,8 @@ class RDFImportTests {
                     }
                 }
 
-            relations.first { it.relasjon == "generisk" && it.relasjonsType == "overordnet" }
+            relations
+                .first { it.relasjon == "generisk" && it.relasjonsType == "overordnet" }
                 .let { comprehensive ->
                     assertEquals("https://example.com/genericConcept", comprehensive.relatertBegrep)
 
@@ -942,7 +1055,8 @@ class RDFImportTests {
                     }
                 }
 
-            relations.first { it.relasjon == "generisk" && it.relasjonsType == "underordnet" }
+            relations
+                .first { it.relasjon == "generisk" && it.relasjonsType == "underordnet" }
                 .let { comprehensive ->
                     assertEquals("https://example.com/specificConcept", comprehensive.relatertBegrep)
 
@@ -957,25 +1071,35 @@ class RDFImportTests {
         conceptExtraction.extractionRecord.extractResult.let { result ->
             assertEquals(6, result.operations.size)
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/0"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/0"
+                },
+            )
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/1"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/1"
+                },
+            )
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/2"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/2"
+                },
+            )
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/3"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/3"
+                },
+            )
 
-            assertTrue(result.operations.any {
-                it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/4"
-            })
+            assertTrue(
+                result.operations.any {
+                    it.op == OpEnum.ADD && it.path == "/begrepsRelasjon/4"
+                },
+            )
         }
     }
 
@@ -983,16 +1107,17 @@ class RDFImportTests {
     fun `should fail to extract fagomraadekode`() {
         val dcTerms = "http://purl.org/dc/terms/"
         val property = DCTerms.subject
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix dct:   <$dcTerms> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix dct:   <$dcTerms> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                dct:subject            <47f92ffc-6173-49da-a614-043d448a3cbf> .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    dct:subject            <47f92ffc-6173-49da-a614-043d448a3cbf> .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -1005,17 +1130,18 @@ class RDFImportTests {
     fun `should extract fagomraadekode`() {
         val dcTerms = "http://purl.org/dc/terms/"
         val property = DCTerms.subject
-        val turtle = """
-                        @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-                        @prefix dct:   <$dcTerms> .
-                        @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+        val turtle =
+            """
+            @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix dct:   <$dcTerms> .
+            @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
-                        <https://example.com/concept>
-                                rdf:type              skos:Concept ;
-                                skos:prefLabel        "anbefaltTerm"@nb ;
-                                dct:subject           
-                                <https://catalog-admin-service.staging.fellesdatakatalog.digdir.no/312460726/concepts/code-list/subjects#47f92ffc-6173-49da-a614-043d448a3cbf> .
-                    """.trimIndent()
+            <https://example.com/concept>
+                    rdf:type              skos:Concept ;
+                    skos:prefLabel        "anbefaltTerm"@nb ;
+                    dct:subject           
+                    <https://catalog-admin-service.staging.fellesdatakatalog.digdir.no/312460726/concepts/code-list/subjects#47f92ffc-6173-49da-a614-043d448a3cbf> .
+            """.trimIndent()
 
         val conceptExtraction = createConceptExtraction(turtle)
 
@@ -1033,9 +1159,10 @@ class RDFImportTests {
 
             val concept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
-            val objectMapper = jacksonObjectMapper()
-                .registerModule(JavaTimeModule())
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            val objectMapper =
+                jacksonObjectMapper()
+                    .registerModule(JavaTimeModule())
+                    .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
             return resource.extract(concept, objectMapper)
         }
@@ -1044,16 +1171,19 @@ class RDFImportTests {
             val model = ModelFactory.createDefaultModel()
             model.read(StringReader(turtle), null, Lang.TURTLE.name)
 
-            val uriResources = model.listResourcesWithProperty(RDF.type, SKOS.Concept)
-                .asSequence()
-                .filter { it.isURIResource }
-                .toList()
+            val uriResources =
+                model
+                    .listResourcesWithProperty(RDF.type, SKOS.Concept)
+                    .asSequence()
+                    .filter { it.isURIResource }
+                    .toList()
 
             val emptyConcept = createNewConcept(Virksomhet(id = "id"), user = User(id = "id", name = null, email = null))
 
-            val objectMapper = jacksonObjectMapper()
-                .registerModule(JavaTimeModule())
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+            val objectMapper =
+                jacksonObjectMapper()
+                    .registerModule(JavaTimeModule())
+                    .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
             return uriResources.map { it.extract(emptyConcept, objectMapper) }
         }

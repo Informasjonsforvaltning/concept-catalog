@@ -8,9 +8,14 @@ import no.fdk.concept_catalog.model.SearchFilter
 import no.fdk.concept_catalog.model.SearchFilters
 import no.fdk.concept_catalog.model.SearchOperation
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_HAS_REVISION
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_DELETED
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
+import no.fdk.concept_catalog.utils.BEGREP_UNPUBLISHED_REVISION
+import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
 import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -21,7 +26,6 @@ import kotlin.test.assertTrue
 
 @Tag("contract")
 class PublishConcept : ContractTestsBase() {
-
     @Test
     fun `Unauthorized when access token is not included`() {
         val response =
@@ -34,26 +38,26 @@ class PublishConcept : ContractTestsBase() {
     fun `Forbidden for wrong orgnr`() {
         conceptRepository.save(BEGREP_WRONG_ORG.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_WRONG_ORG.id}/publish",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_WRONG_ORG.id}/publish",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
     fun `Not found`() {
-        val response = authorizedRequest(
-            "/begreper/not-found/publish",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/not-found/publish",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.NOT_FOUND, response.statusCode)
     }
@@ -62,13 +66,13 @@ class PublishConcept : ContractTestsBase() {
     fun `Forbidden for read access`() {
         conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
-
-            null,
-            JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
@@ -77,13 +81,13 @@ class PublishConcept : ContractTestsBase() {
     fun `Bad request when publishing Concept that does not validate`() {
         conceptRepository.save(BEGREP_TO_BE_DELETED.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_DELETED.id}/publish",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_DELETED.id}/publish",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -92,13 +96,13 @@ class PublishConcept : ContractTestsBase() {
     fun `Ok for write access`() {
         conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -106,29 +110,30 @@ class PublishConcept : ContractTestsBase() {
 
         assertNotNull(result.publiseringsTidspunkt)
 
-        val expected = BEGREP_TO_BE_UPDATED.copy(
-            erPublisert = true,
-            isArchived = true,
-            sistPublisertId = null,
-            publiseringsTidspunkt = result.publiseringsTidspunkt
-        )
+        val expected =
+            BEGREP_TO_BE_UPDATED.copy(
+                erPublisert = true,
+                isArchived = true,
+                sistPublisertId = null,
+                publiseringsTidspunkt = result.publiseringsTidspunkt,
+            )
 
         assertEquals(expected, result)
 
         // Elastic has been updated after publish
 
-        val searchResponse = authorizedRequest(
-            "/begreper/search?orgNummer=${BEGREP_TO_BE_UPDATED.ansvarligVirksomhet.id}",
-
-            mapper.writeValueAsString(
-                SearchOperation(
-                    "",
-                    filters = SearchFilters(originalId = SearchFilter(listOf(BEGREP_TO_BE_UPDATED.originaltBegrep!!)))
-                )
-            ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val searchResponse =
+            authorizedRequest(
+                "/begreper/search?orgNummer=${BEGREP_TO_BE_UPDATED.ansvarligVirksomhet.id}",
+                mapper.writeValueAsString(
+                    SearchOperation(
+                        "",
+                        filters = SearchFilters(originalId = SearchFilter(listOf(BEGREP_TO_BE_UPDATED.originaltBegrep!!))),
+                    ),
+                ),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         val searchResult: Paginated = mapper.readValue(searchResponse.body as String)
 
@@ -143,40 +148,40 @@ class PublishConcept : ContractTestsBase() {
             listOf(
                 BEGREP_TO_BE_UPDATED.toDBO().toEntity(),
                 BEGREP_HAS_REVISION.toDBO().toEntity(),
-                BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity()
+                BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity(),
+            ),
+        )
+
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
             )
-        )
-
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}/publish",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
-        val get0 = authorizedRequest(
-            "/begreper/${BEGREP_HAS_REVISION.id}",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val get0 =
+            authorizedRequest(
+                "/begreper/${BEGREP_HAS_REVISION.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
         val result0: Begrep = mapper.readValue(get0.body as String)
 
         assertTrue(result0.internSeOgså?.none { it.contains(BEGREP_TO_BE_UPDATED.id!!) } ?: true)
         assertTrue(result0.seOgså!!.any { it.contains(BEGREP_TO_BE_UPDATED.id!!) })
 
-        val get1 = authorizedRequest(
-            "/begreper/${BEGREP_UNPUBLISHED_REVISION.id}",
-
-            null,
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val get1 =
+            authorizedRequest(
+                "/begreper/${BEGREP_UNPUBLISHED_REVISION.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
         val result1: Begrep = mapper.readValue(get1.body as String)
 

@@ -7,5 +7,5 @@ data class ApplicationProperties(
     val collectionBaseUri: String,
     val historyServiceUri: String,
     val adminServiceUri: String,
-    val harvestAdminUri: String
+    val harvestAdminUri: String,
 )

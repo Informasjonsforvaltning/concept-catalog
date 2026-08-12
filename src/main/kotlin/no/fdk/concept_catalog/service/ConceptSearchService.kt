@@ -4,7 +4,12 @@ import co.elastic.clients.elasticsearch._types.ScriptSortType
 import co.elastic.clients.elasticsearch._types.SortOrder
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
-import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.CurrentConcept
+import no.fdk.concept_catalog.model.QueryFields
+import no.fdk.concept_catalog.model.SearchOperation
+import no.fdk.concept_catalog.model.SortDirection
+import no.fdk.concept_catalog.model.SortField
+import no.fdk.concept_catalog.model.SortFieldEnum
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.elasticsearch.client.elc.NativeQuery
@@ -17,24 +22,30 @@ import org.springframework.stereotype.Service
 
 @Service
 class ConceptSearchService(
-    private val elasticsearchOperations: ElasticsearchOperations
+    private val elasticsearchOperations: ElasticsearchOperations,
 ) {
-
     private val logger = LoggerFactory.getLogger(ConceptSearchService::class.java)
 
-    fun suggestConcepts(orgNumber: String, published: Boolean?, query: String): SearchHits<CurrentConcept> =
+    fun suggestConcepts(
+        orgNumber: String,
+        published: Boolean?,
+        query: String,
+    ): SearchHits<CurrentConcept> =
         elasticsearchOperations.search(
             suggestionQuery(orgNumber, published, query),
             CurrentConcept::class.java,
-            IndexCoordinates.of("concepts-current")
+            IndexCoordinates.of("concepts-current"),
         )
 
-    fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> {
+    fun searchCurrentConcepts(
+        orgNumber: String,
+        search: SearchOperation,
+    ): SearchHits<CurrentConcept> {
         val query = search.toElasticQuery(orgNumber)
         return elasticsearchOperations.search(
             query,
             CurrentConcept::class.java,
-            IndexCoordinates.of("concepts-current")
+            IndexCoordinates.of("concepts-current"),
         )
     }
 
@@ -49,11 +60,15 @@ class ConceptSearchService(
         return elasticsearchOperations.count(
             query,
             CurrentConcept::class.java,
-            IndexCoordinates.of("concepts-current")
+            IndexCoordinates.of("concepts-current"),
         )
     }
 
-    private fun suggestionQuery(orgNumber: String, published: Boolean?, query: String): Query {
+    private fun suggestionQuery(
+        orgNumber: String,
+        published: Boolean?,
+        query: String,
+    ): Query {
         val builder = NativeQuery.builder()
         builder.withFilter { queryBuilder ->
             queryBuilder.bool { boolBuilder ->
@@ -62,7 +77,8 @@ class ConceptSearchService(
         }
         builder.withQuery { queryBuilder ->
             queryBuilder.matchPhrasePrefix { matchBuilder ->
-                matchBuilder.query(query)
+                matchBuilder
+                    .query(query)
                     .field("anbefaltTerm.navn.nb")
             }
         }
@@ -91,8 +107,8 @@ class ConceptSearchService(
             queryBuilder.bool { boolBuilder ->
                 boolBuilder.must(
                     filters.asQueryFilters(
-                        orgNumber
-                    )
+                        orgNumber,
+                    ),
                 )
             }
         }
@@ -103,12 +119,16 @@ class ConceptSearchService(
         return builder.build()
     }
 
-    private fun NativeQueryBuilder.addFieldsQuery(queryFields: QueryFields, queryValue: String) {
+    private fun NativeQueryBuilder.addFieldsQuery(
+        queryFields: QueryFields,
+        queryValue: String,
+    ) {
         withQuery { queryBuilder ->
             queryBuilder.bool { boolBuilder ->
                 boolBuilder.should {
                     it.multiMatch { matchBuilder ->
-                        matchBuilder.fields(queryFields.exactPaths())
+                        matchBuilder
+                            .fields(queryFields.exactPaths())
                             .query(queryValue)
                             .operator(Operator.And)
                             .type(TextQueryType.Phrase)
@@ -117,7 +137,8 @@ class ConceptSearchService(
 
                 boolBuilder.should {
                     it.multiMatch { matchBuilder ->
-                        matchBuilder.fields(queryFields.prefixPaths())
+                        matchBuilder
+                            .fields(queryFields.prefixPaths())
                             .query(queryValue)
                             .operator(Operator.And)
                             .type(TextQueryType.BoolPrefix)
@@ -137,45 +158,69 @@ class ConceptSearchService(
 
     private fun QueryFields.exactPaths(): List<String> =
         listOf(
-            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 30)
-            else emptyList(),
-
-            if (frarådetTerm) languagePaths("frarådetTerm", 10)
-            else emptyList(),
-
-            if (tillattTerm) languagePaths("tillattTerm", 10)
-            else emptyList(),
-
-            if (definisjon) languagePaths("definisjon.tekst")
-            else emptyList(),
-
-            if (merknad) languagePaths("merknad")
-            else emptyList()
+            if (anbefaltTerm) {
+                languagePaths("anbefaltTerm.navn", 30)
+            } else {
+                emptyList()
+            },
+            if (frarådetTerm) {
+                languagePaths("frarådetTerm", 10)
+            } else {
+                emptyList()
+            },
+            if (tillattTerm) {
+                languagePaths("tillattTerm", 10)
+            } else {
+                emptyList()
+            },
+            if (definisjon) {
+                languagePaths("definisjon.tekst")
+            } else {
+                emptyList()
+            },
+            if (merknad) {
+                languagePaths("merknad")
+            } else {
+                emptyList()
+            },
         ).flatten()
 
     private fun QueryFields.prefixPaths(): List<String> =
         listOf(
-            if (anbefaltTerm) languagePaths("anbefaltTerm.navn", 15)
-            else emptyList(),
-
-            if (frarådetTerm) languagePaths("frarådetTerm", 5)
-            else emptyList(),
-
-            if (tillattTerm) languagePaths("tillattTerm", 5)
-            else emptyList(),
-
-            if (definisjon) languagePaths("definisjon.tekst")
-            else emptyList(),
-
-            if (merknad) languagePaths("merknad")
-            else emptyList()
+            if (anbefaltTerm) {
+                languagePaths("anbefaltTerm.navn", 15)
+            } else {
+                emptyList()
+            },
+            if (frarådetTerm) {
+                languagePaths("frarådetTerm", 5)
+            } else {
+                emptyList()
+            },
+            if (tillattTerm) {
+                languagePaths("tillattTerm", 5)
+            } else {
+                emptyList()
+            },
+            if (definisjon) {
+                languagePaths("definisjon.tekst")
+            } else {
+                emptyList()
+            },
+            if (merknad) {
+                languagePaths("merknad")
+            } else {
+                emptyList()
+            },
         ).flatten()
 
-    private fun languagePaths(basePath: String, boost: Int? = null): List<String> =
-        listOf("$basePath.nb${if (boost != null) "^$boost" else ""}",
+    private fun languagePaths(
+        basePath: String,
+        boost: Int? = null,
+    ): List<String> =
+        listOf(
+            "$basePath.nb${if (boost != null) "^$boost" else ""}",
             "$basePath.nn${if (boost != null) "^$boost" else ""}",
-            "$basePath.en${if (boost != null) "^$boost" else ""}")
-
+            "$basePath.en${if (boost != null) "^$boost" else ""}",
+        )
 }
-
-

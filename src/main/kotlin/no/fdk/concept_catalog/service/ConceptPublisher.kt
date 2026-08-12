@@ -18,29 +18,34 @@ private val logger = LoggerFactory.getLogger(ConceptPublisher::class.java)
 @Service
 class ConceptPublisher(
     private val applicationProperties: ApplicationProperties,
-    private val restTemplate: RestTemplate = RestTemplate()
+    private val restTemplate: RestTemplate = RestTemplate(),
 ) {
     private fun dataSourceUrl(publisherId: String): String =
         UriComponentsBuilder
             .fromUriString(applicationProperties.collectionBaseUri)
             .replacePath("/collections/$publisherId")
-            .build().toUriString()
+            .build()
+            .toUriString()
 
     fun triggerHarvest(publisherId: String) {
-        val url = UriComponentsBuilder
-            .fromUriString(applicationProperties.harvestAdminUri)
-            .replacePath("/organizations/$publisherId/datasources/start-harvesting")
-            .build().toUriString()
+        val url =
+            UriComponentsBuilder
+                .fromUriString(applicationProperties.harvestAdminUri)
+                .replacePath("/organizations/$publisherId/datasources/start-harvesting")
+                .build()
+                .toUriString()
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-            resolveBearerToken()?.let { set(HttpHeaders.AUTHORIZATION, "Bearer $it") }
-        }
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                resolveBearerToken()?.let { set(HttpHeaders.AUTHORIZATION, "Bearer $it") }
+            }
 
-        val body = StartHarvestByUrlRequest(
-            url = dataSourceUrl(publisherId),
-            dataType = "concept",
-        )
+        val body =
+            StartHarvestByUrlRequest(
+                url = dataSourceUrl(publisherId),
+                dataType = "concept",
+            )
 
         runCatching {
             restTemplate.postForEntity<Any>(URI(url), HttpEntity(body, headers))
@@ -50,24 +55,28 @@ class ConceptPublisher(
     }
 
     fun createNewDataSource(publisherId: String) {
-        val url = UriComponentsBuilder
-            .fromUriString(applicationProperties.harvestAdminUri)
-            .replacePath("/organizations/$publisherId/datasources")
-            .build().toUriString()
+        val url =
+            UriComponentsBuilder
+                .fromUriString(applicationProperties.harvestAdminUri)
+                .replacePath("/organizations/$publisherId/datasources")
+                .build()
+                .toUriString()
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_JSON
-            resolveBearerToken()?.let { set(HttpHeaders.AUTHORIZATION, "Bearer $it") }
-        }
+        val headers =
+            HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+                resolveBearerToken()?.let { set(HttpHeaders.AUTHORIZATION, "Bearer $it") }
+            }
 
-        val body = HarvestAdminDataSource(
-            dataSourceType = "SKOS-AP-NO",
-            dataType = "concept",
-            url = dataSourceUrl(publisherId),
-            acceptHeaderValue = "text/turtle",
-            publisherId = publisherId,
-            description = "Automatically generated data source for $publisherId"
-        )
+        val body =
+            HarvestAdminDataSource(
+                dataSourceType = "SKOS-AP-NO",
+                dataType = "concept",
+                url = dataSourceUrl(publisherId),
+                acceptHeaderValue = "text/turtle",
+                publisherId = publisherId,
+                description = "Automatically generated data source for $publisherId",
+            )
 
         runCatching {
             restTemplate.postForEntity<Any>(URI(url), HttpEntity(body, headers))

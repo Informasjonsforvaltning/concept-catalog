@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ImportResultRepository : JpaRepository<ImportResult, String> {
-
     @Query(
         value = """
             SELECT * FROM import_results
@@ -17,12 +16,12 @@ interface ImportResultRepository : JpaRepository<ImportResult, String> {
               AND concept_extractions @> jsonb_build_array(jsonb_build_object('extractionRecord', jsonb_build_object('externalId', :externalId)))
             LIMIT 1
         """,
-        nativeQuery = true
+        nativeQuery = true,
     )
     fun findFirstByCatalogIdAndStatusAndExternalId(
         catalogId: String,
         status: String,
-        externalId: String
+        externalId: String,
     ): ImportResult?
 
     fun findAllByCatalogId(catalogId: String): List<ImportResult>

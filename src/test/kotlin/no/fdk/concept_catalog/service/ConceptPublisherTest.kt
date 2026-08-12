@@ -20,13 +20,13 @@ import kotlin.test.assertEquals
 
 @Tag("unit")
 class ConceptPublisherTest {
-
-    private val applicationProperties = ApplicationProperties(
-        collectionBaseUri = "http://collection-base",
-        historyServiceUri = "http://history",
-        adminServiceUri = "http://catalog-admin",
-        harvestAdminUri = "http://harvest-admin",
-    )
+    private val applicationProperties =
+        ApplicationProperties(
+            collectionBaseUri = "http://collection-base",
+            historyServiceUri = "http://history",
+            adminServiceUri = "http://catalog-admin",
+            harvestAdminUri = "http://harvest-admin",
+        )
 
     private val restTemplate: RestTemplate = mock()
     private val conceptPublisher = ConceptPublisher(applicationProperties, restTemplate)
@@ -40,15 +40,19 @@ class ConceptPublisherTest {
 
     @Test
     fun `triggerHarvest posts start harvesting request with bearer token when present`() {
-        val jwt = Jwt.withTokenValue("token-value")
-            .header("alg", "none")
-            .claim("sub", "user")
-            .build()
+        val jwt =
+            Jwt
+                .withTokenValue("token-value")
+                .header("alg", "none")
+                .claim("sub", "user")
+                .build()
 
-        val auth = object : AbstractAuthenticationToken(emptyList()) {
-            override fun getCredentials(): Any = ""
-            override fun getPrincipal(): Any = jwt
-        }
+        val auth =
+            object : AbstractAuthenticationToken(emptyList()) {
+                override fun getCredentials(): Any = ""
+
+                override fun getPrincipal(): Any = jwt
+            }
         auth.isAuthenticated = true
         SecurityContextHolder.getContext().authentication = auth
 
@@ -58,7 +62,7 @@ class ConceptPublisherTest {
         verify(restTemplate).postForEntity(
             eq(URI("http://harvest-admin/organizations/$publisherId/datasources/start-harvesting")),
             entityCaptor.capture(),
-            eq(Any::class.java)
+            eq(Any::class.java),
         )
 
         val captured = entityCaptor.firstValue as HttpEntity<*>
@@ -73,15 +77,19 @@ class ConceptPublisherTest {
 
     @Test
     fun `createNewDataSource posts correct payload and headers`() {
-        val jwt = Jwt.withTokenValue("token-value")
-            .header("alg", "none")
-            .claim("sub", "user")
-            .build()
+        val jwt =
+            Jwt
+                .withTokenValue("token-value")
+                .header("alg", "none")
+                .claim("sub", "user")
+                .build()
 
-        val auth = object : AbstractAuthenticationToken(emptyList()) {
-            override fun getCredentials(): Any = ""
-            override fun getPrincipal(): Any = jwt
-        }
+        val auth =
+            object : AbstractAuthenticationToken(emptyList()) {
+                override fun getCredentials(): Any = ""
+
+                override fun getPrincipal(): Any = jwt
+            }
         auth.isAuthenticated = true
         SecurityContextHolder.getContext().authentication = auth
 
@@ -91,7 +99,7 @@ class ConceptPublisherTest {
         verify(restTemplate).postForEntity(
             eq(URI("http://harvest-admin/organizations/$publisherId/datasources")),
             entityCaptor.capture(),
-            eq(Any::class.java)
+            eq(Any::class.java),
         )
 
         val captured = entityCaptor.firstValue as HttpEntity<*>

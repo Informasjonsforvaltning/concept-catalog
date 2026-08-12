@@ -6,7 +6,12 @@ import no.fdk.concept_catalog.model.Kildebeskrivelse
 import no.fdk.concept_catalog.model.URITekst
 import no.fdk.concept_catalog.rdf.EUVOC
 import no.fdk.concept_catalog.rdf.SKOSNO
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_3
+import no.fdk.concept_catalog.utils.BEGREP_4
+import no.fdk.concept_catalog.utils.BEGREP_6
+import no.fdk.concept_catalog.utils.TestResponseReader
+import no.fdk.concept_catalog.utils.checkIfIsomorphicAndPrintDiff
 import org.apache.jena.vocabulary.DCTerms
 import org.apache.jena.vocabulary.RDFS
 import org.apache.jena.vocabulary.RDFSyntax.RDF
@@ -18,9 +23,9 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
 import org.springframework.web.server.ResponseStatusException
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.assertEquals
 
 private val logger = LoggerFactory.getLogger(SkosApNo::class.java)
 
@@ -112,24 +117,62 @@ class SkosApNo {
     }
 
     @Test
-    fun `Handles Concept with ForholdTilKildeEnum set to SITATFRAKILDE` () {
+    fun `Handles Concept with ForholdTilKildeEnum set to SITATFRAKILDE`() {
         whenever(applicationProperties.collectionBaseUri)
             .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE, kilde = listOf(URITekst(uri = "https://valid.uri.no", tekst = "Testdirektoratet"))))))
+            .thenReturn(
+                BEGREP_6.copy(
+                    definisjon =
+                        BEGREP_6.definisjon?.copy(
+                            kildebeskrivelse =
+                                Kildebeskrivelse(
+                                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                                    kilde = listOf(URITekst(uri = "https://valid.uri.no", tekst = "Testdirektoratet")),
+                                ),
+                        ),
+                ),
+            )
         assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
     }
 
     @Test
-    fun `Handles Concept with invalid source URI` () {
+    fun `Handles Concept with invalid source URI`() {
         whenever(applicationProperties.collectionBaseUri)
             .thenReturn("https://concept-catalog.fellesdatakatalog.digdir.no")
         whenever(conceptService.getLastPublished(BEGREP_6.id))
-            .thenReturn(BEGREP_6.copy(definisjon = BEGREP_6.definisjon?.copy(kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE, kilde = listOf(URITekst(uri = "https://an invalid uri", tekst = "Testdirektoratet"))))))
+            .thenReturn(
+                BEGREP_6.copy(
+                    definisjon =
+                        BEGREP_6.definisjon?.copy(
+                            kildebeskrivelse =
+                                Kildebeskrivelse(
+                                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                                    kilde = listOf(URITekst(uri = "https://an invalid uri", tekst = "Testdirektoratet")),
+                                ),
+                        ),
+                ),
+            )
         val modelInvalidURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
 
-        val sourceNullURI = modelInvalidURI.listObjectsOfProperty(EUVOC.xlDefinition).toList().first().asResource().getProperty(DCTerms.source).`object`
+        val sourceNullURI =
+            modelInvalidURI
+                .listObjectsOfProperty(
+                    EUVOC.xlDefinition,
+                ).toList()
+                .first()
+                .asResource()
+                .getProperty(DCTerms.source)
+                .`object`
         assertTrue { sourceNullURI.isAnon }
-        assertEquals("Testdirektoratet", sourceNullURI.asResource().listProperties(RDFS.label).toList().first().string)
+        assertEquals(
+            "Testdirektoratet",
+            sourceNullURI
+                .asResource()
+                .listProperties(RDFS.label)
+                .toList()
+                .first()
+                .string,
+        )
     }
 }

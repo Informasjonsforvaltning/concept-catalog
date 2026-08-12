@@ -6,23 +6,22 @@ import org.springframework.context.annotation.Bean
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.elasticsearch.ElasticsearchContainer
 
-class KPostgreSQLContainer(imageName: String) : PostgreSQLContainer<KPostgreSQLContainer>(imageName)
+class KPostgreSQLContainer(
+    imageName: String,
+) : PostgreSQLContainer<KPostgreSQLContainer>(imageName)
 
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfig {
-
     @Bean
     @ServiceConnection
-    fun postgresContainer(): KPostgreSQLContainer {
-        return KPostgreSQLContainer("postgres:16")
+    fun postgresContainer(): KPostgreSQLContainer =
+        KPostgreSQLContainer("postgres:16")
             .withDatabaseName("concept_catalog")
             .withUsername("testuser")
             .withPassword("testpassword")
-    }
 
     @Bean
-    fun elasticsearchContainer(): ElasticsearchContainer {
-        return ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.2")
+    fun elasticsearchContainer(): ElasticsearchContainer =
+        ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.10.2")
             .withEnv(mapOf(Pair("xpack.security.enabled", "false"), Pair("ES_JAVA_OPTS", "-Xms512M -Xmx512M")))
-    }
 }

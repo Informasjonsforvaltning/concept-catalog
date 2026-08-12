@@ -22,14 +22,23 @@ private val logger = LoggerFactory.getLogger(HistoryService::class.java)
 @Service
 class HistoryService(
     private val applicationProperties: ApplicationProperties,
-    private val mapper: ObjectMapper
+    private val mapper: ObjectMapper,
 ) {
-    fun updateHistory(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt): String? =
-        URI("${applicationProperties.historyServiceUri}/${concept.ansvarligVirksomhet.id}/${concept.id}/updates").toURL()
+    fun updateHistory(
+        concept: BegrepDBO,
+        operations: List<JsonPatchOperation>,
+        user: User,
+        jwt: Jwt,
+    ): String? =
+        URI("${applicationProperties.historyServiceUri}/${concept.ansvarligVirksomhet.id}/${concept.id}/updates")
+            .toURL()
             .let { it.openConnection() as HttpURLConnection }
             .postUpdateToHistoryService(HistoricPayload(user, operations), jwt)
 
-    private fun HttpURLConnection.postUpdateToHistoryService(payload: HistoricPayload, jwt: Jwt): String? {
+    private fun HttpURLConnection.postUpdateToHistoryService(
+        payload: HistoricPayload,
+        jwt: Jwt,
+    ): String? {
         setRequestProperty(HttpHeaders.AUTHORIZATION, "Bearer ${jwt.tokenValue}")
         setRequestProperty(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString())
         requestMethod = HttpMethod.POST.toString()
@@ -44,8 +53,12 @@ class HistoryService(
         }
     }
 
-    fun removeHistoryUpdate(location: String, jwt: Jwt) {
-        URI("${applicationProperties.historyServiceUri}$location").toURL()
+    fun removeHistoryUpdate(
+        location: String,
+        jwt: Jwt,
+    ) {
+        URI("${applicationProperties.historyServiceUri}$location")
+            .toURL()
             .let { it.openConnection() as HttpURLConnection }
             .deleteFromHistoryService(jwt)
     }
@@ -58,5 +71,4 @@ class HistoryService(
             logger.error("Failed history deletion for $url, status: $responseCode")
         }
     }
-
 }

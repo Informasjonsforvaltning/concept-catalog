@@ -1,9 +1,9 @@
 package no.fdk.concept_catalog.model
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSetter
 import com.fasterxml.jackson.annotation.Nulls
@@ -12,7 +12,7 @@ import java.time.Instant
 import java.time.LocalDate
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class BegrepDBO (
+data class BegrepDBO(
     val id: String,
     val originaltBegrep: String,
     val versjonsnr: SemVer,
@@ -24,7 +24,6 @@ data class BegrepDBO (
     @param:JsonProperty("isArchived")
     @get:JsonProperty("isArchived")
     val isArchived: Boolean? = false,
-    
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "Europe/Oslo")
     val publiseringsTidspunkt: Instant? = null,
     val anbefaltTerm: Term?,
@@ -54,11 +53,11 @@ data class BegrepDBO (
     val begrepsRelasjon: List<BegrepsRelasjon>?,
     val internBegrepsRelasjon: List<BegrepsRelasjon>?,
     val interneFelt: Map<String, InterntFelt>?,
-    val internErstattesAv: List<String>?
+    val internErstattesAv: List<String>?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Begrep (
+data class Begrep(
     val id: String? = null,
     val originaltBegrep: String? = null,
     val versjonsnr: SemVer? = null,
@@ -107,9 +106,12 @@ data class Begrep (
     val internErstattesAv: List<String>? = null,
 )
 
-data class SemVer(val major: Int, val minor: Int, val patch: Int): Comparable<SemVer> {
-    override fun compareTo(other: SemVer): Int =
-        compareValuesBy(this, other, { it.major }, { it.minor }, { it.patch })
+data class SemVer(
+    val major: Int,
+    val minor: Int,
+    val patch: Int,
+) : Comparable<SemVer> {
+    override fun compareTo(other: SemVer): Int = compareValuesBy(this, other, { it.major }, { it.minor }, { it.patch })
 
     override fun toString(): String = "$major.$minor.$patch"
 }

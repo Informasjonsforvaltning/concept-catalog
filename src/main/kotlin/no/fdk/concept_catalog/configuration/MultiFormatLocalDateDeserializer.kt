@@ -6,12 +6,16 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 class MultiFormatLocalDateDeserializer : JsonDeserializer<LocalDate>() {
-    private val formatters = listOf(
-        DateTimeFormatter.ISO_LOCAL_DATE,
-        DateTimeFormatter.ofPattern("dd.MM.yyyy")
-    )
+    private val formatters =
+        listOf(
+            DateTimeFormatter.ISO_LOCAL_DATE,
+            DateTimeFormatter.ofPattern("dd.MM.yyyy"),
+        )
 
-    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): LocalDate? {
+    override fun deserialize(
+        p: JsonParser,
+        ctxt: DeserializationContext,
+    ): LocalDate? {
         val value = p.text
         for (formatter in formatters) {
             try {

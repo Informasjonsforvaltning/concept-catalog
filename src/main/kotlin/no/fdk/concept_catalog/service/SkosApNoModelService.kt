@@ -6,7 +6,10 @@ import no.fdk.concept_catalog.model.BegrepsRelasjon
 import no.fdk.concept_catalog.model.Definisjon
 import no.fdk.concept_catalog.model.ForholdTilKildeEnum
 import no.fdk.concept_catalog.model.URITekst
-import no.fdk.concept_catalog.rdf.*
+import no.fdk.concept_catalog.rdf.AUDIENCE_TYPE
+import no.fdk.concept_catalog.rdf.EUVOC
+import no.fdk.concept_catalog.rdf.RELATIONSHIP
+import no.fdk.concept_catalog.rdf.SKOSNO
 import org.apache.jena.datatypes.xsd.impl.XSDDateType
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.rdf.model.ModelFactory
@@ -27,28 +30,30 @@ import java.time.ZoneId
 
 private val logger = LoggerFactory.getLogger(SkosApNoModelService::class.java)
 
+private const val NB = "nb"
+private const val ASSOCIATIVE = "assosiativ"
+private const val PARTITIVE = "partitiv"
+private const val GENERIC = "generisk"
+private const val OMFATTER = "omfatter"
+private const val ERDELAV = "erDelAv"
+private const val UNDERORDNET = "underordnet"
+private const val OVERORDNET = "overordnet"
+
 @Service
 class SkosApNoModelService(
     private val conceptService: ConceptService,
-    private val applicationProperties: ApplicationProperties
+    private val applicationProperties: ApplicationProperties,
 ) {
-
-    private val NB = "nb"
-    private val ASSOCIATIVE = "assosiativ"
-    private val PARTITIVE = "partitiv"
-    private val GENERIC = "generisk"
-    private val OMFATTER = "omfatter"
-    private val ERDELAV = "erDelAv"
-    private val UNDERORDNET = "underordnet"
-    private val OVERORDNET = "overordnet"
-
     private fun enhetsregisteretUri(orgId: String): String = "https://data.brreg.no/enhetsregisteret/api/enheter/$orgId"
 
     private fun subjectsURI(orgId: String): String = "${applicationProperties.adminServiceUri}/$orgId/concepts/subjects#"
 
     private fun Model.safeCreateResource(uri: String?) =
-        if (uri != null) createResource(escapeURI(uri))
-        else createResource()
+        if (uri != null) {
+            createResource(escapeURI(uri))
+        } else {
+            createResource()
+        }
 
     fun buildModelForPublishersCollection(publisherId: String): Model {
         val model = ModelFactory.createDefaultModel()
@@ -62,19 +67,24 @@ class SkosApNoModelService(
         model.addConceptNamespaces()
 
         conceptService
-                .getAllPublisherIds()
-                .forEach { model.addConceptsToCollection(it) }
+            .getAllPublisherIds()
+            .forEach { model.addConceptsToCollection(it) }
 
         return model
     }
 
-    fun buildModelForConcept(collectionId: String, id: String): Model {
+    fun buildModelForConcept(
+        collectionId: String,
+        id: String,
+    ): Model {
         val concept = conceptService.getLastPublished(id)
         val model = ModelFactory.createDefaultModel()
 
         if (concept?.ansvarligVirksomhet?.id == collectionId) {
             model.addConceptToModel(concept, conceptService.getLastPublishedForOrganization(collectionId).mapNotNull { it.id })
-        } else throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        } else {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        }
 
         return model
     }
@@ -111,37 +121,72 @@ class SkosApNoModelService(
         return this
     }
 
-    private fun Resource.addConceptToCollection(concept: Begrep, publishedIds: List<String>) {
-        if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
-        else {
+    private fun Resource.addConceptToCollection(
+        concept: Begrep,
+        publishedIds: List<String>,
+    ) {
+        if (concept.originaltBegrep ==
+            null
+        ) {
+            logger.error(
+                "Concept has no original id, will not serialize.",
+                Exception("Concept has no original id, will not serialize."),
+            )
+        } else {
             val conceptURI = getConceptUri(uri, concept.originaltBegrep)
-            val conceptResource = model.createResource(conceptURI)
-                .addProperty(RDF.type, SKOS.Concept)
-                .addProperty(DCTerms.identifier, model.createLiteral(conceptURI))
-                .safeAddPublisher(concept.ansvarligVirksomhet.id)
-                .safeAddModified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
+            val conceptResource =
+                model
+                    .createResource(conceptURI)
+                    .addProperty(RDF.type, SKOS.Concept)
+                    .addProperty(DCTerms.identifier, model.createLiteral(conceptURI))
+                    .safeAddPublisher(concept.ansvarligVirksomhet.id)
+                    .safeAddModified(
+                        concept.endringslogelement
+                            ?.endringstidspunkt
+                            ?.atZone(ZoneId.systemDefault())
+                            ?.toLocalDate(),
+                    )
 
             conceptResource.addPropertiesToConcept(concept, uri, publishedIds)
             addProperty(SKOS.member, conceptResource)
         }
     }
 
-    private fun Model.addConceptToModel(concept: Begrep, publishedIds: List<String>) {
-        if (concept.originaltBegrep == null) logger.error("Concept has no original id, will not serialize.", Exception("Concept has no original id, will not serialize."))
-        else {
+    private fun Model.addConceptToModel(
+        concept: Begrep,
+        publishedIds: List<String>,
+    ) {
+        if (concept.originaltBegrep ==
+            null
+        ) {
+            logger.error(
+                "Concept has no original id, will not serialize.",
+                Exception("Concept has no original id, will not serialize."),
+            )
+        } else {
             val collectionURI = getCollectionUri(applicationProperties.collectionBaseUri, concept.ansvarligVirksomhet.id)
             val conceptURI = getConceptUri(collectionURI, concept.originaltBegrep)
-            val conceptResource = createResource(conceptURI)
-                .addProperty(RDF.type, SKOS.Concept)
-                .addProperty(DCTerms.identifier, createLiteral(conceptURI))
-                .safeAddPublisher(concept.ansvarligVirksomhet.id)
-                .safeAddModified(concept.endringslogelement?.endringstidspunkt?.atZone(ZoneId.systemDefault())?.toLocalDate())
+            val conceptResource =
+                createResource(conceptURI)
+                    .addProperty(RDF.type, SKOS.Concept)
+                    .addProperty(DCTerms.identifier, createLiteral(conceptURI))
+                    .safeAddPublisher(concept.ansvarligVirksomhet.id)
+                    .safeAddModified(
+                        concept.endringslogelement
+                            ?.endringstidspunkt
+                            ?.atZone(ZoneId.systemDefault())
+                            ?.toLocalDate(),
+                    )
 
             conceptResource.addPropertiesToConcept(concept, collectionURI, publishedIds)
         }
     }
 
-    private fun Resource.addPropertiesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
+    private fun Resource.addPropertiesToConcept(
+        concept: Begrep,
+        collectionURI: String,
+        publishedIds: List<String>,
+    ) {
         addPrefLabelToConcept(concept)
         addDefinitionToConcept(concept)
         addPublicDefinitionToConcept(concept)
@@ -161,7 +206,8 @@ class SkosApNoModelService(
     }
 
     private fun Resource.addPrefLabelToConcept(concept: Begrep) {
-        concept.anbefaltTerm?.navn
+        concept.anbefaltTerm
+            ?.navn
             ?.filterValues { it.toString().isNotBlank() }
             ?.takeIf { it.isNotEmpty() }
             ?.forEach { (key, value) ->
@@ -178,7 +224,6 @@ class SkosApNoModelService(
         }
     }
 
-
     private fun Resource.addSpecialistDefinitionToConcept(concept: Begrep) {
         val definitionResource = model.createDefinitionResource(concept.definisjonForSpesialister)
         if (definitionResource != null) {
@@ -188,7 +233,6 @@ class SkosApNoModelService(
         }
     }
 
-
     private fun Resource.addDefinitionToConcept(concept: Begrep) {
         val definitionResource = model.createDefinitionResource(concept.definisjon)
         if (definitionResource != null) {
@@ -197,12 +241,14 @@ class SkosApNoModelService(
     }
 
     private fun Model.createDefinitionResource(definition: Definisjon?): Resource? =
-        definition?.tekst
+        definition
+            ?.tekst
             ?.filterValues { it.isNotBlank() }
             ?.takeIf { it.isNotEmpty() }
             ?.let {
-                val definitionResource = createResource()
-                    .addProperty(RDF.type, EUVOC.XlNote)
+                val definitionResource =
+                    createResource()
+                        .addProperty(RDF.type, EUVOC.XlNote)
 
                 it.forEach { (key, value) -> definitionResource.addProperty(RDF.value, value, key) }
 
@@ -237,9 +283,18 @@ class SkosApNoModelService(
             ?.takeIf { !it.kilde.isNullOrEmpty() || it.forholdTilKilde == ForholdTilKildeEnum.EGENDEFINERT }
             ?.let {
                 when (it.forholdTilKilde) {
-                    ForholdTilKildeEnum.EGENDEFINERT -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.selfComposed)
-                    ForholdTilKildeEnum.BASERTPAAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.derivedFromSource)
-                    ForholdTilKildeEnum.SITATFRAKILDE -> addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.directFromSource)
+                    ForholdTilKildeEnum.EGENDEFINERT -> {
+                        addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.selfComposed)
+                    }
+
+                    ForholdTilKildeEnum.BASERTPAAKILDE -> {
+                        addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.derivedFromSource)
+                    }
+
+                    ForholdTilKildeEnum.SITATFRAKILDE -> {
+                        addProperty(SKOSNO.relationshipWithSource, RELATIONSHIP.directFromSource)
+                    }
+
                     else -> {}
                 }
 
@@ -252,7 +307,7 @@ class SkosApNoModelService(
                                 source.addProperty(RDFS.label, sourceEntry.tekst, NB)
                             }
                             addProperty(DCTerms.source, source)
-                        } else if (!sourceEntry.tekst.isNullOrBlank()){
+                        } else if (!sourceEntry.tekst.isNullOrBlank()) {
                             val source = model.createResource()
                             source.addProperty(RDF.type, RDFS.Resource)
                             source.addProperty(RDFS.label, sourceEntry.tekst, NB)
@@ -304,7 +359,7 @@ class SkosApNoModelService(
             ?.forEach { kode ->
                 addProperty(
                     DCTerms.subject,
-                    model.safeCreateResource("${subjectsURI(concept.ansvarligVirksomhet.id)}$kode")
+                    model.safeCreateResource("${subjectsURI(concept.ansvarligVirksomhet.id)}$kode"),
                 )
             }
     }
@@ -329,7 +384,11 @@ class SkosApNoModelService(
             }
     }
 
-    private fun Resource.addBegrepsRelasjonToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
+    private fun Resource.addBegrepsRelasjonToConcept(
+        concept: Begrep,
+        collectionURI: String,
+        publishedIds: List<String>,
+    ) {
         concept.begrepsRelasjon
             ?.forEach { addRelationResource(it, it.relatertBegrep) }
 
@@ -338,9 +397,10 @@ class SkosApNoModelService(
             ?.forEach { addRelationResource(it, it.internalRelationURI(collectionURI)) }
     }
 
-
-
-    private fun Resource.addRelationResource(relation: BegrepsRelasjon, relationURI: String?) {
+    private fun Resource.addRelationResource(
+        relation: BegrepsRelasjon,
+        relationURI: String?,
+    ) {
         val relationResource = model.createResource()
 
         if (relation.relasjon == ASSOCIATIVE) {
@@ -394,7 +454,11 @@ class SkosApNoModelService(
         }
     }
 
-    private fun Resource.addSeeAlsoReferencesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
+    private fun Resource.addSeeAlsoReferencesToConcept(
+        concept: Begrep,
+        collectionURI: String,
+        publishedIds: List<String>,
+    ) {
         concept.seOgså
             ?.filter { it.isNotBlank() }
             ?.forEach { addProperty(RDFS.seeAlso, model.safeCreateResource(it)) }
@@ -405,7 +469,11 @@ class SkosApNoModelService(
             ?.forEach { addProperty(RDFS.seeAlso, model.safeCreateResource(it)) }
     }
 
-    private fun Resource.addReplacedByReferencesToConcept(concept: Begrep, collectionURI: String, publishedIds: List<String>) {
+    private fun Resource.addReplacedByReferencesToConcept(
+        concept: Begrep,
+        collectionURI: String,
+        publishedIds: List<String>,
+    ) {
         concept.erstattesAv
             ?.filter { it.isNotBlank() }
             ?.forEach {
@@ -414,8 +482,8 @@ class SkosApNoModelService(
             }
         concept.internErstattesAv
             ?.filter { publishedIds.contains(it) }
-            ?.map {getConceptUri(collectionURI, it)}
-            ?.forEach{
+            ?.map { getConceptUri(collectionURI, it) }
+            ?.forEach {
                 addProperty(DCTerms.isReplacedBy, model.safeCreateResource(it))
                 model.getResource(it).addProperty(DCTerms.replaces, model.safeCreateResource(uri))
             }
@@ -430,15 +498,16 @@ class SkosApNoModelService(
                 addProperty(EUVOC.startDate, model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate))
                 addProperty(EUVOC.endDate, model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate))
             }
+
             validFromIncluding != null -> {
                 addProperty(EUVOC.startDate, model.createTypedLiteral(localDateToXSDDateTime(validFromIncluding), XSDDateType.XSDdate))
             }
+
             validToIncluding != null -> {
                 addProperty(EUVOC.endDate, model.createTypedLiteral(localDateToXSDDateTime(validToIncluding), XSDDateType.XSDdate))
             }
         }
     }
-
 
     private fun Model.addConceptNamespaces() {
         setNsPrefix("adms", "http://www.w3.org/ns/adms#")
@@ -456,22 +525,25 @@ class SkosApNoModelService(
         setNsPrefix("iso", "http://iso.org/25012/2008/dataquality/")
         setNsPrefix("oa", "http://www.w3.org/ns/prov#")
         setNsPrefix("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
-        setNsPrefix("skosno", SKOSNO.uri)
+        setNsPrefix("skosno", SKOSNO.URI)
     }
 
-    private fun Model.emailResource(email: String): Resource =
-        safeCreateResource("mailto:$email")
+    private fun Model.emailResource(email: String): Resource = safeCreateResource("mailto:$email")
 
     fun Model.telephoneResource(telephone: String): Resource =
-        telephone.trim { it <= ' ' }
+        telephone
+            .trim { it <= ' ' }
             .filterIndexed { index, c ->
                 when {
-                    index == 0 && c == '+' -> true // global-number-digits
-                    c in '0'..'9' -> true // digit
+                    index == 0 && c == '+' -> true
+
+                    // global-number-digits
+                    c in '0'..'9' -> true
+
+                    // digit
                     else -> false // skip visual-separator and other content
                 }
-            }
-            .let { safeCreateResource("tel:$it") }
+            }.let { safeCreateResource("tel:$it") }
 
     private fun BegrepsRelasjon.internalRelationURI(collectionURI: String): String? =
         relatertBegrep?.let { getConceptUri(collectionURI, it) }

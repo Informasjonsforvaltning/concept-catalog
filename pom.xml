@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
+        <version>4.1.0</version>
         <relativePath/>
     </parent>
 
@@ -33,6 +33,9 @@
         <jetty.ee10.version>12.1.8</jetty.ee10.version>
         <jena.version>6.0.0</jena.version>
         <openapi4j.version>1.0.7</openapi4j.version>
+        <ktlint.version>3.7.1</ktlint.version>
+        <!-- Overrides Spring Boot 4.1.0 (42.7.11), which is still affected by CVE-2026-54291 -->
+        <postgresql.version>42.7.13</postgresql.version>
     </properties>
 
     <dependencies>
@@ -279,6 +282,21 @@
                         <version>${kotlin.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.gantsign.maven</groupId>
+                <artifactId>ktlint-maven-plugin</artifactId>
+                <version>${ktlint.version}</version>
+                <executions>
+                    <execution>
+                        <id>format-and-check</id>
+                        <goals>
+                            <goal>format</goal>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

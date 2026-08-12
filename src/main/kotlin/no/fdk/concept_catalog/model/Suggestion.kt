@@ -5,5 +5,5 @@ data class Suggestion(
     val originaltBegrep: String,
     val erPublisert: Boolean,
     val anbefaltTerm: Term?,
-    val definisjon: Definisjon?
+    val definisjon: Definisjon?,
 )

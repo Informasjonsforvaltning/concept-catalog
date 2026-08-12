@@ -6,12 +6,12 @@ import org.apache.jena.rdf.model.ResourceFactory
 
 class EUVOC {
     companion object {
-        const val uri = "http://publications.europa.eu/ontology/euvoc#"
+        const val URI = "http://publications.europa.eu/ontology/euvoc#"
 
-        val status: Property = ResourceFactory.createProperty( "${uri}status")
-        val xlDefinition: Property = ResourceFactory.createProperty("${uri}xlDefinition")
-        val XlNote: Resource = ResourceFactory.createResource("${uri}XlNote")
-        val startDate: Property = ResourceFactory.createProperty("${uri}startDate")
-        val endDate: Property = ResourceFactory.createProperty("${uri}endDate")
+        val status: Property = ResourceFactory.createProperty("${URI}status")
+        val xlDefinition: Property = ResourceFactory.createProperty("${URI}xlDefinition")
+        val XlNote: Resource = ResourceFactory.createResource("${URI}XlNote")
+        val startDate: Property = ResourceFactory.createProperty("${URI}startDate")
+        val endDate: Property = ResourceFactory.createProperty("${URI}endDate")
     }
 }

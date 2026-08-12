@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class DataSource (
+data class DataSource(
     @param:JsonProperty("dataType")
     val dataType: DataType,
     @param:JsonProperty("dataSourceType")
@@ -17,18 +17,25 @@ data class DataSource (
     @param:JsonProperty("publisherId")
     val publisherId: String,
     @param:JsonProperty("description")
-    val description: String
+    val description: String,
 )
 
-enum class DataType(val value: String) {
-    CONCEPT("concept");
+enum class DataType(
+    val value: String,
+) {
+    CONCEPT("concept"),
+    ;
 
     @JsonValue
     fun jsonValue(): String = value
 }
 
-enum class DataSourceType(val value: String) {
-    SKOS_AP_NO("SKOS-AP-NO"), DCAT_AP_NO("DCAT-AP-NO");
+enum class DataSourceType(
+    val value: String,
+) {
+    SKOS_AP_NO("SKOS-AP-NO"),
+    DCAT_AP_NO("DCAT-AP-NO"),
+    ;
 
     @JsonValue
     fun jsonValue(): String = value

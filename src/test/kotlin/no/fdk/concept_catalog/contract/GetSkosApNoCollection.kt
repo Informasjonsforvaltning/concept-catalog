@@ -2,7 +2,11 @@ package no.fdk.concept_catalog.contract
 
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_1
+import no.fdk.concept_catalog.utils.BEGREP_2
+import no.fdk.concept_catalog.utils.TestResponseReader
+import no.fdk.concept_catalog.utils.toDBO
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.Lang
 import org.junit.jupiter.api.Tag
@@ -16,7 +20,6 @@ import kotlin.test.assertTrue
 
 @Tag("contract")
 class GetSkosApNoCollection : ContractTestsBase() {
-
     @Test
     fun `Get SKOS-AP-NO Collection`() {
         conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity()))

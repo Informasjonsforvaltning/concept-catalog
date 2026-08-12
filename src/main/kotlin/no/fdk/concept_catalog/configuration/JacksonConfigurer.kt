@@ -12,20 +12,16 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 
-
 @Configuration
 class JacksonConfigurer {
-
     @Bean
     @Primary
-    fun objectMapper(): ObjectMapper {
-        return jacksonObjectMapper {
+    fun objectMapper(): ObjectMapper =
+        jacksonObjectMapper {
             configure(KotlinFeature.NullIsSameAsDefault, true)
-        }
-            .registerModule(JavaTimeModule())
+        }.registerModule(JavaTimeModule())
             .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-    }
 
     @Bean
     fun hibernateJsonFormatMapper(objectMapper: ObjectMapper): HibernatePropertiesCustomizer =

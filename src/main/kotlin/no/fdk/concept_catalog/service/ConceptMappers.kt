@@ -1,10 +1,16 @@
 package no.fdk.concept_catalog.service
 
-import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.BegrepDBO
+import no.fdk.concept_catalog.model.Endringslogelement
+import no.fdk.concept_catalog.model.SemVer
+import no.fdk.concept_catalog.model.Status
+import no.fdk.concept_catalog.model.User
+import no.fdk.concept_catalog.model.Virksomhet
 import no.fdk.concept_catalog.rdf.CONCEPT_STATUS
 import java.time.Instant
 import java.time.ZonedDateTime
-import java.util.*
+import java.util.UUID
 
 val NEW_CONCEPT_VERSION = SemVer(0, 1, 0)
 
@@ -47,7 +53,7 @@ fun BegrepDBO.toDTO(): Begrep =
         begrepsRelasjon,
         internBegrepsRelasjon,
         interneFelt,
-        internErstattesAv
+        internErstattesAv,
     )
 
 fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
@@ -78,22 +84,23 @@ fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
         begrepsRelasjon = dto.begrepsRelasjon,
         internBegrepsRelasjon = dto.internBegrepsRelasjon,
         interneFelt = dto.interneFelt,
-        internErstattesAv = dto.internErstattesAv
+        internErstattesAv = dto.internErstattesAv,
     )
 
 fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =
     copy(
-        endringslogelement = Endringslogelement(
-            endringstidspunkt = ZonedDateTime.now().toInstant(),
-            endretAv = user.name
-        )
+        endringslogelement =
+            Endringslogelement(
+                endringstidspunkt = ZonedDateTime.now().toInstant(),
+                endretAv = user.name,
+            ),
     )
 
 fun incrementSemVer(semVer: SemVer?): SemVer =
     SemVer(
         major = semVer?.major ?: NEW_CONCEPT_VERSION.major,
         minor = semVer?.minor ?: NEW_CONCEPT_VERSION.minor,
-        patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch
+        patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch,
     )
 
 fun BegrepDBO.createNewRevision(): BegrepDBO =
@@ -104,10 +111,13 @@ fun BegrepDBO.createNewRevision(): BegrepDBO =
         status = Status.UTKAST,
         erPublisert = false,
         isArchived = false,
-        publiseringsTidspunkt = null
+        publiseringsTidspunkt = null,
     )
 
-fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
+fun createNewConcept(
+    org: Virksomhet,
+    user: User,
+): BegrepDBO {
     val newId = UUID.randomUUID().toString()
     return BegrepDBO(
         id = newId,
@@ -146,6 +156,6 @@ fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
         begrepsRelasjon = ArrayList(),
         internBegrepsRelasjon = null,
         interneFelt = null,
-        internErstattesAv = null
+        internErstattesAv = null,
     )
 }

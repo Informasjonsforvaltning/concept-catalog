@@ -4,9 +4,24 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrepssamling
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_0_OLD
+import no.fdk.concept_catalog.utils.BEGREP_1
+import no.fdk.concept_catalog.utils.BEGREP_2
+import no.fdk.concept_catalog.utils.BEGREP_4
+import no.fdk.concept_catalog.utils.BEGREP_5
+import no.fdk.concept_catalog.utils.BEGREP_6
+import no.fdk.concept_catalog.utils.BEGREP_HAS_MULTIPLE_REVISIONS
+import no.fdk.concept_catalog.utils.BEGREP_HAS_REVISION
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_DELETED
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
+import no.fdk.concept_catalog.utils.BEGREP_UNPUBLISHED_REVISION
+import no.fdk.concept_catalog.utils.BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST
+import no.fdk.concept_catalog.utils.BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND
+import no.fdk.concept_catalog.utils.BEGREP_WRONG_ORG
 import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -15,7 +30,6 @@ import kotlin.test.assertEquals
 
 @Tag("contract")
 class GetCollections : ContractTestsBase() {
-
     @Test
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begrepssamlinger", null, null, HttpMethod.GET)
@@ -41,8 +55,8 @@ class GetCollections : ContractTestsBase() {
                 BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity(),
                 BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(),
                 BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO().toEntity(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()
-            )
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity(),
+            ),
         )
 
         val response =
@@ -59,8 +73,10 @@ class GetCollections : ContractTestsBase() {
                 Begrepssamling("123456789", 3),
                 Begrepssamling("222222222", 1),
                 Begrepssamling("987654321", 1),
-                Begrepssamling("999888777", 1)
-            ), result.sortedBy { it.id })
+                Begrepssamling("999888777", 1),
+            ),
+            result.sortedBy { it.id },
+        )
     }
 
     @Test
@@ -81,8 +97,8 @@ class GetCollections : ContractTestsBase() {
                 BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity(),
                 BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(),
                 BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO().toEntity(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()
-            )
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity(),
+            ),
         )
 
         val response =
@@ -97,8 +113,10 @@ class GetCollections : ContractTestsBase() {
                 Begrepssamling("111111111", 3),
                 Begrepssamling("111222333", 2),
                 Begrepssamling("123456789", 3),
-                Begrepssamling("222222222", 1)
-            ), result.sortedBy { it.id })
+                Begrepssamling("222222222", 1),
+            ),
+            result.sortedBy { it.id },
+        )
     }
 
     @Test
@@ -119,8 +137,8 @@ class GetCollections : ContractTestsBase() {
                 BEGREP_UNPUBLISHED_REVISION.toDBO().toEntity(),
                 BEGREP_HAS_MULTIPLE_REVISIONS.toDBO().toEntity(),
                 BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST.toDBO().toEntity(),
-                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity()
-            )
+                BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND.toDBO().toEntity(),
+            ),
         )
 
         val response =
@@ -134,7 +152,9 @@ class GetCollections : ContractTestsBase() {
             listOf(
                 Begrepssamling("111111111", 3),
                 Begrepssamling("111222333", 2),
-                Begrepssamling("123456789", 3)
-            ), result.sortedBy { it.id })
+                Begrepssamling("123456789", 3),
+            ),
+            result.sortedBy { it.id },
+        )
     }
 }

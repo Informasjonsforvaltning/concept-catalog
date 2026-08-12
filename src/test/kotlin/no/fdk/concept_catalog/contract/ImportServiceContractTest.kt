@@ -38,7 +38,7 @@ class ImportServiceContractTest : ContractTestsBase() {
     private val historyService = mock<HistoryService>()
     private val conceptService = mock<ConceptService>()
 
-    lateinit private var importService: ImportService
+    private lateinit var importService: ImportService
 
     private val jwt: Jwt = mock()
 
@@ -49,22 +49,25 @@ class ImportServiceContractTest : ContractTestsBase() {
     val virksomhetsUri = "http://example.com/begrep/123456789"
     val user = User(id = catalogId, name = "TEST USER", email = null)
     val lang = Lang.TURTLE
-    //val user = User(id = "1924782563", name = "TEST USER", email = null)
+    // val user = User(id = "1924782563", name = "TEST USER", email = null)
 
-    val begrepToImport = Begrep(
-        id = conceptUri,
-        status = Status.UTKAST,
-        statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
-        anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
-        ansvarligVirksomhet = Virksomhet(
-            uri = virksomhetsUri,
-            id = catalogId
-        ),
-        interneFelt = null,
-        internErstattesAv = null,
-    )
+    val begrepToImport =
+        Begrep(
+            id = conceptUri,
+            status = Status.UTKAST,
+            statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
+            anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
+            ansvarligVirksomhet =
+                Virksomhet(
+                    uri = virksomhetsUri,
+                    id = catalogId,
+                ),
+            interneFelt = null,
+            internErstattesAv = null,
+        )
 
-    val turtle = """
+    val turtle =
+        """
         @prefix schema: <http://schema.org/> .
         @prefix dct:   <http://purl.org/dc/terms/> .
         @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
@@ -92,13 +95,14 @@ class ImportServiceContractTest : ContractTestsBase() {
     override fun setUp() {
         super.setUp()
 
-        importService = ImportService(
-            historyService = historyService,
-            conceptRepository = conceptRepository,
-            conceptService = conceptService,
-            importResultRepository = importResultRepository,
-            objectMapper = mapper
-        )
+        importService =
+            ImportService(
+                historyService = historyService,
+                conceptRepository = conceptRepository,
+                conceptService = conceptService,
+                importResultRepository = importResultRepository,
+                objectMapper = mapper,
+            )
     }
 
     @Test
@@ -115,12 +119,13 @@ class ImportServiceContractTest : ContractTestsBase() {
             assertEquals(HttpStatus.NOT_FOUND, it.statusCode)
         }
 
-        val importResultCancelled = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.CANCELLED,
-            created = LocalDateTime.now()
-        )
+        val importResultCancelled =
+            ImportResult(
+                id = importId,
+                catalogId = catalogId,
+                status = ImportResultStatus.CANCELLED,
+                created = LocalDateTime.now(),
+            )
 
         importResultRepository.save(importResultCancelled)
 
@@ -129,9 +134,7 @@ class ImportServiceContractTest : ContractTestsBase() {
         }.also {
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, it.statusCode)
         }
-
     }
-
 
     @Test
     fun `should not cancel import if does not exist`() {
@@ -144,31 +147,33 @@ class ImportServiceContractTest : ContractTestsBase() {
 
     @Test
     fun `should cancel import`() {
-
-        val importResultInProgress = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
+        val importResultInProgress =
+            ImportResult(
+                id = importId,
+                catalogId = catalogId,
+                status = ImportResultStatus.IN_PROGRESS,
+                created = LocalDateTime.now(),
+            )
 
         importResultRepository.save(importResultInProgress)
 
         importService.cancelImport(importId)
 
-        assertEquals(ImportResultStatus.CANCELLED,
-            importResultRepository.findById(importId)?.let { it.get() }?.status)
-
+        assertEquals(
+            ImportResultStatus.CANCELLED,
+            importResultRepository.findById(importId)?.let { it.get() }?.status,
+        )
     }
 
     @Test
     fun `should add imported concept to the catalog manually`() {
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
+        val importResultOngoing =
+            ImportResult(
+                id = importId,
+                catalogId = catalogId,
+                status = ImportResultStatus.IN_PROGRESS,
+                created = LocalDateTime.now(),
+            )
 
         importResultRepository.save(importResultOngoing)
 
@@ -178,7 +183,7 @@ class ImportServiceContractTest : ContractTestsBase() {
             concepts = turtle,
             lang = lang,
             user = user,
-            jwt = jwt
+            jwt = jwt,
         )
 
         importService.addConceptToCatalog(
@@ -186,26 +191,28 @@ class ImportServiceContractTest : ContractTestsBase() {
             importId = importId,
             externalId = encodeBase64(conceptUri),
             user = user,
-            jwt = jwt
+            jwt = jwt,
         )
 
         val importResultCompleted = importResultRepository.findById(importId).let { it.get() }
 
         assertEquals(ImportResultStatus.COMPLETED, importResultCompleted.status)
 
-        assertEquals(ConceptExtractionStatus.COMPLETED,
-            importResultCompleted.conceptExtractions.first().conceptExtractionStatus)
-
+        assertEquals(
+            ConceptExtractionStatus.COMPLETED,
+            importResultCompleted.conceptExtractions.first().conceptExtractionStatus,
+        )
     }
 
     @Test
     fun `should fail to import a previously imported concept to the catalog manually`() {
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
+        val importResultOngoing =
+            ImportResult(
+                id = importId,
+                catalogId = catalogId,
+                status = ImportResultStatus.IN_PROGRESS,
+                created = LocalDateTime.now(),
+            )
 
         importResultRepository.save(importResultOngoing)
 
@@ -215,7 +222,7 @@ class ImportServiceContractTest : ContractTestsBase() {
             concepts = turtle,
             lang = lang,
             user = user,
-            jwt = jwt
+            jwt = jwt,
         )
 
         importService.addConceptToCatalog(
@@ -223,17 +230,18 @@ class ImportServiceContractTest : ContractTestsBase() {
             importId = importId,
             externalId = encodeBase64(conceptUri),
             user = user,
-            jwt = jwt
+            jwt = jwt,
         )
 
-        val importId2 = UUID.randomUUID().toString();
+        val importId2 = UUID.randomUUID().toString()
 
-        val importResultOngoing2 = ImportResult(
-            id = importId2,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
+        val importResultOngoing2 =
+            ImportResult(
+                id = importId2,
+                catalogId = catalogId,
+                status = ImportResultStatus.IN_PROGRESS,
+                created = LocalDateTime.now(),
+            )
 
         importResultRepository.save(importResultOngoing2)
 
@@ -243,13 +251,12 @@ class ImportServiceContractTest : ContractTestsBase() {
             concepts = turtle,
             lang = lang,
             user = user,
-            jwt = jwt
+            jwt = jwt,
         )
 
         val importResultFailed = importResultRepository.findById(importId2).let { it.get() }
 
         assertEquals(ImportResultStatus.FAILED, importResultFailed.status)
-
     }
 
     @Test
@@ -257,12 +264,13 @@ class ImportServiceContractTest : ContractTestsBase() {
         val conceptUri2 = conceptUri + "2"
         val begrepToImport2 = begrepToImport.copy(id = conceptUri2)
 
-        val importResultOngoing = ImportResult(
-            id = importId,
-            catalogId = catalogId,
-            status = ImportResultStatus.IN_PROGRESS,
-            created = LocalDateTime.now()
-        )
+        val importResultOngoing =
+            ImportResult(
+                id = importId,
+                catalogId = catalogId,
+                status = ImportResultStatus.IN_PROGRESS,
+                created = LocalDateTime.now(),
+            )
 
         importResultRepository.save(importResultOngoing)
 
@@ -271,49 +279,57 @@ class ImportServiceContractTest : ContractTestsBase() {
             catalogId = catalogId,
             importId = importId,
             user = user,
-            jwt = jwt
+            jwt = jwt,
         )
 
         val importResultPending = importResultRepository.findById(importId).let { it.get() }
 
-        var encodedExternalId = importResultPending.conceptExtractions.first().extractionRecord.externalId
+        var encodedExternalId =
+            importResultPending.conceptExtractions
+                .first()
+                .extractionRecord.externalId
 
         importService.addConceptToCatalog(
             catalogId = catalogId,
             importId = importId,
             externalId = encodedExternalId,
             user = user,
-            jwt = jwt
+            jwt = jwt,
         )
 
         var importResultPartial = importResultRepository.findById(importId).let { it.get() }
 
         assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
-        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == encodedExternalId }
+        importResultPartial.conceptExtractions
+            .find { it.extractionRecord.externalId == encodedExternalId }
             ?.let {
                 assertEquals(ConceptExtractionStatus.COMPLETED, it.conceptExtractionStatus)
             }
 
-        encodedExternalId = importResultPending.conceptExtractions.last().extractionRecord.externalId
+        encodedExternalId =
+            importResultPending.conceptExtractions
+                .last()
+                .extractionRecord.externalId
 
         doThrow(RuntimeException("History service failed"))
             .whenever(historyService)
             .updateHistory(any(), any(), any(), any())
 
-        assertThrows <Exception> {
+        assertThrows<Exception> {
             importService.addConceptToCatalog(
                 catalogId = catalogId,
                 importId = importId,
                 externalId = encodedExternalId,
                 user = user,
-                jwt = jwt
+                jwt = jwt,
             )
         }
 
         importResultPartial = importResultRepository.findById(importId).let { it.get() }
 
         assertEquals(ImportResultStatus.PARTIALLY_COMPLETED, importResultPartial.status)
-        importResultPartial.conceptExtractions.find { it.extractionRecord.externalId == encodedExternalId }
+        importResultPartial.conceptExtractions
+            .find { it.extractionRecord.externalId == encodedExternalId }
             ?.let {
                 assertEquals(ConceptExtractionStatus.SAVING_FAILED, it.conceptExtractionStatus)
             }

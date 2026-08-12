@@ -2,8 +2,12 @@ package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
-import no.fdk.concept_catalog.model.*
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.model.SearchOperation
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_1
+import no.fdk.concept_catalog.utils.BEGREP_2
+import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.asCurrentConcept
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -14,23 +18,26 @@ import kotlin.test.assertEquals
 class CountConcepts : ContractTestsBase() {
     @Test
     fun `Unauthorized when access token is not included`() {
-        val response = authorizedRequest(
-            "/begreper/123456789/count",
-            mapper.writeValueAsString(SearchOperation("test")),
-            null,
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/123456789/count",
+                mapper.writeValueAsString(SearchOperation("test")),
+                null,
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
 
     @Test
     fun `Forbidden for wrong orgnr`() {
-        val response = authorizedRequest(
-            "/begreper/999888777/count",
-            mapper.writeValueAsString(SearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/999888777/count",
+                mapper.writeValueAsString(SearchOperation("test")),
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
@@ -39,11 +46,13 @@ class CountConcepts : ContractTestsBase() {
     fun `Ok for read access`() {
         addToElasticsearchIndex(listOf(BEGREP_1.asCurrentConcept(), BEGREP_2.asCurrentConcept()))
 
-        val response = authorizedRequest(
-            "/begreper/123456789/count",
-            mapper.writeValueAsString(SearchOperation("test")), JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/123456789/count",
+                mapper.writeValueAsString(SearchOperation("test")),
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 

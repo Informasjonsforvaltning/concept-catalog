@@ -8,14 +8,10 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @CrossOrigin
-class ApplicationStatusController() {
-
+class ApplicationStatusController {
     @GetMapping("/ping")
-    fun ping(): ResponseEntity<Unit> =
-        ResponseEntity.ok().build()
+    fun ping(): ResponseEntity<Unit> = ResponseEntity.ok().build()
 
     @GetMapping("/ready")
-    fun ready(): ResponseEntity<Unit> =
-        ResponseEntity(HttpStatus.OK)
-
+    fun ready(): ResponseEntity<Unit> = ResponseEntity(HttpStatus.OK)
 }

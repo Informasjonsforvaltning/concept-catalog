@@ -9,7 +9,7 @@ import com.nimbusds.jose.crypto.RSASSASigner
 import com.nimbusds.jose.jwk.KeyUse
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
-import java.util.*
+import java.util.UUID
 
 object JwkStore {
     private val jwk = createJwk()
@@ -28,12 +28,12 @@ object JwkStore {
     }
 
     fun jwtHeader(): JWSHeader =
-        JWSHeader.Builder(JWSAlgorithm.RS256)
+        JWSHeader
+            .Builder(JWSAlgorithm.RS256)
             .keyID(jwk.keyID)
             .build()
 
-    fun signer() =
-        RSASSASigner(jwk)
+    fun signer() = RSASSASigner(jwk)
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -42,10 +42,11 @@ class JwkToken(
     private val kty: String,
     private val use: String,
     private val n: String,
-    private val e: String
+    private val e: String,
 ) {
     override fun toString(): String =
-        """{
+        """
+        {
             "keys": [
                 {
                     "kid": "$kid",
@@ -56,5 +57,6 @@ class JwkToken(
                     "e": "$e"
                 }
             ]
-        }""".trimIndent()
+        }
+        """.trimIndent()
 }

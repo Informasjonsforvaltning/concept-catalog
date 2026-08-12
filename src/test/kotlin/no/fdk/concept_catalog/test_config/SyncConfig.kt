@@ -10,7 +10,6 @@ import java.util.concurrent.Executor
 @TestConfiguration(proxyBeanMethods = false)
 @Profile("contract-test")
 class SyncConfig {
-
     @Bean(name = ["import-executor"])
     @Primary
     fun importExecutor(): Executor = SyncTaskExecutor()
@@ -18,5 +17,4 @@ class SyncConfig {
     @Bean(name = ["cancel-import-executor"])
     @Primary
     fun cancelImportExecutor(): Executor = SyncTaskExecutor()
-
 }

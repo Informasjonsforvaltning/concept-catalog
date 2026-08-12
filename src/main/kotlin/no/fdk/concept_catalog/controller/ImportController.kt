@@ -13,34 +13,52 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.util.UriComponentsBuilder
 import java.util.concurrent.Executor
 
 @CrossOrigin
 @RestController
 @RequestMapping(value = ["/import/{catalogId}"])
-class ImportController(@Qualifier("import-executor") private val importExecutor: Executor,
-                       private val endpointPermissions: EndpointPermissions, private val importService: ImportService) {
-
+class ImportController(
+    @Qualifier("import-executor") private val importExecutor: Executor,
+    private val endpointPermissions: EndpointPermissions,
+    private val importService: ImportService,
+) {
     @PutMapping(value = ["/{importId}/cancel"])
     fun cancelImport(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @PathVariable importId: String
+        @PathVariable importId: String,
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
+            user == null -> {
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
                 ResponseEntity(HttpStatus.FORBIDDEN)
+            }
 
             else -> {
                 importService.cancelImport(importId)
                 ResponseEntity
-                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
-                        .buildAndExpand(catalogId, importId).toUri())
-                    .build()
+                    .created(
+                        UriComponentsBuilder
+                            .fromPath("/import/{catalogId}/results/{importId}")
+                            .buildAndExpand(catalogId, importId)
+                            .toUri(),
+                    ).build()
             }
         }
     }
@@ -50,21 +68,31 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable importId: String,
-        @RequestBody externalId: String
+        @RequestBody externalId: String,
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            !isBase64Encoded(externalId) -> ResponseEntity(HttpStatus.BAD_REQUEST)
+            user == null -> {
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            }
+
+            !isBase64Encoded(externalId) -> {
+                ResponseEntity(HttpStatus.BAD_REQUEST)
+            }
 
             else -> {
                 importService.addConceptToCatalog(catalogId, importId, externalId, user, jwt)
                 return ResponseEntity
-                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
-                        .buildAndExpand(catalogId, importId).toUri())
-                    .build()
-
+                    .created(
+                        UriComponentsBuilder
+                            .fromPath("/import/{catalogId}/results/{importId}")
+                            .buildAndExpand(catalogId, importId)
+                            .toUri(),
+                    ).build()
             }
         }
     }
@@ -75,22 +103,27 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     )
     fun createImportId(
         @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable catalogId: String
+        @PathVariable catalogId: String,
     ): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null ->
+            user == null -> {
                 ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
 
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
                 ResponseEntity(HttpStatus.FORBIDDEN)
+            }
 
             else -> {
                 val importResult = importService.createImportResult(catalogId)
                 return ResponseEntity
-                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
-                        .buildAndExpand(catalogId, importResult.id).toUri())
-                    .build()
+                    .created(
+                        UriComponentsBuilder
+                            .fromPath("/import/{catalogId}/results/{importId}")
+                            .buildAndExpand(catalogId, importResult.id)
+                            .toUri(),
+                    ).build()
             }
         }
     }
@@ -98,24 +131,28 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     @PostMapping(
         value = ["/{importId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = ["text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
-            "application/n-triples", "application/n-quads", "application/trig", "application/trix"]
+        consumes = [
+            "text/turtle", "text/n3", "application/rdf+json", "application/ld+json", "application/rdf+xml",
+            "application/n-triples", "application/n-quads", "application/trig", "application/trix",
+        ],
     )
     fun import(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestHeader(HttpHeaders.CONTENT_TYPE) contentType: String,
         @PathVariable catalogId: String,
         @PathVariable importId: String,
-        @RequestBody concepts: String
+        @RequestBody concepts: String,
     ): ResponseEntity<Void> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {
-            user == null ->
+            user == null -> {
                 ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
 
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) ->
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
                 ResponseEntity(HttpStatus.FORBIDDEN)
+            }
 
             else -> {
                 importExecutor.execute {
@@ -125,14 +162,17 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
                         concepts = concepts,
                         lang = jenaLangFromHeader(contentType),
                         user = user,
-                        jwt = jwt
+                        jwt = jwt,
                     )
                 }
 
                 ResponseEntity
-                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
-                        .buildAndExpand(catalogId, importId).toUri())
-                    .build()
+                    .created(
+                        UriComponentsBuilder
+                            .fromPath("/import/{catalogId}/results/{importId}")
+                            .buildAndExpand(catalogId, importId)
+                            .toUri(),
+                    ).build()
             }
         }
     }
@@ -140,20 +180,27 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     @PostMapping(
         value = ["/{importId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
-        consumes = [MediaType.APPLICATION_JSON_VALUE]
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun importBegreper(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable importId: String,
-        @RequestBody concepts: List<Begrep>
+        @RequestBody concepts: List<Begrep>,
     ): ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) } ->
+            user == null -> {
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+
+            concepts.any { !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) } -> {
                 ResponseEntity(HttpStatus.FORBIDDEN)
-            concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> ResponseEntity(HttpStatus.FORBIDDEN)
+            }
+
+            concepts.any { it?.ansvarligVirksomhet?.id != catalogId } -> {
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            }
 
             else -> {
                 importExecutor.execute {
@@ -161,9 +208,12 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
                 }
 
                 return ResponseEntity
-                    .created(UriComponentsBuilder.fromPath("/import/{catalogId}/results/{importId}")
-                        .buildAndExpand(catalogId, importId).toUri())
-                    .build()
+                    .created(
+                        UriComponentsBuilder
+                            .fromPath("/import/{catalogId}/results/{importId}")
+                            .buildAndExpand(catalogId, importId)
+                            .toUri(),
+                    ).build()
             }
         }
     }
@@ -179,8 +229,13 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         val user = endpointPermissions.getUser(jwt)
 
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            user == null -> {
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            }
 
             else -> {
                 return ResponseEntity.ok(importService.getResults(catalogId))
@@ -200,11 +255,17 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
         val user = endpointPermissions.getUser(jwt)
 
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            user == null -> {
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            }
 
             else -> {
-                importService.getResult(id)
+                importService
+                    .getResult(id)
                     ?.let { ResponseEntity.ok(it) }
                     ?: ResponseEntity(HttpStatus.NOT_FOUND)
             }
@@ -212,22 +273,30 @@ class ImportController(@Qualifier("import-executor") private val importExecutor:
     }
 
     @DeleteMapping(
-        value = ["/results/{id}"]
-    ) fun deleteResult(
+        value = ["/results/{id}"],
+    )
+    fun deleteResult(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
-        @PathVariable id: String): ResponseEntity<Void> {
-
+        @PathVariable id: String,
+    ): ResponseEntity<Void> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {
-            user == null -> ResponseEntity(HttpStatus.UNAUTHORIZED)
-            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+            user == null -> {
+                ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
 
-            else -> importService.deleteImportResult(catalogId, id).let {
-                ResponseEntity
-                    .noContent()
-                    .build()
+            !endpointPermissions.hasOrgAdminPermission(jwt, catalogId) -> {
+                ResponseEntity(HttpStatus.FORBIDDEN)
+            }
+
+            else -> {
+                importService.deleteImportResult(catalogId, id).let {
+                    ResponseEntity
+                        .noContent()
+                        .build()
+                }
             }
         }
     }

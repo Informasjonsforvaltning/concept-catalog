@@ -18,9 +18,7 @@ fun String?.isValidURI(): Boolean =
         }
     }
 
-fun encodeBase64(input: String): String {
-    return Base64.getEncoder().encodeToString(input.toByteArray())
-}
+fun encodeBase64(input: String): String = Base64.getEncoder().encodeToString(input.toByteArray())
 
 fun isBase64Encoded(value: String): Boolean =
     try {
@@ -56,8 +54,14 @@ fun escapeURI(uri: String?): String? {
     val hex = "0123456789ABCDEF"
     uri.forEach {
         when {
-            it in legalCharacters -> sb.append(it)
-            it.code > 0xA0 -> sb.append(it)
+            it in legalCharacters -> {
+                sb.append(it)
+            }
+
+            it.code > 0xA0 -> {
+                sb.append(it)
+            }
+
             else -> {
                 sb.append('%')
                 sb.append(hex[it.code and 0x00F0 shr 4])
@@ -68,10 +72,12 @@ fun escapeURI(uri: String?): String? {
     return sb.toString()
 }
 
-fun getCollectionUri(collectionBaseUri: String, publisherId: String): String {
-    return "$collectionBaseUri/collections/$publisherId"
-}
+fun getCollectionUri(
+    collectionBaseUri: String,
+    publisherId: String,
+): String = "$collectionBaseUri/collections/$publisherId"
 
-fun getConceptUri(collectionUri: String, conceptId: String): String {
-    return "$collectionUri/concepts/$conceptId"
-}
+fun getConceptUri(
+    collectionUri: String,
+    conceptId: String,
+): String = "$collectionUri/concepts/$conceptId"

@@ -13,36 +13,39 @@ private val logger = LoggerFactory.getLogger(ElasticUpdater::class.java)
 @Service
 class ElasticUpdater(
     private val conceptRepository: ConceptRepository,
-    private val currentConceptRepository: CurrentConceptRepository
+    private val currentConceptRepository: CurrentConceptRepository,
 ) {
-
-    fun reindexElastic() = runBlocking {
-        launch {
-            try {
-                logger.debug("deleting all current concepts")
-                currentConceptRepository.deleteAll()
-            } catch (_: Exception) { }
-
-            val groupedByOriginalId = conceptRepository.findAll()
-                .map { it.toDBO() }
-                .groupBy { concept -> concept.originaltBegrep }
-
-            val idsOfHighestPublishedVersion: Map<String, String?> = groupedByOriginalId.mapValues {
-                it.value
-                    .filter { concept -> concept.erPublisert == true }
-                    .maxByOrNull { concept -> concept.versjonsnr }
-                    ?.id
-            }
-
-            groupedByOriginalId
-                .mapNotNull { pair -> pair.value.maxByOrNull { concept -> concept.versjonsnr } }
-                .forEach {
-                    logger.debug("reindexing ${it.id}, ${it.ansvarligVirksomhet.id}")
-                    currentConceptRepository.save(CurrentConcept(it, idsOfHighestPublishedVersion[it.originaltBegrep]))
+    fun reindexElastic() =
+        runBlocking {
+            launch {
+                try {
+                    logger.debug("deleting all current concepts")
+                    currentConceptRepository.deleteAll()
+                } catch (_: Exception) {
                 }
 
-            logger.info("finished reindexing elastic")
-        }
-    }
+                val groupedByOriginalId =
+                    conceptRepository
+                        .findAll()
+                        .map { it.toDBO() }
+                        .groupBy { concept -> concept.originaltBegrep }
 
+                val idsOfHighestPublishedVersion: Map<String, String?> =
+                    groupedByOriginalId.mapValues {
+                        it.value
+                            .filter { concept -> concept.erPublisert == true }
+                            .maxByOrNull { concept -> concept.versjonsnr }
+                            ?.id
+                    }
+
+                groupedByOriginalId
+                    .mapNotNull { pair -> pair.value.maxByOrNull { concept -> concept.versjonsnr } }
+                    .forEach {
+                        logger.debug("reindexing ${it.id}, ${it.ansvarligVirksomhet.id}")
+                        currentConceptRepository.save(CurrentConcept(it, idsOfHighestPublishedVersion[it.originaltBegrep]))
+                    }
+
+                logger.info("finished reindexing elastic")
+            }
+        }
 }

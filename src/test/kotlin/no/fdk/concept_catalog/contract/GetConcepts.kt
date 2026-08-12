@@ -4,7 +4,14 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_0_OLD
+import no.fdk.concept_catalog.utils.BEGREP_1
+import no.fdk.concept_catalog.utils.BEGREP_2
+import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.fromDBO
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -13,7 +20,6 @@ import kotlin.test.assertEquals
 
 @Tag("contract")
 class GetConcepts : ContractTestsBase() {
-
     @Test
     fun `Unauthorized when access token is not included`() {
         val response = authorizedRequest("/begreper?orgNummer=123456789", null, null, HttpMethod.GET)
@@ -23,70 +29,98 @@ class GetConcepts : ContractTestsBase() {
 
     @Test
     fun `Forbidden for wrong orgnr`() {
-        val response = authorizedRequest(
-            "/begreper?orgNummer=999888777",
-            null, JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
-        )
+        val response =
+            authorizedRequest(
+                "/begreper?orgNummer=999888777",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
 
     @Test
     fun `Ok for read access`() {
-        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
-
-        val response = authorizedRequest(
-            "/begreper?orgNummer=123456789",
-            null, JwtToken(Access.ORG_READ).toString(),
-            HttpMethod.GET
+        conceptRepository.saveAll(
+            listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()),
         )
+
+        val response =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy { it.id }, result.sortedBy { it.id })
+        assertEquals(
+            listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy {
+                it.id
+            },
+            result.sortedBy { it.id },
+        )
     }
 
     @Test
     fun `Ok for write access`() {
-        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
-
-        val response = authorizedRequest(
-            "/begreper?orgNummer=123456789",
-            null, JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
+        conceptRepository.saveAll(
+            listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()),
         )
+
+        val response =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
         val result: List<Begrep> = mapper.readValue(response.body as String)
 
-        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy { it.id }, result.sortedBy { it.id })
+        assertEquals(
+            listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy {
+                it.id
+            },
+            result.sortedBy { it.id },
+        )
     }
 
     @Test
     fun `Ok for specific status`() {
-        conceptRepository.saveAll(listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()))
-
-        val hearing = authorizedRequest(
-            "/begreper?orgNummer=123456789&status=Høring",
-            null, JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
+        conceptRepository.saveAll(
+            listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()),
         )
 
-        val accepted = authorizedRequest(
-            "/begreper?orgNummer=123456789&status=GODKJENT",
-            null, JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val hearing =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789&status=Høring",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
-        val published = authorizedRequest(
-            "/begreper?orgNummer=123456789&status=publisert",
-            null, JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.GET
-        )
+        val accepted =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789&status=GODKJENT",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
+
+        val published =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789&status=publisert",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
         assertEquals(HttpStatus.OK, hearing.statusCode)
         assertEquals(HttpStatus.OK, accepted.statusCode)

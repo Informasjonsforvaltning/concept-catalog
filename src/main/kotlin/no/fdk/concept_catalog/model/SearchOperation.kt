@@ -3,7 +3,6 @@ package no.fdk.concept_catalog.model
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchOperation(
     val query: String?,
@@ -48,10 +47,10 @@ class SearchFilters(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SearchFilter<T>(
-    val value: T
+    val value: T,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class BooleanFilter(
-    val value: Boolean
+    val value: Boolean,
 )

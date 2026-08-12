@@ -1,11 +1,25 @@
 package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import no.fdk.concept_catalog.ContractTestsBase
-import no.fdk.concept_catalog.model.*
+import no.fdk.concept_catalog.model.Begrep
+import no.fdk.concept_catalog.model.ForholdTilKildeEnum
+import no.fdk.concept_catalog.model.InterntFelt
+import no.fdk.concept_catalog.model.JsonPatchOperation
+import no.fdk.concept_catalog.model.Kildebeskrivelse
+import no.fdk.concept_catalog.model.OpEnum
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
+import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_0
+import no.fdk.concept_catalog.utils.BEGREP_0_OLD
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_DELETED
+import no.fdk.concept_catalog.utils.BEGREP_TO_BE_UPDATED
+import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -15,16 +29,17 @@ import kotlin.test.assertNull
 
 @Tag("contract")
 class UpdateConcept : ContractTestsBase() {
-
     @Test
     fun `Unauthorized when access token is not included`() {
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "req"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            null, HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                null,
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
@@ -35,11 +50,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "req"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_READ).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
@@ -50,16 +67,19 @@ class UpdateConcept : ContractTestsBase() {
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
-        val operations = listOf(
-            JsonPatchOperation(op = OpEnum.ADD, "/anbefaltTerm/navn/nb", "Oppdatert"),
-            JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad")
-        )
+        val operations =
+            listOf(
+                JsonPatchOperation(op = OpEnum.ADD, "/anbefaltTerm/navn/nb", "Oppdatert"),
+                JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"),
+            )
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -77,11 +97,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REMOVE, "/tillattTerm/nn"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -98,11 +120,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/anbefaltTerm/navn/en", "Updated"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -120,11 +144,13 @@ class UpdateConcept : ContractTestsBase() {
         val operations =
             listOf(JsonPatchOperation(op = OpEnum.MOVE, path = "/frarådetTerm/en", from = "/tillattTerm/en"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -143,11 +169,13 @@ class UpdateConcept : ContractTestsBase() {
         val operations =
             listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/anbefaltTerm/navn/en"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -163,11 +191,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.COPY, path = "/eksempel/en", from = "/bruksområde/nn"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -179,11 +209,13 @@ class UpdateConcept : ContractTestsBase() {
         val operations =
             listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/eksempel/en", value = listOf("invalid")))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -194,11 +226,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, path = "/erPublisert", value = true))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -207,19 +241,22 @@ class UpdateConcept : ContractTestsBase() {
     fun `Bad request when trying to add published date`() {
         conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
 
-        val operations = listOf(
-            JsonPatchOperation(
-                op = OpEnum.ADD,
-                path = "/publiseringsTidspunkt",
-                value = "2020-01-02T12:00:00.000+01:00"
+        val operations =
+            listOf(
+                JsonPatchOperation(
+                    op = OpEnum.ADD,
+                    path = "/publiseringsTidspunkt",
+                    value = "2020-01-02T12:00:00.000+01:00",
+                ),
             )
-        )
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -230,19 +267,22 @@ class UpdateConcept : ContractTestsBase() {
 
         stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
 
-        val operations = listOf(
-            JsonPatchOperation(
-                op = OpEnum.ADD,
-                path = "/definisjon/kildebeskrivelse",
-                value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList())
+        val operations =
+            listOf(
+                JsonPatchOperation(
+                    op = OpEnum.ADD,
+                    path = "/definisjon/kildebeskrivelse",
+                    value = Kildebeskrivelse(ForholdTilKildeEnum.EGENDEFINERT, emptyList()),
+                ),
             )
-        )
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
     }
@@ -255,11 +295,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "user-id"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -276,11 +318,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.REPLACE, "/assignedUser", "new user"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_UPDATED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 
@@ -296,11 +340,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_TO_BE_DELETED.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_TO_BE_DELETED.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode)
     }
@@ -311,11 +357,13 @@ class UpdateConcept : ContractTestsBase() {
 
         val operations = listOf(JsonPatchOperation(op = OpEnum.ADD, "/merknad/nb", "Ny merknad"))
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_0.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_0.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -328,19 +376,21 @@ class UpdateConcept : ContractTestsBase() {
 
         stubFor(post(urlMatching("/123456789/.*/updates")).willReturn(aResponse().withStatus(200)))
 
-        val operations = listOf(
-            JsonPatchOperation(op = OpEnum.ADD, "/assignedUser", "User McUser"),
-            JsonPatchOperation(op = OpEnum.REPLACE, "/interneFelt", mapOf(Pair("felt-id", InterntFelt("ny feltverdi")))),
-            JsonPatchOperation(op = OpEnum.ADD, "/abbreviatedLabel", "ASDF"),
-            JsonPatchOperation(op = OpEnum.ADD, "/merkelapp", listOf("merk merk"))
-        )
+        val operations =
+            listOf(
+                JsonPatchOperation(op = OpEnum.ADD, "/assignedUser", "User McUser"),
+                JsonPatchOperation(op = OpEnum.REPLACE, "/interneFelt", mapOf(Pair("felt-id", InterntFelt("ny feltverdi")))),
+                JsonPatchOperation(op = OpEnum.ADD, "/abbreviatedLabel", "ASDF"),
+                JsonPatchOperation(op = OpEnum.ADD, "/merkelapp", listOf("merk merk")),
+            )
 
-        val response = authorizedRequest(
-            "/begreper/${archivedConcept.id}",
-            mapper.writeValueAsString(operations),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.PATCH
-        )
-
+        val response =
+            authorizedRequest(
+                "/begreper/${archivedConcept.id}",
+                mapper.writeValueAsString(operations),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.PATCH,
+            )
 
         assertEquals(HttpStatus.OK, response.statusCode)
 

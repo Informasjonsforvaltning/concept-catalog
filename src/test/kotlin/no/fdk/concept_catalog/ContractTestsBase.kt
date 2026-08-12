@@ -1,7 +1,10 @@
 package no.fdk.concept_catalog
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.okJson
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import no.fdk.concept_catalog.model.CurrentConcept
 import no.fdk.concept_catalog.repository.ChangeRequestRepository
 import no.fdk.concept_catalog.repository.ConceptRepository
@@ -15,7 +18,11 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Import
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.query.DeleteQuery
-import org.springframework.http.*
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.client.HttpStatusCodeException
@@ -28,7 +35,6 @@ import org.wiremock.spring.EnableWireMock
 @EnableWireMock(ConfigureWireMock(port = 6000))
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 open class ContractTestsBase {
-
     @LocalServerPort
     var port: Int = 0
 
@@ -64,8 +70,12 @@ open class ContractTestsBase {
         indexOps.createWithMapping()
 
         elasticsearchOperations.delete(
-            DeleteQuery.builder(org.springframework.data.elasticsearch.core.query.Query.findAll()).build(),
-            CurrentConcept::class.java
+            DeleteQuery
+                .builder(
+                    org.springframework.data.elasticsearch.core.query.Query
+                        .findAll(),
+                ).build(),
+            CurrentConcept::class.java,
         )
         indexOps.refresh()
     }
@@ -80,7 +90,11 @@ open class ContractTestsBase {
         elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
     }
 
-    fun request(path: String, mediaType: MediaType, httpMethod: HttpMethod): ResponseEntity<String> {
+    fun request(
+        path: String,
+        mediaType: MediaType,
+        httpMethod: HttpMethod,
+    ): ResponseEntity<String> {
         val url = "http://localhost:$port$path"
 
         val httpHeaders = HttpHeaders()

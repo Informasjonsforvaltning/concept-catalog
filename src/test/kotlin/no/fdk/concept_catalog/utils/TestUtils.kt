@@ -51,13 +51,12 @@ fun Begrep.toDBO(): BegrepDBO =
         begrepsRelasjon,
         internBegrepsRelasjon,
         interneFelt,
-        internErstattesAv
+        internErstattesAv,
     )
 
 class TestResponseReader {
-    private fun resourceAsReader(resourceName: String): Reader {
-        return InputStreamReader(javaClass.classLoader.getResourceAsStream(resourceName)!!, StandardCharsets.UTF_8)
-    }
+    private fun resourceAsReader(resourceName: String): Reader =
+        InputStreamReader(javaClass.classLoader.getResourceAsStream(resourceName)!!, StandardCharsets.UTF_8)
 
     fun parseTurtleFile(filename: String): Model {
         val expected = ModelFactory.createDefaultModel()
@@ -66,7 +65,12 @@ class TestResponseReader {
     }
 }
 
-fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, logger: Logger): Boolean {
+fun checkIfIsomorphicAndPrintDiff(
+    actual: Model,
+    expected: Model,
+    name: String,
+    logger: Logger,
+): Boolean {
     // Its necessary to parse the created models from strings to have the same base, and ensure blank node validity
     val parsedActual =
         ModelFactory.createDefaultModel().read(StringReader(actual.rdfResponse(Lang.TURTLE)), null, "TURTLE")
@@ -95,5 +99,8 @@ fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, 
 fun Begrep.fromDBO() = copy(sistPublisertId = null)
 
 fun Begrep.asCurrentConcept(latestPublishedId: String? = null) =
-    if (latestPublishedId != null) CurrentConcept(toDBO(), latestPublishedId)
-    else CurrentConcept(toDBO(), if (erPublisert == true) id else null)
+    if (latestPublishedId != null) {
+        CurrentConcept(toDBO(), latestPublishedId)
+    } else {
+        CurrentConcept(toDBO(), if (erPublisert == true) id else null)
+    }

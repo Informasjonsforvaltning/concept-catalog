@@ -23,8 +23,16 @@ class Validation {
     private val conceptPublisher: ConceptPublisher = mock()
     private val historyService: HistoryService = mock()
 
-    private val conceptService = ConceptService(
-        conceptRepository, conceptSearch, currentConceptRepository, applicationProperties, conceptPublisher, historyService, JacksonConfigurer().objectMapper())
+    private val conceptService =
+        ConceptService(
+            conceptRepository,
+            conceptSearch,
+            currentConceptRepository,
+            applicationProperties,
+            conceptPublisher,
+            historyService,
+            JacksonConfigurer().objectMapper(),
+        )
 
     @Test
     fun `Is valid when any definition is defined for the concept`() {
@@ -34,8 +42,15 @@ class Validation {
         val validVersion = BEGREP_5.copy(versjonsnr = SemVer(1, 0, 1))
 
         assertFalse { conceptService.isPublishedAndNotValid(validVersion) }
-        assertFalse { conceptService.isPublishedAndNotValid(validVersion.copy(definisjonForAllmennheten = BEGREP_5.definisjon, definisjon = null)) }
-        assertFalse { conceptService.isPublishedAndNotValid(validVersion.copy(definisjonForSpesialister = BEGREP_5.definisjon, definisjon = null)) }
+        assertFalse {
+            conceptService.isPublishedAndNotValid(
+                validVersion.copy(definisjonForAllmennheten = BEGREP_5.definisjon, definisjon = null),
+            )
+        }
+        assertFalse {
+            conceptService.isPublishedAndNotValid(
+                validVersion.copy(definisjonForSpesialister = BEGREP_5.definisjon, definisjon = null),
+            )
+        }
     }
-
 }

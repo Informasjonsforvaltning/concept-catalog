@@ -19,7 +19,6 @@ import kotlin.test.assertTrue
 
 @Tag("contract")
 class GetSkosApNoConcept : ContractTestsBase() {
-
     @Test
     fun `Get SKOS-AP-NO Concept`() {
         conceptRepository.save(BEGREP_0.toDBO().toEntity())

@@ -10,7 +10,6 @@ import kotlin.test.assertEquals
 
 @Tag("contract")
 class PingTest : ContractTestsBase() {
-
     @Test
     fun ping() {
         val entity = request("/ping", MediaType.TEXT_PLAIN, HttpMethod.GET)

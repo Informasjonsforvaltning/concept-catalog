@@ -13,14 +13,15 @@ import java.io.File
 import javax.net.ssl.SSLContext
 
 @Configuration
-open class ElasticsearchConfig(private val elasticProperties: ElasticProperties): ElasticsearchConfiguration() {
-
+open class ElasticsearchConfig(
+    private val elasticProperties: ElasticProperties,
+) : ElasticsearchConfiguration() {
     private fun sslContext(): SSLContext {
         val builder: SSLContextBuilder = SSLContexts.custom()
 
         builder.loadTrustMaterial(
             File(elasticProperties.storePath),
-            elasticProperties.storePass.toCharArray()
+            elasticProperties.storePass.toCharArray(),
         )
 
         return builder.build()
@@ -28,27 +29,29 @@ open class ElasticsearchConfig(private val elasticProperties: ElasticProperties)
 
     @Bean(name = ["elasticsearchClientConfiguration"])
     override fun clientConfiguration(): ClientConfiguration {
-        val builder = ClientConfiguration.builder()
-            .connectedTo(elasticProperties.host)
+        val builder =
+            ClientConfiguration
+                .builder()
+                .connectedTo(elasticProperties.host)
 
         if (elasticProperties.ssl) builder.usingSsl(sslContext())
 
         builder.withBasicAuth(
             elasticProperties.username,
-            elasticProperties.password
+            elasticProperties.password,
         )
 
         return builder.build()
     }
 
     override fun transportOptions(): TransportOptions {
-        val acceptRequestOptions = RequestOptions.DEFAULT
-            .toBuilder()
-            .addHeader("Accept", "application/vnd.elasticsearch+json;compatible-with=8")
-            .addHeader("Content-Type", "application/vnd.elasticsearch+json;compatible-with=8")
-            .build()
+        val acceptRequestOptions =
+            RequestOptions.DEFAULT
+                .toBuilder()
+                .addHeader("Accept", "application/vnd.elasticsearch+json;compatible-with=8")
+                .addHeader("Content-Type", "application/vnd.elasticsearch+json;compatible-with=8")
+                .build()
 
         return Rest5ClientOptions(acceptRequestOptions, false)
     }
-
 }

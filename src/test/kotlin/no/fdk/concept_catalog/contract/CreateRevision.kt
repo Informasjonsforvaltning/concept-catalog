@@ -1,15 +1,23 @@
 package no.fdk.concept_catalog.contract
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.tomakehurst.wiremock.client.WireMock.*
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import no.fdk.concept_catalog.ContractTestsBase
 import no.fdk.concept_catalog.model.Begrep
 import no.fdk.concept_catalog.model.SemVer
 import no.fdk.concept_catalog.model.Term
 import no.fdk.concept_catalog.model.toEntity
-import no.fdk.concept_catalog.utils.*
 import no.fdk.concept_catalog.utils.Access
+import no.fdk.concept_catalog.utils.BEGREP_2
+import no.fdk.concept_catalog.utils.BEGREP_4
+import no.fdk.concept_catalog.utils.BEGREP_HAS_REVISION
+import no.fdk.concept_catalog.utils.BEGREP_REVISION
+import no.fdk.concept_catalog.utils.BEGREP_UNPUBLISHED_REVISION
 import no.fdk.concept_catalog.utils.JwtToken
+import no.fdk.concept_catalog.utils.toDBO
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpMethod
@@ -18,13 +26,15 @@ import kotlin.test.assertEquals
 
 @Tag("contract")
 class CreateRevision : ContractTestsBase() {
-
     @Test
     fun `Unauthorized when access token is not included`() {
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revision",
-            mapper.writeValueAsString(BEGREP_REVISION), null, HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_4.id}/revision",
+                mapper.writeValueAsString(BEGREP_REVISION),
+                null,
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
     }
@@ -33,10 +43,13 @@ class CreateRevision : ContractTestsBase() {
     fun `Forbidden for read access`() {
         conceptRepository.save(BEGREP_4.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
-            JwtToken(Access.ORG_READ).toString(), HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_4.id}/revision",
+                mapper.writeValueAsString(BEGREP_REVISION),
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
     }
@@ -45,10 +58,13 @@ class CreateRevision : ContractTestsBase() {
     fun `Bad request when attempting to create revision of unpublished concept`() {
         conceptRepository.save(BEGREP_2.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_2.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_2.id}/revision",
+                mapper.writeValueAsString(BEGREP_REVISION),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -57,13 +73,13 @@ class CreateRevision : ContractTestsBase() {
     fun `Bad request when attempting to create revision of concept with existing unpublished revision`() {
         conceptRepository.save(BEGREP_HAS_REVISION.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_HAS_REVISION.id}/revision",
-
-            mapper.writeValueAsString(BEGREP_UNPUBLISHED_REVISION),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_HAS_REVISION.id}/revision",
+                mapper.writeValueAsString(BEGREP_UNPUBLISHED_REVISION),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
     }
@@ -74,22 +90,31 @@ class CreateRevision : ContractTestsBase() {
 
         stubFor(post(urlMatching("/111222333/.*/updates")).willReturn(aResponse().withStatus(200)))
 
-        val before = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
-        )
+        val before =
+            authorizedRequest(
+                "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revision", mapper.writeValueAsString(BEGREP_REVISION),
-            JwtToken(Access.ORG_WRITE).toString(), HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_4.id}/revision",
+                mapper.writeValueAsString(BEGREP_REVISION),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
 
         assertEquals(HttpStatus.CREATED, response.statusCode)
 
-        val after = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
-        )
+        val after =
+            authorizedRequest(
+                "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
         val beforeList: List<Begrep> =
             mapper.readValue<List<Begrep>>(before.body as String).filter { it.id != "id5" }
@@ -115,24 +140,30 @@ class CreateRevision : ContractTestsBase() {
 
         stubFor(post(urlMatching("/111222333/.*/updates")).willReturn(aResponse().withStatus(200)))
 
-        val before = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
-        )
+        val before =
+            authorizedRequest(
+                "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revision",
-
-            mapper.writeValueAsString(BEGREP_REVISION.filter { it.path != "/versjonsnr" }),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_4.id}/revision",
+                mapper.writeValueAsString(BEGREP_REVISION.filter { it.path != "/versjonsnr" }),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
         assertEquals(HttpStatus.CREATED, response.statusCode)
 
-        val after = authorizedRequest(
-            "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
-            null, JwtToken(Access.ORG_WRITE).toString(), HttpMethod.GET
-        )
+        val after =
+            authorizedRequest(
+                "/begreper?orgNummer=${BEGREP_4.ansvarligVirksomhet.id}",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
 
         val beforeList: List<Begrep> =
             mapper.readValue<List<Begrep>>(before.body as String).filter { it -> it.id != "id5" }
@@ -156,13 +187,13 @@ class CreateRevision : ContractTestsBase() {
     fun `Bad request - Created with invalid version - for write access`() {
         conceptRepository.save(BEGREP_4.toDBO().toEntity())
 
-        val response = authorizedRequest(
-            "/begreper/${BEGREP_4.id}/revision",
-
-            mapper.writeValueAsString(BEGREP_REVISION.map { if (it.path == "/versjonsnr") it.copy(value = SemVer(1, 0, 0)) else it} ),
-            JwtToken(Access.ORG_WRITE).toString(),
-            HttpMethod.POST
-        )
+        val response =
+            authorizedRequest(
+                "/begreper/${BEGREP_4.id}/revision",
+                mapper.writeValueAsString(BEGREP_REVISION.map { if (it.path == "/versjonsnr") it.copy(value = SemVer(1, 0, 0)) else it }),
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.POST,
+            )
         assertEquals(HttpStatus.BAD_REQUEST, response.statusCode)
 
         val error: Map<String, Any> = mapper.readValue(response.body as String)

@@ -18,22 +18,24 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(value = ["/begrepssamlinger"])
 class CollectionsController(
     private val endpointPermissions: EndpointPermissions,
-    private val conceptService: ConceptService
+    private val conceptService: ConceptService,
 ) {
-
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getPermittedCollections(
-        @AuthenticationPrincipal jwt: Jwt
-    ): ResponseEntity<List<Begrepssamling>> {
-        return when {
-            endpointPermissions.hasSysAdminPermission(jwt) ->
+        @AuthenticationPrincipal jwt: Jwt,
+    ): ResponseEntity<List<Begrepssamling>> =
+        when {
+            endpointPermissions.hasSysAdminPermission(jwt) -> {
                 ResponseEntity(conceptService.getAllCollections(), HttpStatus.OK)
-            else -> ResponseEntity(
-                conceptService.getCollectionsForOrganizations(
-                    endpointPermissions.getOrgsByPermission(jwt, "read")
-                ), HttpStatus.OK
-            )
-        }
-    }
+            }
 
+            else -> {
+                ResponseEntity(
+                    conceptService.getCollectionsForOrganizations(
+                        endpointPermissions.getOrgsByPermission(jwt, "read"),
+                    ),
+                    HttpStatus.OK,
+                )
+            }
+        }
 }
