@@ -1,0 +1,132 @@
+package no.fdk.conceptcatalog
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.okJson
+import com.github.tomakehurst.wiremock.client.WireMock.stubFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import no.fdk.conceptcatalog.model.CurrentConcept
+import no.fdk.conceptcatalog.repository.ChangeRequestRepository
+import no.fdk.conceptcatalog.repository.ConceptRepository
+import no.fdk.conceptcatalog.repository.ImportResultRepository
+import no.fdk.conceptcatalog.testconfig.SyncConfig
+import no.fdk.conceptcatalog.utils.JwkStore
+import org.junit.jupiter.api.BeforeEach
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.annotation.Import
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations
+import org.springframework.data.elasticsearch.core.query.DeleteQuery
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.http.client.JdkClientHttpRequestFactory
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.web.client.HttpStatusCodeException
+import org.springframework.web.client.RestTemplate
+import org.wiremock.spring.ConfigureWireMock
+import org.wiremock.spring.EnableWireMock
+
+@ActiveProfiles("contract-test")
+@Import(SyncConfig::class, TestcontainersConfig::class, ElasticTestConfig::class)
+@EnableWireMock(ConfigureWireMock(port = 6000))
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+open class ContractTestsBase {
+    @LocalServerPort
+    var port: Int = 0
+
+    @Autowired
+    lateinit var mapper: ObjectMapper
+
+    @Autowired
+    lateinit var elasticsearchOperations: ElasticsearchOperations
+
+    @Autowired
+    lateinit var importResultRepository: ImportResultRepository
+
+    @Autowired
+    lateinit var conceptRepository: ConceptRepository
+
+    @Autowired
+    lateinit var changeRequestRepository: ChangeRequestRepository
+
+    val restTemplate: RestTemplate = RestTemplate(JdkClientHttpRequestFactory())
+
+    @BeforeEach
+    fun setUp() {
+        stubFor(get(urlPathEqualTo("/realms/fdk/protocol/openid-connect/certs")).willReturn(okJson(JwkStore.get())))
+
+        conceptRepository.deleteAll()
+        changeRequestRepository.deleteAll()
+        importResultRepository.deleteAll()
+
+        val indexOps = elasticsearchOperations.indexOps(CurrentConcept::class.java)
+        if (indexOps.exists()) {
+            indexOps.delete()
+        }
+        indexOps.createWithMapping()
+
+        elasticsearchOperations.delete(
+            DeleteQuery
+                .builder(
+                    org.springframework.data.elasticsearch.core.query.Query
+                        .findAll(),
+                ).build(),
+            CurrentConcept::class.java,
+        )
+        indexOps.refresh()
+    }
+
+    fun addToElasticsearchIndex(concept: CurrentConcept) {
+        elasticsearchOperations.save(concept)
+        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+    }
+
+    fun addToElasticsearchIndex(concepts: List<CurrentConcept>) {
+        elasticsearchOperations.save(concepts)
+        elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
+    }
+
+    fun request(path: String, mediaType: MediaType, httpMethod: HttpMethod): ResponseEntity<String> {
+        val url = "http://localhost:$port$path"
+
+        val httpHeaders = HttpHeaders()
+        httpHeaders.accept = listOf(mediaType)
+
+        val httpEntity: HttpEntity<String> = HttpEntity(httpHeaders)
+
+        return try {
+            restTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
+        } catch (e: HttpStatusCodeException) {
+            ResponseEntity.status(e.statusCode).headers(e.responseHeaders ?: HttpHeaders()).body(e.responseBodyAsString)
+        }
+    }
+
+    fun authorizedRequest(
+        path: String,
+        body: String? = null,
+        token: String? = null,
+        httpMethod: HttpMethod,
+        accept: MediaType = MediaType.APPLICATION_JSON,
+        contentType: MediaType = MediaType.APPLICATION_JSON,
+    ): ResponseEntity<String> {
+        val url = "http://localhost:$port$path"
+
+        val headers = HttpHeaders()
+        headers.accept = listOf(accept)
+        headers.contentType = contentType
+
+        token?.let { headers.setBearerAuth(it) }
+
+        val httpEntity: HttpEntity<String> = HttpEntity(body, headers)
+
+        return try {
+            restTemplate.exchange(url, httpMethod, httpEntity, String::class.java)
+        } catch (e: HttpStatusCodeException) {
+            ResponseEntity.status(e.statusCode).headers(e.responseHeaders ?: HttpHeaders()).body(e.responseBodyAsString)
+        }
+    }
+}
