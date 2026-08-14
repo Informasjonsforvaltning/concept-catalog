@@ -48,3 +48,12 @@ mvn verify
 ```
 
 
+
+### Formatting code
+
+This project uses [ktlint](https://github.com/gantsign/ktlint-maven-plugin) to enforce a consistent code style.
+To automatically fix formatting violations, run:
+
+```sh
+mvn ktlint:format
+```

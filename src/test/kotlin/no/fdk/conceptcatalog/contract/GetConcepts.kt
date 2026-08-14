@@ -1,0 +1,138 @@
+package no.fdk.conceptcatalog.contract
+
+import com.fasterxml.jackson.module.kotlin.readValue
+import no.fdk.conceptcatalog.ContractTestsBase
+import no.fdk.conceptcatalog.model.Begrep
+import no.fdk.conceptcatalog.model.toEntity
+import no.fdk.conceptcatalog.utils.Access
+import no.fdk.conceptcatalog.utils.BEGREP_0
+import no.fdk.conceptcatalog.utils.BEGREP_0_OLD
+import no.fdk.conceptcatalog.utils.BEGREP_1
+import no.fdk.conceptcatalog.utils.BEGREP_2
+import no.fdk.conceptcatalog.utils.JwtToken
+import no.fdk.conceptcatalog.utils.fromDBO
+import no.fdk.conceptcatalog.utils.toDBO
+import org.junit.jupiter.api.Tag
+import org.junit.jupiter.api.Test
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
+import kotlin.test.assertEquals
+
+@Tag("contract")
+class GetConcepts : ContractTestsBase() {
+    @Test
+    fun `Unauthorized when access token is not included`() {
+        val response = authorizedRequest("/begreper?orgNummer=123456789", null, null, HttpMethod.GET)
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.statusCode)
+    }
+
+    @Test
+    fun `Forbidden for wrong orgnr`() {
+        val response =
+            authorizedRequest(
+                "/begreper?orgNummer=999888777",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
+
+        assertEquals(HttpStatus.FORBIDDEN, response.statusCode)
+    }
+
+    @Test
+    fun `Ok for read access`() {
+        conceptRepository.saveAll(
+            listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()),
+        )
+
+        val response =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789",
+                null,
+                JwtToken(Access.ORG_READ).toString(),
+                HttpMethod.GET,
+            )
+
+        assertEquals(HttpStatus.OK, response.statusCode)
+
+        val result: List<Begrep> = mapper.readValue(response.body as String)
+
+        assertEquals(
+            listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy {
+                it.id
+            },
+            result.sortedBy { it.id },
+        )
+    }
+
+    @Test
+    fun `Ok for write access`() {
+        conceptRepository.saveAll(
+            listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()),
+        )
+
+        val response =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
+
+        assertEquals(HttpStatus.OK, response.statusCode)
+
+        val result: List<Begrep> = mapper.readValue(response.body as String)
+
+        assertEquals(
+            listOf(BEGREP_0.fromDBO(), BEGREP_1.fromDBO(), BEGREP_2.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy {
+                it.id
+            },
+            result.sortedBy { it.id },
+        )
+    }
+
+    @Test
+    fun `Ok for specific status`() {
+        conceptRepository.saveAll(
+            listOf(BEGREP_0.toDBO().toEntity(), BEGREP_1.toDBO().toEntity(), BEGREP_2.toDBO().toEntity(), BEGREP_0_OLD.toDBO().toEntity()),
+        )
+
+        val hearing =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789&status=Høring",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
+
+        val accepted =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789&status=GODKJENT",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
+
+        val published =
+            authorizedRequest(
+                "/begreper?orgNummer=123456789&status=publisert",
+                null,
+                JwtToken(Access.ORG_WRITE).toString(),
+                HttpMethod.GET,
+            )
+
+        assertEquals(HttpStatus.OK, hearing.statusCode)
+        assertEquals(HttpStatus.OK, accepted.statusCode)
+        assertEquals(HttpStatus.OK, published.statusCode)
+
+        val resultHearing: List<Begrep> = mapper.readValue(hearing.body as String)
+        assertEquals(listOf(BEGREP_2), resultHearing)
+
+        val resultAccepted: List<Begrep> = mapper.readValue(accepted.body as String)
+        assertEquals(listOf(BEGREP_1.fromDBO()), resultAccepted)
+
+        val resultPublished: List<Begrep> = mapper.readValue(published.body as String)
+        assertEquals(listOf(BEGREP_0.fromDBO(), BEGREP_0_OLD.fromDBO()).sortedBy { it.id }, resultPublished.sortedBy { it.id })
+    }
+}
