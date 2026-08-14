@@ -12,10 +12,7 @@ class MultiFormatLocalDateDeserializer : JsonDeserializer<LocalDate>() {
             DateTimeFormatter.ofPattern("dd.MM.yyyy"),
         )
 
-    override fun deserialize(
-        p: JsonParser,
-        ctxt: DeserializationContext,
-    ): LocalDate? {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): LocalDate? {
         val value = p.text
         for (formatter in formatters) {
             try {

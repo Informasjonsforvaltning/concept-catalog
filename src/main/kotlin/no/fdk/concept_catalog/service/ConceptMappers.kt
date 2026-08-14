@@ -14,110 +14,102 @@ import java.util.UUID
 
 val NEW_CONCEPT_VERSION = SemVer(0, 1, 0)
 
-fun BegrepDBO.toDTO(): Begrep =
-    Begrep(
-        id,
-        originaltBegrep,
-        versjonsnr,
-        sistPublisertId = null,
-        revisjonAv,
-        status,
-        statusURI,
-        erPublisert,
-        isArchived,
-        publiseringsTidspunkt,
-        anbefaltTerm,
-        tillattTerm,
-        frarådetTerm,
-        definisjon,
-        definisjonForAllmennheten,
-        definisjonForSpesialister,
-        merknad,
-        merkelapp,
-        ansvarligVirksomhet,
-        eksempel,
-        fagområde,
-        fagområdeKoder?.filterNotNull(),
-        omfang,
-        kontaktpunkt,
-        gyldigFom,
-        gyldigTom,
-        endringslogelement,
-        opprettet,
-        opprettetAv,
-        seOgså,
-        internSeOgså,
-        erstattesAv,
-        assignedUser,
-        abbreviatedLabel,
-        begrepsRelasjon,
-        internBegrepsRelasjon,
-        interneFelt,
-        internErstattesAv,
-    )
+fun BegrepDBO.toDTO(): Begrep = Begrep(
+    id,
+    originaltBegrep,
+    versjonsnr,
+    sistPublisertId = null,
+    revisjonAv,
+    status,
+    statusURI,
+    erPublisert,
+    isArchived,
+    publiseringsTidspunkt,
+    anbefaltTerm,
+    tillattTerm,
+    frarådetTerm,
+    definisjon,
+    definisjonForAllmennheten,
+    definisjonForSpesialister,
+    merknad,
+    merkelapp,
+    ansvarligVirksomhet,
+    eksempel,
+    fagområde,
+    fagområdeKoder?.filterNotNull(),
+    omfang,
+    kontaktpunkt,
+    gyldigFom,
+    gyldigTom,
+    endringslogelement,
+    opprettet,
+    opprettetAv,
+    seOgså,
+    internSeOgså,
+    erstattesAv,
+    assignedUser,
+    abbreviatedLabel,
+    begrepsRelasjon,
+    internBegrepsRelasjon,
+    interneFelt,
+    internErstattesAv,
+)
 
-fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) =
-    copy(
-        status = dto.status,
-        statusURI = dto.statusURI,
-        versjonsnr = dto.versjonsnr ?: versjonsnr,
-        anbefaltTerm = dto.anbefaltTerm,
-        tillattTerm = dto.tillattTerm,
-        frarådetTerm = dto.frarådetTerm,
-        definisjon = dto.definisjon,
-        definisjonForAllmennheten = dto.definisjonForAllmennheten,
-        definisjonForSpesialister = dto.definisjonForSpesialister,
-        merknad = dto.merknad,
-        merkelapp = dto.merkelapp,
-        eksempel = dto.eksempel,
-        fagområde = dto.fagområde,
-        fagområdeKoder = dto.fagområdeKoder,
-        omfang = dto.omfang,
-        kontaktpunkt = dto.kontaktpunkt,
-        gyldigFom = dto.gyldigFom,
-        gyldigTom = dto.gyldigTom,
-        seOgså = dto.seOgså,
-        internSeOgså = dto.internSeOgså,
-        erstattesAv = dto.erstattesAv,
-        assignedUser = dto.assignedUser,
-        abbreviatedLabel = dto.abbreviatedLabel,
-        begrepsRelasjon = dto.begrepsRelasjon,
-        internBegrepsRelasjon = dto.internBegrepsRelasjon,
-        interneFelt = dto.interneFelt,
-        internErstattesAv = dto.internErstattesAv,
-    )
+fun BegrepDBO.addUpdatableFieldsFromDTO(dto: Begrep) = copy(
+    status = dto.status,
+    statusURI = dto.statusURI,
+    versjonsnr = dto.versjonsnr ?: versjonsnr,
+    anbefaltTerm = dto.anbefaltTerm,
+    tillattTerm = dto.tillattTerm,
+    frarådetTerm = dto.frarådetTerm,
+    definisjon = dto.definisjon,
+    definisjonForAllmennheten = dto.definisjonForAllmennheten,
+    definisjonForSpesialister = dto.definisjonForSpesialister,
+    merknad = dto.merknad,
+    merkelapp = dto.merkelapp,
+    eksempel = dto.eksempel,
+    fagområde = dto.fagområde,
+    fagområdeKoder = dto.fagområdeKoder,
+    omfang = dto.omfang,
+    kontaktpunkt = dto.kontaktpunkt,
+    gyldigFom = dto.gyldigFom,
+    gyldigTom = dto.gyldigTom,
+    seOgså = dto.seOgså,
+    internSeOgså = dto.internSeOgså,
+    erstattesAv = dto.erstattesAv,
+    assignedUser = dto.assignedUser,
+    abbreviatedLabel = dto.abbreviatedLabel,
+    begrepsRelasjon = dto.begrepsRelasjon,
+    internBegrepsRelasjon = dto.internBegrepsRelasjon,
+    interneFelt = dto.interneFelt,
+    internErstattesAv = dto.internErstattesAv,
+)
 
-fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO =
-    copy(
-        endringslogelement =
-            Endringslogelement(
-                endringstidspunkt = ZonedDateTime.now().toInstant(),
-                endretAv = user.name,
-            ),
-    )
+fun BegrepDBO.updateLastChangedAndByWhom(user: User): BegrepDBO = copy(
+    endringslogelement =
+    Endringslogelement(
+        endringstidspunkt = ZonedDateTime.now().toInstant(),
+        endretAv = user.name,
+    ),
+)
 
-fun incrementSemVer(semVer: SemVer?): SemVer =
-    SemVer(
-        major = semVer?.major ?: NEW_CONCEPT_VERSION.major,
-        minor = semVer?.minor ?: NEW_CONCEPT_VERSION.minor,
-        patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch,
-    )
+fun incrementSemVer(semVer: SemVer?): SemVer = SemVer(
+    major = semVer?.major ?: NEW_CONCEPT_VERSION.major,
+    minor = semVer?.minor ?: NEW_CONCEPT_VERSION.minor,
+    patch = semVer?.patch?.let { it + 1 } ?: NEW_CONCEPT_VERSION.patch,
+)
 
-fun BegrepDBO.createNewRevision(): BegrepDBO =
-    copy(
-        id = UUID.randomUUID().toString(),
-        versjonsnr = incrementSemVer(versjonsnr),
-        revisjonAv = id,
-        status = Status.UTKAST,
-        erPublisert = false,
-        isArchived = false,
-        publiseringsTidspunkt = null,
-    )
+fun BegrepDBO.createNewRevision(): BegrepDBO = copy(
+    id = UUID.randomUUID().toString(),
+    versjonsnr = incrementSemVer(versjonsnr),
+    revisjonAv = id,
+    status = Status.UTKAST,
+    erPublisert = false,
+    isArchived = false,
+    publiseringsTidspunkt = null,
+)
 
-fun createNewConcept(
-    org: Virksomhet,
-    user: User,
-): BegrepDBO {
+fun createNewConcept(org: Virksomhet, user: User): BegrepDBO {
     val newId = UUID.randomUUID().toString()
     return BegrepDBO(
         id = newId,

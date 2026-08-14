@@ -10,7 +10,4 @@ enum class SortDirection {
     DESC,
 }
 
-class SortField(
-    val field: SortFieldEnum,
-    val direction: SortDirection,
-)
+class SortField(val field: SortFieldEnum, val direction: SortDirection)

@@ -13,14 +13,6 @@ data class Pagination(
     fun getSize(): Int = size.let { if (it == null || it < 1) 10 else it }
 }
 
-data class Paginated(
-    val hits: List<Begrep>,
-    val page: PageMeta,
-)
+data class Paginated(val hits: List<Begrep>, val page: PageMeta)
 
-data class PageMeta(
-    val currentPage: Int,
-    val size: Int,
-    val totalElements: Long,
-    val totalPages: Long,
-)
+data class PageMeta(val currentPage: Int, val size: Int, val totalElements: Long, val totalPages: Long)

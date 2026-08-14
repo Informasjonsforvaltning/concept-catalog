@@ -94,10 +94,10 @@ class ImportServiceTest {
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
             anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
             ansvarligVirksomhet =
-                Virksomhet(
-                    uri = conceptUri,
-                    id = catalogId,
-                ),
+            Virksomhet(
+                uri = conceptUri,
+                id = catalogId,
+            ),
             interneFelt = null,
             internErstattesAv = null,
         )
@@ -159,10 +159,10 @@ class ImportServiceTest {
                 statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
                 anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
                 ansvarligVirksomhet =
-                    Virksomhet(
-                        uri = virksomhetsUri,
-                        id = catalogId,
-                    ),
+                Virksomhet(
+                    uri = virksomhetsUri,
+                    id = catalogId,
+                ),
                 interneFelt = null,
                 internErstattesAv = null,
             )
@@ -188,11 +188,11 @@ class ImportServiceTest {
         val importResultFailure =
             importService.importConcepts(
                 concepts =
-                    listOf(
-                        createNewConcept(BEGREP_TO_BE_CREATED.ansvarligVirksomhet, user)
-                            .toDTO()
-                            .copy(id = conceptUri),
-                    ),
+                listOf(
+                    createNewConcept(BEGREP_TO_BE_CREATED.ansvarligVirksomhet, user)
+                        .toDTO()
+                        .copy(id = conceptUri),
+                ),
                 catalogId = "123456789",
                 user,
                 jwt,
@@ -251,13 +251,12 @@ class ImportServiceTest {
         assertEquals(1, issues.filter { it.type == IssueType.ERROR }.size)
     }
 
-    private fun createImportResult(status: ImportResultStatus) =
-        ImportResult(
-            id = importId,
-            created = LocalDateTime.now(),
-            catalogId = catalogId,
-            status = status,
-        )
+    private fun createImportResult(status: ImportResultStatus) = ImportResult(
+        id = importId,
+        created = LocalDateTime.now(),
+        catalogId = catalogId,
+        status = status,
+    )
 
     private fun createImportResultInProgress() = createImportResult(ImportResultStatus.IN_PROGRESS)
 }

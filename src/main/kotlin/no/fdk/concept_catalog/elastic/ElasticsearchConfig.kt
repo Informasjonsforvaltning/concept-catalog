@@ -13,9 +13,7 @@ import java.io.File
 import javax.net.ssl.SSLContext
 
 @Configuration
-open class ElasticsearchConfig(
-    private val elasticProperties: ElasticProperties,
-) : ElasticsearchConfiguration() {
+open class ElasticsearchConfig(private val elasticProperties: ElasticProperties) : ElasticsearchConfiguration() {
     private fun sslContext(): SSLContext {
         val builder: SSLContextBuilder = SSLContexts.custom()
 

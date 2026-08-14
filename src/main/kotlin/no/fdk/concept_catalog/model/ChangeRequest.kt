@@ -40,11 +40,7 @@ data class ChangeRequest(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ChangeRequestUpdateBody(
-    val conceptId: String?,
-    val operations: List<JsonPatchOperation>,
-    val title: String,
-)
+data class ChangeRequestUpdateBody(val conceptId: String?, val operations: List<JsonPatchOperation>, val title: String)
 
 enum class ChangeRequestStatus {
     OPEN,

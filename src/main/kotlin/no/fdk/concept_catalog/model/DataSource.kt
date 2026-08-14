@@ -20,9 +20,7 @@ data class DataSource(
     val description: String,
 )
 
-enum class DataType(
-    val value: String,
-) {
+enum class DataType(val value: String) {
     CONCEPT("concept"),
     ;
 
@@ -30,9 +28,7 @@ enum class DataType(
     fun jsonValue(): String = value
 }
 
-enum class DataSourceType(
-    val value: String,
-) {
+enum class DataSourceType(val value: String) {
     SKOS_AP_NO("SKOS-AP-NO"),
     DCAT_AP_NO("DCAT-AP-NO"),
     ;

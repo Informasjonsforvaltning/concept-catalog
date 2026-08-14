@@ -497,13 +497,13 @@ class ChangeRequests : ContractTestsBase() {
             val illegalIdReplace =
                 CHANGE_REQUEST_UPDATE_BODY_0.copy(
                     operations =
-                        listOf(
-                            JsonPatchOperation(
-                                op = OpEnum.REPLACE,
-                                "/id",
-                                "123456",
-                            ),
+                    listOf(
+                        JsonPatchOperation(
+                            op = OpEnum.REPLACE,
+                            "/id",
+                            "123456",
                         ),
+                    ),
                 )
 
             val illegalIdResponse =
@@ -523,13 +523,13 @@ class ChangeRequests : ContractTestsBase() {
             val illegalCatalogIdReplace =
                 CHANGE_REQUEST_UPDATE_BODY_0.copy(
                     operations =
-                        listOf(
-                            JsonPatchOperation(
-                                op = OpEnum.REPLACE,
-                                "/ansvarligVirksomhet",
-                                mapOf(Pair("id", "123456")),
-                            ),
+                    listOf(
+                        JsonPatchOperation(
+                            op = OpEnum.REPLACE,
+                            "/ansvarligVirksomhet",
+                            mapOf(Pair("id", "123456")),
                         ),
+                    ),
                 )
 
             val illegalCatalogIdResponse =
@@ -549,13 +549,13 @@ class ChangeRequests : ContractTestsBase() {
             val illegalConceptIdAdd =
                 CHANGE_REQUEST_UPDATE_BODY_0.copy(
                     operations =
-                        listOf(
-                            JsonPatchOperation(
-                                op = OpEnum.ADD,
-                                "/originaltBegrep",
-                                "123456",
-                            ),
+                    listOf(
+                        JsonPatchOperation(
+                            op = OpEnum.ADD,
+                            "/originaltBegrep",
+                            "123456",
                         ),
+                    ),
                 )
 
             val illegalConceptIdResponse =
@@ -752,10 +752,10 @@ class ChangeRequests : ContractTestsBase() {
                     publiseringsTidspunkt = null,
                     revisjonAv = BEGREP_0.id,
                     endringslogelement =
-                        Endringslogelement(
-                            endretAv = "TEST USER",
-                            endringstidspunkt = location.endringslogelement!!.endringstidspunkt,
-                        ),
+                    Endringslogelement(
+                        endretAv = "TEST USER",
+                        endringstidspunkt = location.endringslogelement!!.endringstidspunkt,
+                    ),
                     status = Status.UTKAST,
                     assignedUser = "newUserId",
                     internErstattesAv = listOf("id1"),
@@ -801,10 +801,10 @@ class ChangeRequests : ContractTestsBase() {
             val expected =
                 BEGREP_2.copy(
                     endringslogelement =
-                        Endringslogelement(
-                            endretAv = "TEST USER",
-                            endringstidspunkt = location.endringslogelement!!.endringstidspunkt,
-                        ),
+                    Endringslogelement(
+                        endretAv = "TEST USER",
+                        endringstidspunkt = location.endringslogelement!!.endringstidspunkt,
+                    ),
                     assignedUser = "newUserId",
                     sistPublisertId = null,
                 )
@@ -854,17 +854,17 @@ class ChangeRequests : ContractTestsBase() {
                     isArchived = false,
                     versjonsnr = SemVer(0, 1, 0),
                     ansvarligVirksomhet =
-                        Virksomhet(
-                            id = "123456789",
-                        ),
+                    Virksomhet(
+                        id = "123456789",
+                    ),
                     interneFelt = null,
                     opprettet = location.opprettet,
                     opprettetAv = "TEST USER",
                     endringslogelement =
-                        Endringslogelement(
-                            endretAv = "TEST USER",
-                            endringstidspunkt = location.endringslogelement!!.endringstidspunkt,
-                        ),
+                    Endringslogelement(
+                        endretAv = "TEST USER",
+                        endringstidspunkt = location.endringslogelement!!.endringstidspunkt,
+                    ),
                     status = Status.UTKAST,
                     statusURI = CONCEPT_STATUS.draft.uri,
                     assignedUser = "newUserId",

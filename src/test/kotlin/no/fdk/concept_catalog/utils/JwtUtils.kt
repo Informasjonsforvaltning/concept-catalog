@@ -14,12 +14,11 @@ import java.util.UUID
 object JwkStore {
     private val jwk = createJwk()
 
-    private fun createJwk(): RSAKey =
-        RSAKeyGenerator(2048)
-            .algorithm(JWSAlgorithm.RS256)
-            .keyUse(KeyUse.SIGNATURE)
-            .keyID(UUID.randomUUID().toString())
-            .generate()
+    private fun createJwk(): RSAKey = RSAKeyGenerator(2048)
+        .algorithm(JWSAlgorithm.RS256)
+        .keyUse(KeyUse.SIGNATURE)
+        .keyID(UUID.randomUUID().toString())
+        .generate()
 
     fun get(): String {
         val token: JwkToken = jacksonObjectMapper().readValue(jwk.toJSONString())
@@ -27,23 +26,16 @@ object JwkStore {
         return token.toString()
     }
 
-    fun jwtHeader(): JWSHeader =
-        JWSHeader
-            .Builder(JWSAlgorithm.RS256)
-            .keyID(jwk.keyID)
-            .build()
+    fun jwtHeader(): JWSHeader = JWSHeader
+        .Builder(JWSAlgorithm.RS256)
+        .keyID(jwk.keyID)
+        .build()
 
     fun signer() = RSASSASigner(jwk)
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class JwkToken(
-    private val kid: String,
-    private val kty: String,
-    private val use: String,
-    private val n: String,
-    private val e: String,
-) {
+class JwkToken(private val kid: String, private val kty: String, private val use: String, private val n: String, private val e: String) {
     override fun toString(): String =
         """
         {

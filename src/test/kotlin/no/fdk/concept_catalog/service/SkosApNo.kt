@@ -124,13 +124,13 @@ class SkosApNo {
             .thenReturn(
                 BEGREP_6.copy(
                     definisjon =
-                        BEGREP_6.definisjon?.copy(
-                            kildebeskrivelse =
-                                Kildebeskrivelse(
-                                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-                                    kilde = listOf(URITekst(uri = "https://valid.uri.no", tekst = "Testdirektoratet")),
-                                ),
+                    BEGREP_6.definisjon?.copy(
+                        kildebeskrivelse =
+                        Kildebeskrivelse(
+                            forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                            kilde = listOf(URITekst(uri = "https://valid.uri.no", tekst = "Testdirektoratet")),
                         ),
+                    ),
                 ),
             )
         assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }
@@ -144,13 +144,13 @@ class SkosApNo {
             .thenReturn(
                 BEGREP_6.copy(
                     definisjon =
-                        BEGREP_6.definisjon?.copy(
-                            kildebeskrivelse =
-                                Kildebeskrivelse(
-                                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-                                    kilde = listOf(URITekst(uri = "https://an invalid uri", tekst = "Testdirektoratet")),
-                                ),
+                    BEGREP_6.definisjon?.copy(
+                        kildebeskrivelse =
+                        Kildebeskrivelse(
+                            forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                            kilde = listOf(URITekst(uri = "https://an invalid uri", tekst = "Testdirektoratet")),
                         ),
+                    ),
                 ),
             )
         val modelInvalidURI = assertDoesNotThrow { skosApNo.buildModelForConcept(BEGREP_6.ansvarligVirksomhet.id, BEGREP_6.id!!) }

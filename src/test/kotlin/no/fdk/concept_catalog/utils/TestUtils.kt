@@ -13,46 +13,45 @@ import java.io.Reader
 import java.io.StringReader
 import java.nio.charset.StandardCharsets
 
-fun Begrep.toDBO(): BegrepDBO =
-    BegrepDBO(
-        id = id!!,
-        originaltBegrep = originaltBegrep!!,
-        versjonsnr = versjonsnr!!,
-        revisjonAv,
-        status,
-        statusURI,
-        erPublisert,
-        isArchived,
-        publiseringsTidspunkt,
-        anbefaltTerm,
-        tillattTerm,
-        frarådetTerm,
-        definisjon,
-        definisjonForAllmennheten,
-        definisjonForSpesialister,
-        merknad,
-        merkelapp,
-        ansvarligVirksomhet,
-        eksempel,
-        fagområde,
-        fagområdeKoder,
-        omfang,
-        kontaktpunkt,
-        gyldigFom,
-        gyldigTom,
-        endringslogelement,
-        opprettet,
-        opprettetAv,
-        seOgså,
-        internSeOgså,
-        erstattesAv,
-        assignedUser,
-        abbreviatedLabel,
-        begrepsRelasjon,
-        internBegrepsRelasjon,
-        interneFelt,
-        internErstattesAv,
-    )
+fun Begrep.toDBO(): BegrepDBO = BegrepDBO(
+    id = id!!,
+    originaltBegrep = originaltBegrep!!,
+    versjonsnr = versjonsnr!!,
+    revisjonAv,
+    status,
+    statusURI,
+    erPublisert,
+    isArchived,
+    publiseringsTidspunkt,
+    anbefaltTerm,
+    tillattTerm,
+    frarådetTerm,
+    definisjon,
+    definisjonForAllmennheten,
+    definisjonForSpesialister,
+    merknad,
+    merkelapp,
+    ansvarligVirksomhet,
+    eksempel,
+    fagområde,
+    fagområdeKoder,
+    omfang,
+    kontaktpunkt,
+    gyldigFom,
+    gyldigTom,
+    endringslogelement,
+    opprettet,
+    opprettetAv,
+    seOgså,
+    internSeOgså,
+    erstattesAv,
+    assignedUser,
+    abbreviatedLabel,
+    begrepsRelasjon,
+    internBegrepsRelasjon,
+    interneFelt,
+    internErstattesAv,
+)
 
 class TestResponseReader {
     private fun resourceAsReader(resourceName: String): Reader =
@@ -65,12 +64,7 @@ class TestResponseReader {
     }
 }
 
-fun checkIfIsomorphicAndPrintDiff(
-    actual: Model,
-    expected: Model,
-    name: String,
-    logger: Logger,
-): Boolean {
+fun checkIfIsomorphicAndPrintDiff(actual: Model, expected: Model, name: String, logger: Logger): Boolean {
     // Its necessary to parse the created models from strings to have the same base, and ensure blank node validity
     val parsedActual =
         ModelFactory.createDefaultModel().read(StringReader(actual.rdfResponse(Lang.TURTLE)), null, "TURTLE")
@@ -98,9 +92,8 @@ fun checkIfIsomorphicAndPrintDiff(
 
 fun Begrep.fromDBO() = copy(sistPublisertId = null)
 
-fun Begrep.asCurrentConcept(latestPublishedId: String? = null) =
-    if (latestPublishedId != null) {
-        CurrentConcept(toDBO(), latestPublishedId)
-    } else {
-        CurrentConcept(toDBO(), if (erPublisert == true) id else null)
-    }
+fun Begrep.asCurrentConcept(latestPublishedId: String? = null) = if (latestPublishedId != null) {
+    CurrentConcept(toDBO(), latestPublishedId)
+} else {
+    CurrentConcept(toDBO(), if (erPublisert == true) id else null)
+}

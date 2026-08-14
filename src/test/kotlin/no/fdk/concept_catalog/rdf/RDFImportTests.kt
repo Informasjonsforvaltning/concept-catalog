@@ -274,14 +274,14 @@ class RDFImportTests {
             Definisjon(
                 tekst = mapOf("nb" to "definisjon"),
                 kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT,
-                        kilde =
-                            listOf(
-                                URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14"),
-                                URITekst(tekst = "kap14"),
-                            ),
+                Kildebeskrivelse(
+                    forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT,
+                    kilde =
+                    listOf(
+                        URITekst(uri = "https://lovdata.no/dokument/NL/lov/1997-02-28-19/kap14#kap14"),
+                        URITekst(tekst = "kap14"),
                     ),
+                ),
             ),
             conceptExtraction.concept.definisjon,
         )
@@ -418,9 +418,9 @@ class RDFImportTests {
             Definisjon(
                 tekst = mapOf("nb" to "definisjon for allmennheten"),
                 kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-                    ),
+                Kildebeskrivelse(
+                    forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+                ),
             ),
             conceptExtraction.concept.definisjonForAllmennheten,
         )
@@ -466,9 +466,9 @@ class RDFImportTests {
             Definisjon(
                 tekst = mapOf("nb" to "definisjon for spesialister"),
                 kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-                    ),
+                Kildebeskrivelse(
+                    forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                ),
             ),
             conceptExtraction.concept.definisjonForSpesialister,
         )
@@ -527,9 +527,9 @@ class RDFImportTests {
             Definisjon(
                 tekst = mapOf("nb" to "definisjon", "en" to "definition"),
                 kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT,
-                    ),
+                Kildebeskrivelse(
+                    forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT,
+                ),
             )
 
         val turtle =

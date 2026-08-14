@@ -101,10 +101,7 @@ class ImportController(
         value = ["/create-import-id"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
-    fun createImportId(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable catalogId: String,
-    ): ResponseEntity<String> {
+    fun createImportId(@AuthenticationPrincipal jwt: Jwt, @PathVariable catalogId: String): ResponseEntity<String> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> {
@@ -222,10 +219,7 @@ class ImportController(
         value = ["/results"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
-    fun result(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable catalogId: String,
-    ): ResponseEntity<List<ImportResult>> {
+    fun result(@AuthenticationPrincipal jwt: Jwt, @PathVariable catalogId: String): ResponseEntity<List<ImportResult>> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {
@@ -275,11 +269,7 @@ class ImportController(
     @DeleteMapping(
         value = ["/results/{id}"],
     )
-    fun deleteResult(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable catalogId: String,
-        @PathVariable id: String,
-    ): ResponseEntity<Void> {
+    fun deleteResult(@AuthenticationPrincipal jwt: Jwt, @PathVariable catalogId: String, @PathVariable id: String): ResponseEntity<Void> {
         val user = endpointPermissions.getUser(jwt)
 
         return when {

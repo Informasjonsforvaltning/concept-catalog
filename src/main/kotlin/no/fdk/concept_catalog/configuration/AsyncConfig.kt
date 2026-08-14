@@ -16,38 +16,36 @@ class AsyncConfig {
     private val logger: Logger = LoggerFactory.getLogger(AsyncConfig::class.java)
 
     @Bean("import-executor")
-    fun importExecutor() =
-        ThreadPoolTaskExecutor().apply {
-            corePoolSize = 8
-            maxPoolSize = 64
-            queueCapacity = 200
-            setThreadNamePrefix("import-")
-            setRejectedExecutionHandler { r: Runnable, e: ThreadPoolExecutor ->
-                logger.warn(
-                    "Task rejected due to thread pool \"import-executor\" saturation. Active: {}, Pool size: {}, Queue size: {}",
-                    e.getActiveCount(),
-                    e.getPoolSize(),
-                    e.getQueue().size,
-                )
-            }
-            initialize()
+    fun importExecutor() = ThreadPoolTaskExecutor().apply {
+        corePoolSize = 8
+        maxPoolSize = 64
+        queueCapacity = 200
+        setThreadNamePrefix("import-")
+        setRejectedExecutionHandler { r: Runnable, e: ThreadPoolExecutor ->
+            logger.warn(
+                "Task rejected due to thread pool \"import-executor\" saturation. Active: {}, Pool size: {}, Queue size: {}",
+                e.getActiveCount(),
+                e.getPoolSize(),
+                e.getQueue().size,
+            )
         }
+        initialize()
+    }
 
     @Bean("cancel-import-executor")
-    fun cancelExecutor() =
-        ThreadPoolTaskExecutor().apply {
-            corePoolSize = 8
-            maxPoolSize = 64
-            queueCapacity = 200
-            setThreadNamePrefix("cancel-import-")
-            setRejectedExecutionHandler { r: Runnable, e: ThreadPoolExecutor ->
-                logger.warn(
-                    "Task rejected due to thread pool \"cancel-import-executor\" saturation. Active: {}, Pool size: {}, Queue size: {}",
-                    e.getActiveCount(),
-                    e.getPoolSize(),
-                    e.getQueue().size,
-                )
-            }
-            initialize()
+    fun cancelExecutor() = ThreadPoolTaskExecutor().apply {
+        corePoolSize = 8
+        maxPoolSize = 64
+        queueCapacity = 200
+        setThreadNamePrefix("cancel-import-")
+        setRejectedExecutionHandler { r: Runnable, e: ThreadPoolExecutor ->
+            logger.warn(
+                "Task rejected due to thread pool \"cancel-import-executor\" saturation. Active: {}, Pool size: {}, Queue size: {}",
+                e.getActiveCount(),
+                e.getPoolSize(),
+                e.getQueue().size,
+            )
         }
+        initialize()
+    }
 }

@@ -21,26 +21,16 @@ import org.springframework.data.elasticsearch.core.query.Query
 import org.springframework.stereotype.Service
 
 @Service
-class ConceptSearchService(
-    private val elasticsearchOperations: ElasticsearchOperations,
-) {
+class ConceptSearchService(private val elasticsearchOperations: ElasticsearchOperations) {
     private val logger = LoggerFactory.getLogger(ConceptSearchService::class.java)
 
-    fun suggestConcepts(
-        orgNumber: String,
-        published: Boolean?,
-        query: String,
-    ): SearchHits<CurrentConcept> =
-        elasticsearchOperations.search(
-            suggestionQuery(orgNumber, published, query),
-            CurrentConcept::class.java,
-            IndexCoordinates.of("concepts-current"),
-        )
+    fun suggestConcepts(orgNumber: String, published: Boolean?, query: String): SearchHits<CurrentConcept> = elasticsearchOperations.search(
+        suggestionQuery(orgNumber, published, query),
+        CurrentConcept::class.java,
+        IndexCoordinates.of("concepts-current"),
+    )
 
-    fun searchCurrentConcepts(
-        orgNumber: String,
-        search: SearchOperation,
-    ): SearchHits<CurrentConcept> {
+    fun searchCurrentConcepts(orgNumber: String, search: SearchOperation): SearchHits<CurrentConcept> {
         val query = search.toElasticQuery(orgNumber)
         return elasticsearchOperations.search(
             query,
@@ -64,11 +54,7 @@ class ConceptSearchService(
         )
     }
 
-    private fun suggestionQuery(
-        orgNumber: String,
-        published: Boolean?,
-        query: String,
-    ): Query {
+    private fun suggestionQuery(orgNumber: String, published: Boolean?, query: String): Query {
         val builder = NativeQuery.builder()
         builder.withFilter { queryBuilder ->
             queryBuilder.bool { boolBuilder ->
@@ -119,10 +105,7 @@ class ConceptSearchService(
         return builder.build()
     }
 
-    private fun NativeQueryBuilder.addFieldsQuery(
-        queryFields: QueryFields,
-        queryValue: String,
-    ) {
+    private fun NativeQueryBuilder.addFieldsQuery(queryFields: QueryFields, queryValue: String) {
         withQuery { queryBuilder ->
             queryBuilder.bool { boolBuilder ->
                 boolBuilder.should {
@@ -150,77 +133,70 @@ class ConceptSearchService(
         }
     }
 
-    private fun SortField.sortDirection(): SortOrder =
-        when (direction) {
-            SortDirection.ASC -> SortOrder.Asc
-            else -> SortOrder.Desc
-        }
+    private fun SortField.sortDirection(): SortOrder = when (direction) {
+        SortDirection.ASC -> SortOrder.Asc
+        else -> SortOrder.Desc
+    }
 
-    private fun QueryFields.exactPaths(): List<String> =
-        listOf(
-            if (anbefaltTerm) {
-                languagePaths("anbefaltTerm.navn", 30)
-            } else {
-                emptyList()
-            },
-            if (frarådetTerm) {
-                languagePaths("frarådetTerm", 10)
-            } else {
-                emptyList()
-            },
-            if (tillattTerm) {
-                languagePaths("tillattTerm", 10)
-            } else {
-                emptyList()
-            },
-            if (definisjon) {
-                languagePaths("definisjon.tekst")
-            } else {
-                emptyList()
-            },
-            if (merknad) {
-                languagePaths("merknad")
-            } else {
-                emptyList()
-            },
-        ).flatten()
+    private fun QueryFields.exactPaths(): List<String> = listOf(
+        if (anbefaltTerm) {
+            languagePaths("anbefaltTerm.navn", 30)
+        } else {
+            emptyList()
+        },
+        if (frarådetTerm) {
+            languagePaths("frarådetTerm", 10)
+        } else {
+            emptyList()
+        },
+        if (tillattTerm) {
+            languagePaths("tillattTerm", 10)
+        } else {
+            emptyList()
+        },
+        if (definisjon) {
+            languagePaths("definisjon.tekst")
+        } else {
+            emptyList()
+        },
+        if (merknad) {
+            languagePaths("merknad")
+        } else {
+            emptyList()
+        },
+    ).flatten()
 
-    private fun QueryFields.prefixPaths(): List<String> =
-        listOf(
-            if (anbefaltTerm) {
-                languagePaths("anbefaltTerm.navn", 15)
-            } else {
-                emptyList()
-            },
-            if (frarådetTerm) {
-                languagePaths("frarådetTerm", 5)
-            } else {
-                emptyList()
-            },
-            if (tillattTerm) {
-                languagePaths("tillattTerm", 5)
-            } else {
-                emptyList()
-            },
-            if (definisjon) {
-                languagePaths("definisjon.tekst")
-            } else {
-                emptyList()
-            },
-            if (merknad) {
-                languagePaths("merknad")
-            } else {
-                emptyList()
-            },
-        ).flatten()
+    private fun QueryFields.prefixPaths(): List<String> = listOf(
+        if (anbefaltTerm) {
+            languagePaths("anbefaltTerm.navn", 15)
+        } else {
+            emptyList()
+        },
+        if (frarådetTerm) {
+            languagePaths("frarådetTerm", 5)
+        } else {
+            emptyList()
+        },
+        if (tillattTerm) {
+            languagePaths("tillattTerm", 5)
+        } else {
+            emptyList()
+        },
+        if (definisjon) {
+            languagePaths("definisjon.tekst")
+        } else {
+            emptyList()
+        },
+        if (merknad) {
+            languagePaths("merknad")
+        } else {
+            emptyList()
+        },
+    ).flatten()
 
-    private fun languagePaths(
-        basePath: String,
-        boost: Int? = null,
-    ): List<String> =
-        listOf(
-            "$basePath.nb${if (boost != null) "^$boost" else ""}",
-            "$basePath.nn${if (boost != null) "^$boost" else ""}",
-            "$basePath.en${if (boost != null) "^$boost" else ""}",
-        )
+    private fun languagePaths(basePath: String, boost: Int? = null): List<String> = listOf(
+        "$basePath.nb${if (boost != null) "^$boost" else ""}",
+        "$basePath.nn${if (boost != null) "^$boost" else ""}",
+        "$basePath.en${if (boost != null) "^$boost" else ""}",
+    )
 }

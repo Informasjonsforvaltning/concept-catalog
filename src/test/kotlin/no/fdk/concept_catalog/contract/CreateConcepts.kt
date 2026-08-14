@@ -168,9 +168,7 @@ class CreateConcepts : ContractTestsBase() {
     }
 
     @Test
-    fun `Import RDF responds with not implemented on valid authority`(
-        @Value("classpath:concept.ttl") resource: Resource,
-    ) {
+    fun `Import RDF responds with not implemented on valid authority`(@Value("classpath:concept.ttl") resource: Resource) {
         val concept = String(resource.inputStream.readAllBytes(), StandardCharsets.UTF_8)
 
         val response =

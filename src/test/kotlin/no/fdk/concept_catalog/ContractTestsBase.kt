@@ -90,11 +90,7 @@ open class ContractTestsBase {
         elasticsearchOperations.indexOps(CurrentConcept::class.java).refresh()
     }
 
-    fun request(
-        path: String,
-        mediaType: MediaType,
-        httpMethod: HttpMethod,
-    ): ResponseEntity<String> {
+    fun request(path: String, mediaType: MediaType, httpMethod: HttpMethod): ResponseEntity<String> {
         val url = "http://localhost:$port$path"
 
         val httpHeaders = HttpHeaders()

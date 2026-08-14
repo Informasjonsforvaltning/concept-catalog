@@ -39,33 +39,33 @@ val BEGREP_0_OLD =
         tillattTerm = mapOf(Pair("nn", listOf("old tillattTerm"))),
         frarådetTerm = mapOf(Pair("nb", listOf("old fraraadetTerm"))),
         definisjon =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "old definisjon")),
-                kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
-            ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "old definisjon")),
+            kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+        ),
         merknad = mapOf(Pair("nn", "old merknad")),
         merkelapp = listOf("old merkelapp1", "old merkelapp2"),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "123456789",
-            ),
+        Virksomhet(
+            id = "123456789",
+        ),
         seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
         endringslogelement =
-            Endringslogelement(
-                endretAv = "bruker1",
-                endringstidspunkt =
-                    ZonedDateTime
-                        .of(
-                            2019,
-                            1,
-                            1,
-                            12,
-                            0,
-                            0,
-                            0,
-                            ZoneId.of("Europe/Oslo"),
-                        ).toInstant(),
-            ),
+        Endringslogelement(
+            endretAv = "bruker1",
+            endringstidspunkt =
+            ZonedDateTime
+                .of(
+                    2019,
+                    1,
+                    1,
+                    12,
+                    0,
+                    0,
+                    0,
+                    ZoneId.of("Europe/Oslo"),
+                ).toInstant(),
+        ),
         interneFelt = emptyMap(),
         internErstattesAv = listOf("id1"),
     )
@@ -85,80 +85,80 @@ val BEGREP_0 =
         tillattTerm = mapOf(Pair("nn", listOf("tillattTerm", "tillattTerm2"))),
         frarådetTerm = mapOf(Pair("nb", listOf("fraraadetTerm", "fraraadetTerm2", "Lorem ipsum"))),
         definisjon =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "definisjon")),
-                kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
-            ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "definisjon")),
+            kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+        ),
         definisjonForAllmennheten =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "definisjon for allmennheten")),
-                kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
-            ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "definisjon for allmennheten")),
+            kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+        ),
         definisjonForSpesialister =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "Definisjon for spesialister")),
-                kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
-            ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "Definisjon for spesialister")),
+            kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+        ),
         merknad = mapOf(Pair("nn", "merknad")),
         merkelapp = listOf("merkelapp1", "merkelapp2"),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "123456789",
-            ),
+        Virksomhet(
+            id = "123456789",
+        ),
         seOgså = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
         erstattesAv = listOf("http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322"),
         assignedUser = "user-id",
         internBegrepsRelasjon =
-            listOf(
-                BegrepsRelasjon(
-                    relasjon = "assosiativ",
-                    beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
-                    relatertBegrep = "id1",
-                ),
+        listOf(
+            BegrepsRelasjon(
+                relasjon = "assosiativ",
+                beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
+                relatertBegrep = "id1",
             ),
+        ),
         begrepsRelasjon =
-            listOf(
-                BegrepsRelasjon(
-                    relasjon = "partitiv",
-                    relasjonsType = "omfatter",
-                    inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
-                    relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
-                ),
-                BegrepsRelasjon(
-                    relasjon = "partitiv",
-                    relasjonsType = "erDelAv",
-                    inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
-                    relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
-                ),
-                BegrepsRelasjon(
-                    relasjon = "generisk",
-                    relasjonsType = "underordnet",
-                    inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
-                    relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
-                ),
-                BegrepsRelasjon(
-                    relasjon = "generisk",
-                    relasjonsType = "overordnet",
-                    inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
-                    relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
-                ),
+        listOf(
+            BegrepsRelasjon(
+                relasjon = "partitiv",
+                relasjonsType = "omfatter",
+                inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+                relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
             ),
+            BegrepsRelasjon(
+                relasjon = "partitiv",
+                relasjonsType = "erDelAv",
+                inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+                relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
+            ),
+            BegrepsRelasjon(
+                relasjon = "generisk",
+                relasjonsType = "underordnet",
+                inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+                relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
+            ),
+            BegrepsRelasjon(
+                relasjon = "generisk",
+                relasjonsType = "overordnet",
+                inndelingskriterium = mapOf(Pair("nb", "Inndelingskriterium")),
+                relatertBegrep = "http://begrepskatalogen/begrep/98da4336-dff2-11e7-a0fd-005056821322",
+            ),
+        ),
         endringslogelement =
-            Endringslogelement(
-                endretAv = "bruker1",
-                endringstidspunkt =
-                    ZonedDateTime
-                        .of(
-                            2020,
-                            1,
-                            2,
-                            12,
-                            0,
-                            0,
-                            0,
-                            ZoneId.of("Europe/Oslo"),
-                        ).toInstant(),
-            ),
+        Endringslogelement(
+            endretAv = "bruker1",
+            endringstidspunkt =
+            ZonedDateTime
+                .of(
+                    2020,
+                    1,
+                    2,
+                    12,
+                    0,
+                    0,
+                    0,
+                    ZoneId.of("Europe/Oslo"),
+                ).toInstant(),
+        ),
         interneFelt = mapOf(Pair("felt-id", InterntFelt("feltverdi"))),
         internErstattesAv = listOf("id1"),
     )
@@ -173,26 +173,26 @@ val BEGREP_1 =
         statusURI = "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
         anbefaltTerm = Term(navn = mapOf(Pair("nb", "Begrep 1 Lorem ipsum"))),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "123456789",
-            ),
+        Virksomhet(
+            id = "123456789",
+        ),
         merknad = mapOf(Pair("nb", "asdf")),
         endringslogelement =
-            Endringslogelement(
-                endretAv = "bruker1",
-                endringstidspunkt =
-                    ZonedDateTime
-                        .of(
-                            2020,
-                            12,
-                            1,
-                            12,
-                            0,
-                            0,
-                            0,
-                            ZoneId.of("Europe/Oslo"),
-                        ).toInstant(),
-            ),
+        Endringslogelement(
+            endretAv = "bruker1",
+            endringstidspunkt =
+            ZonedDateTime
+                .of(
+                    2020,
+                    12,
+                    1,
+                    12,
+                    0,
+                    0,
+                    0,
+                    ZoneId.of("Europe/Oslo"),
+                ).toInstant(),
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -202,35 +202,35 @@ val BEGREP_2 =
         id = "id2",
         originaltBegrep = "id2",
         definisjon =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "tekstnb")),
-                kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
-            ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "tekstnb")),
+            kildebeskrivelse = Kildebeskrivelse(forholdTilKilde = ForholdTilKildeEnum.EGENDEFINERT, kilde = emptyList()),
+        ),
         versjonsnr = SemVer(1, 0, 1),
         status = Status.HOERING,
         statusURI = "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE",
         anbefaltTerm = Term(navn = mapOf(Pair("nb", ""), Pair("nn", "begrep 2"))),
         tillattTerm = mapOf(Pair("nb", listOf("Lorem ipsum"))),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "123456789",
-            ),
+        Virksomhet(
+            id = "123456789",
+        ),
         endringslogelement =
-            Endringslogelement(
-                endretAv = "bruker1",
-                endringstidspunkt =
-                    ZonedDateTime
-                        .of(
-                            2020,
-                            1,
-                            1,
-                            12,
-                            0,
-                            0,
-                            0,
-                            ZoneId.of("Europe/Oslo"),
-                        ).toInstant(),
-            ),
+        Endringslogelement(
+            endretAv = "bruker1",
+            endringstidspunkt =
+            ZonedDateTime
+                .of(
+                    2020,
+                    1,
+                    1,
+                    12,
+                    0,
+                    0,
+                    0,
+                    ZoneId.of("Europe/Oslo"),
+                ).toInstant(),
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -241,9 +241,9 @@ val BEGREP_WRONG_ORG =
         originaltBegrep = "id-wrong-org",
         versjonsnr = SemVer(0, 0, 1),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "999888777",
-            ),
+        Virksomhet(
+            id = "999888777",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -254,9 +254,9 @@ val BEGREP_TO_BE_CREATED =
         statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
         anbefaltTerm = Term(navn = emptyMap()),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "123456789",
-            ),
+        Virksomhet(
+            id = "123456789",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -269,9 +269,9 @@ val BEGREP_TO_BE_DELETED =
         status = Status.UTKAST,
         statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111111111",
-            ),
+        Virksomhet(
+            id = "111111111",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -284,9 +284,9 @@ val BEGREP_WITH_CHANGE_REQUEST_TO_BE_DELETED =
         status = Status.UTKAST,
         statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111111111",
-            ),
+        Virksomhet(
+            id = "111111111",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -304,9 +304,9 @@ val BEGREP_TO_BE_UPDATED =
         eksempel = mapOf(Pair("en", "Will be replaced by copy")),
         status = Status.UTKAST,
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111111111",
-            ),
+        Virksomhet(
+            id = "111111111",
+        ),
         assignedUser = "user-id",
         interneFelt = null,
         internErstattesAv = null,
@@ -324,36 +324,36 @@ val BEGREP_3 =
         publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
         anbefaltTerm = Term(navn = mapOf(Pair("nn", "Begrep 3"))),
         definisjon =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "definisjon")),
-                kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-                        kilde =
-                            listOf(
-                                URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
-                                URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet"),
-                            ),
-                    ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "definisjon")),
+            kildebeskrivelse =
+            Kildebeskrivelse(
+                forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+                kilde =
+                listOf(
+                    URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet"),
+                    URITekst(uri = "https://festdirektoratet.no", tekst = "Festdirektoratet"),
+                ),
             ),
+        ),
         eksempel = mapOf(Pair("en", "example")),
         fagområde = mapOf(Pair("nb", listOf("fagområde"))),
         fagområdeKoder = listOf("5e6b2561-6157-4eb4-b396-d773cd00de12", "fagomr2"),
         omfang = URITekst(uri = "https://test.no"),
         internSeOgså = listOf("id4"),
         internBegrepsRelasjon =
-            listOf(
-                BegrepsRelasjon(
-                    relasjon = "assosiativ",
-                    beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
-                    relatertBegrep = "id4",
-                ),
+        listOf(
+            BegrepsRelasjon(
+                relasjon = "assosiativ",
+                beskrivelse = mapOf(Pair("nb", "Beskrivelse")),
+                relatertBegrep = "id4",
             ),
+        ),
         gyldigFom = LocalDate.of(2020, 10, 10),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111222333",
-            ),
+        Virksomhet(
+            id = "111222333",
+        ),
         interneFelt = null,
         internErstattesAv = listOf("id4"),
     )
@@ -371,26 +371,26 @@ val BEGREP_4 =
         publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
         anbefaltTerm = Term(navn = mapOf(Pair("en", "Begrep 4"))),
         definisjon =
-            Definisjon(
-                kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-                        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")),
-                    ),
+        Definisjon(
+            kildebeskrivelse =
+            Kildebeskrivelse(
+                forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")),
             ),
+        ),
         fagområde = mapOf(Pair("nn", listOf("bruksområde"))),
         fagområdeKoder = listOf("fagomr3"),
         gyldigTom = LocalDate.of(2030, 10, 10),
         kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111222333",
-            ),
+        Virksomhet(
+            id = "111222333",
+        ),
         interneFelt =
-            mapOf(
-                Pair("felt1", InterntFelt("true")),
-                Pair("felt2", InterntFelt("false")),
-            ),
+        mapOf(
+            Pair("felt1", InterntFelt("true")),
+            Pair("felt2", InterntFelt("false")),
+        ),
         internErstattesAv = null,
         omfang = URITekst(tekst = "omfang"),
     )
@@ -412,18 +412,18 @@ val BEGREP_5 =
         gyldigTom = LocalDate.of(2030, 10, 10),
         kontaktpunkt = Kontaktpunkt(harEpost = "test@test.no", harTelefon = "99887766"),
         definisjon =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "definisjon")),
-                kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
-                        kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")),
-                    ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "definisjon")),
+            kildebeskrivelse =
+            Kildebeskrivelse(
+                forholdTilKilde = ForholdTilKildeEnum.SITATFRAKILDE,
+                kilde = listOf(URITekst(uri = "https://testdirektoratet.no", tekst = "Testdirektoratet")),
             ),
+        ),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111222333",
-            ),
+        Virksomhet(
+            id = "111222333",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -446,18 +446,18 @@ val BEGREP_6 =
         isArchived = true,
         publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "987654321",
-            ),
+        Virksomhet(
+            id = "987654321",
+        ),
         definisjon =
-            Definisjon(
-                tekst = mapOf(Pair("nb", "definisjon")),
-                kildebeskrivelse =
-                    Kildebeskrivelse(
-                        forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
-                        kilde = listOf(URITekst(uri = "", tekst = "hei")),
-                    ),
+        Definisjon(
+            tekst = mapOf(Pair("nb", "definisjon")),
+            kildebeskrivelse =
+            Kildebeskrivelse(
+                forholdTilKilde = ForholdTilKildeEnum.BASERTPAAKILDE,
+                kilde = listOf(URITekst(uri = "", tekst = "hei")),
             ),
+        ),
         omfang = URITekst(tekst = "omfangtekst6"),
         interneFelt = null,
         internErstattesAv = null,
@@ -474,9 +474,9 @@ val BEGREP_HAS_REVISION =
         publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
         versjonsnr = SemVer(0, 0, 1),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111111111",
-            ),
+        Virksomhet(
+            id = "111111111",
+        ),
         interneFelt = null,
         internSeOgså = listOf("id-to-be-updated"),
         internErstattesAv = null,
@@ -492,18 +492,18 @@ val BEGREP_UNPUBLISHED_REVISION =
         isArchived = true,
         versjonsnr = SemVer(0, 0, 1),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "111111111",
-            ),
+        Virksomhet(
+            id = "111111111",
+        ),
         interneFelt = null,
         internErstattesAv = listOf("id-to-be-updated"),
         internBegrepsRelasjon =
-            listOf(
-                BegrepsRelasjon(
-                    relasjon = "assosiativ",
-                    relatertBegrep = "id-to-be-updated",
-                ),
+        listOf(
+            BegrepsRelasjon(
+                relasjon = "assosiativ",
+                relatertBegrep = "id-to-be-updated",
             ),
+        ),
     )
 
 val BEGREP_HAS_MULTIPLE_REVISIONS =
@@ -518,9 +518,9 @@ val BEGREP_HAS_MULTIPLE_REVISIONS =
         publiseringsTidspunkt = ZonedDateTime.of(2020, 1, 2, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
         versjonsnr = SemVer(0, 0, 1),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "222222222",
-            ),
+        Virksomhet(
+            id = "222222222",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -536,9 +536,9 @@ val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_FIRST =
         sistPublisertId = "id-has-multiple-revisions",
         versjonsnr = SemVer(0, 0, 2),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "222222222",
-            ),
+        Virksomhet(
+            id = "222222222",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -554,9 +554,9 @@ val BEGREP_UNPUBLISHED_REVISION_MULTIPLE_SECOND =
         sistPublisertId = "id-has-multiple-revisions",
         versjonsnr = SemVer(0, 0, 3),
         ansvarligVirksomhet =
-            Virksomhet(
-                id = "222222222",
-            ),
+        Virksomhet(
+            id = "222222222",
+        ),
         interneFelt = null,
         internErstattesAv = null,
     )
@@ -621,9 +621,9 @@ val CHANGE_REQUEST_4 =
         catalogId = "123456789",
         status = ChangeRequestStatus.OPEN,
         operations =
-            listOf(
-                JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
-            ),
+        listOf(
+            JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
+        ),
         timeForProposal = ZonedDateTime.of(2019, 1, 1, 12, 0, 0, 0, ZoneId.of("Europe/Oslo")).toInstant(),
         proposedBy = User(id = "1924782563", name = "TEST USER", email = null),
         title = "Endringsforslag 4",
@@ -659,9 +659,9 @@ val CHANGE_REQUEST_UPDATE_BODY_NEW =
     ChangeRequestUpdateBody(
         conceptId = null,
         operations =
-            listOf(
-                JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
-            ),
+        listOf(
+            JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
+        ),
         title = "Forslag til nytt begrep",
     )
 
@@ -669,9 +669,9 @@ val CHANGE_REQUEST_UPDATE_BODY_UPDATE =
     ChangeRequestUpdateBody(
         conceptId = "123456789",
         operations =
-            listOf(
-                JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
-            ),
+        listOf(
+            JsonPatchOperation(op = OpEnum.ADD, path = "/assignedUser", value = "newUserId", from = null),
+        ),
         title = "Ny tittel endringsforslag",
     )
 
@@ -679,13 +679,13 @@ val CHANGE_REQUEST_UPDATE_BODY_0 =
     ChangeRequestUpdateBody(
         conceptId = BEGREP_TO_BE_UPDATED.id,
         operations =
-            listOf(
-                JsonPatchOperation(
-                    op = OpEnum.ADD,
-                    path = "/anbefaltTerm/navn/nb",
-                    value = "Enda en ny anbefalt term",
-                ),
+        listOf(
+            JsonPatchOperation(
+                op = OpEnum.ADD,
+                path = "/anbefaltTerm/navn/nb",
+                value = "Enda en ny anbefalt term",
             ),
+        ),
         title = "Endringsforslag 7",
     )
 

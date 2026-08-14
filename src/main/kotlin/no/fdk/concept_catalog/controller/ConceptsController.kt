@@ -45,10 +45,7 @@ class ConceptsController(
         value = [""],
         consumes = [MediaType.APPLICATION_JSON_VALUE],
     )
-    fun createBegrep(
-        @AuthenticationPrincipal jwt: Jwt,
-        @RequestBody concept: Begrep,
-    ): ResponseEntity<Unit> {
+    fun createBegrep(@AuthenticationPrincipal jwt: Jwt, @RequestBody concept: Begrep): ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> {
@@ -75,10 +72,7 @@ class ConceptsController(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE],
     )
-    fun createBegreper(
-        @AuthenticationPrincipal jwt: Jwt,
-        @RequestBody concepts: List<Begrep>,
-    ): ResponseEntity<Unit> {
+    fun createBegreper(@AuthenticationPrincipal jwt: Jwt, @RequestBody concepts: List<Begrep>): ResponseEntity<Unit> {
         val user = endpointPermissions.getUser(jwt)
         return when {
             user == null -> {
@@ -101,14 +95,10 @@ class ConceptsController(
         value = ["/{catalogId}/count"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
-    fun getConceptCount(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable catalogId: String,
-    ): ResponseEntity<Long> =
-        when {
-            !endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            else -> ResponseEntity(conceptService.countCurrentConcepts(catalogId), HttpStatus.OK)
-        }
+    fun getConceptCount(@AuthenticationPrincipal jwt: Jwt, @PathVariable catalogId: String): ResponseEntity<Long> = when {
+        !endpointPermissions.hasOrgReadPermission(jwt, catalogId) -> ResponseEntity(HttpStatus.FORBIDDEN)
+        else -> ResponseEntity(conceptService.countCurrentConcepts(catalogId), HttpStatus.OK)
+    }
 
     @PostMapping(
         value = ["/{catalogId}/import"],
@@ -185,26 +175,20 @@ class ConceptsController(
     }
 
     @PostMapping(value = ["/reindex"])
-    fun reindexElastic(
-        @AuthenticationPrincipal jwt: Jwt,
-    ): ResponseEntity<Unit> =
-        when {
-            !endpointPermissions.hasSysAdminPermission(jwt) -> {
-                ResponseEntity(HttpStatus.FORBIDDEN)
-            }
-
-            else -> {
-                logger.info("reindexing elastic")
-                elasticUpdater.reindexElastic()
-                ResponseEntity(HttpStatus.OK)
-            }
+    fun reindexElastic(@AuthenticationPrincipal jwt: Jwt): ResponseEntity<Unit> = when {
+        !endpointPermissions.hasSysAdminPermission(jwt) -> {
+            ResponseEntity(HttpStatus.FORBIDDEN)
         }
 
+        else -> {
+            logger.info("reindexing elastic")
+            elasticUpdater.reindexElastic()
+            ResponseEntity(HttpStatus.OK)
+        }
+    }
+
     @DeleteMapping(value = ["/{id}"])
-    fun deleteBegrepById(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable("id") id: String,
-    ): ResponseEntity<Unit> {
+    fun deleteBegrepById(@AuthenticationPrincipal jwt: Jwt, @PathVariable("id") id: String): ResponseEntity<Unit> {
         val concept = conceptService.getConceptDBO(id)
         return when {
             concept == null -> {
@@ -249,10 +233,7 @@ class ConceptsController(
     }
 
     @GetMapping(value = ["/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getBegrepById(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable("id") id: String,
-    ): ResponseEntity<Begrep> {
+    fun getBegrepById(@AuthenticationPrincipal jwt: Jwt, @PathVariable("id") id: String): ResponseEntity<Begrep> {
         val concept = conceptService.getConceptById(id)
         return when {
             concept == null -> {
@@ -270,10 +251,7 @@ class ConceptsController(
     }
 
     @GetMapping(value = ["/{id}/revisions"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getBegrepVersionsById(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable("id") id: String,
-    ): ResponseEntity<List<Begrep>> {
+    fun getBegrepVersionsById(@AuthenticationPrincipal jwt: Jwt, @PathVariable("id") id: String): ResponseEntity<List<Begrep>> {
         val concept = conceptService.getConceptDBO(id)
         return when {
             concept == null -> {
@@ -291,10 +269,7 @@ class ConceptsController(
     }
 
     @PostMapping(value = ["/{id}/publish"])
-    fun publish(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable("id") id: String,
-    ): ResponseEntity<Begrep> {
+    fun publish(@AuthenticationPrincipal jwt: Jwt, @PathVariable("id") id: String): ResponseEntity<Begrep> {
         val concept = conceptService.getConceptDBO(id)
         return when {
             concept == null -> {
@@ -354,11 +329,10 @@ class ConceptsController(
             required = true,
         ) orgNumber: String,
         @RequestBody searchOperation: SearchOperation,
-    ): ResponseEntity<Paginated> =
-        when {
-            !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            else -> ResponseEntity(conceptService.searchConcepts(orgNumber, searchOperation), HttpStatus.OK)
-        }
+    ): ResponseEntity<Paginated> = when {
+        !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
+        else -> ResponseEntity(conceptService.searchConcepts(orgNumber, searchOperation), HttpStatus.OK)
+    }
 
     @GetMapping(
         value = ["/suggestions"],
@@ -377,15 +351,13 @@ class ConceptsController(
         @RequestParam(
             value = "q",
         ) query: String,
-    ): ResponseEntity<List<Suggestion>> =
-        when {
-            !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
-            else -> ResponseEntity(conceptService.suggestConcepts(orgNumber, published, query), HttpStatus.OK)
-        }
+    ): ResponseEntity<List<Suggestion>> = when {
+        !endpointPermissions.hasOrgReadPermission(jwt, orgNumber) -> ResponseEntity(HttpStatus.FORBIDDEN)
+        else -> ResponseEntity(conceptService.suggestConcepts(orgNumber, published, query), HttpStatus.OK)
+    }
 }
 
-private fun locationHeaderForCreated(newId: String): HttpHeaders =
-    HttpHeaders().apply {
-        add(HttpHeaders.LOCATION, "/begreper/$newId")
-        add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
-    }
+private fun locationHeaderForCreated(newId: String): HttpHeaders = HttpHeaders().apply {
+    add(HttpHeaders.LOCATION, "/begreper/$newId")
+    add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
+}

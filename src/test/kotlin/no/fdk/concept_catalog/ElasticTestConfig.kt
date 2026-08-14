@@ -11,9 +11,7 @@ import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfigurat
 import org.testcontainers.elasticsearch.ElasticsearchContainer
 
 @TestConfiguration(proxyBeanMethods = false)
-class ElasticTestConfig(
-    private val elasticsearchContainer: ElasticsearchContainer,
-) : ElasticsearchConfiguration() {
+class ElasticTestConfig(private val elasticsearchContainer: ElasticsearchContainer) : ElasticsearchConfiguration() {
     @Bean(name = ["elasticsearchTestClientConfiguration"])
     @Primary
     override fun clientConfiguration(): ClientConfiguration {

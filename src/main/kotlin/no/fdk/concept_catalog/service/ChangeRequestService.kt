@@ -31,11 +31,7 @@ class ChangeRequestService(
     private val conceptService: ConceptService,
     private val mapper: ObjectMapper,
 ) {
-    fun getCatalogRequests(
-        catalogId: String,
-        status: String?,
-        conceptId: String?,
-    ): List<ChangeRequest> {
+    fun getCatalogRequests(catalogId: String, status: String?, conceptId: String?): List<ChangeRequest> {
         val parsedStatus = changeRequestStatusFromString(status)
         return when {
             parsedStatus != null && conceptId != null -> {
@@ -61,29 +57,20 @@ class ChangeRequestService(
     }
 
     @Transactional
-    fun deleteChangeRequestByConcept(concept: BegrepDBO): Unit =
-        changeRequestRepository
-            .findByCatalogIdAndConceptId(concept.ansvarligVirksomhet.id, concept.id)
-            .forEach { toDelete -> changeRequestRepository.delete(toDelete) }
-            .also { logger.debug("deleted change request with concept id ${concept.id}") }
+    fun deleteChangeRequestByConcept(concept: BegrepDBO): Unit = changeRequestRepository
+        .findByCatalogIdAndConceptId(concept.ansvarligVirksomhet.id, concept.id)
+        .forEach { toDelete -> changeRequestRepository.delete(toDelete) }
+        .also { logger.debug("deleted change request with concept id ${concept.id}") }
 
     @Transactional
-    fun deleteChangeRequest(
-        id: String,
-        catalogId: String,
-    ): Unit =
-        changeRequestRepository
-            .findByIdAndCatalogId(id, catalogId)
-            ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
-            ?.also { logger.debug("deleted change request with id $id") }
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+    fun deleteChangeRequest(id: String, catalogId: String): Unit = changeRequestRepository
+        .findByIdAndCatalogId(id, catalogId)
+        ?.let { toDelete -> changeRequestRepository.delete(toDelete) }
+        ?.also { logger.debug("deleted change request with id $id") }
+        ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
 
     @Transactional
-    fun createChangeRequest(
-        catalogId: String,
-        user: User,
-        body: ChangeRequestUpdateBody,
-    ): String {
+    fun createChangeRequest(catalogId: String, user: User, body: ChangeRequestUpdateBody): String {
         validateNewChangeRequest(body, catalogId, user)
 
         val newId = UUID.randomUUID().toString()
@@ -104,12 +91,7 @@ class ChangeRequestService(
     }
 
     @Transactional
-    fun updateChangeRequest(
-        id: String,
-        catalogId: String,
-        user: User,
-        body: ChangeRequestUpdateBody,
-    ): ChangeRequest? {
+    fun updateChangeRequest(id: String, catalogId: String, user: User, body: ChangeRequestUpdateBody): ChangeRequest? {
         validateJsonPatchOperations(
             getConceptWithFallback(body.conceptId, catalogId, user),
             body.operations,
@@ -125,12 +107,7 @@ class ChangeRequestService(
     }
 
     @Transactional
-    fun acceptChangeRequest(
-        id: String,
-        catalogId: String,
-        user: User,
-        jwt: Jwt,
-    ): String {
+    fun acceptChangeRequest(id: String, catalogId: String, user: User, jwt: Jwt): String {
         val changeRequest = changeRequestRepository.findByIdAndCatalogId(id, catalogId)
 
         changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
@@ -181,10 +158,7 @@ class ChangeRequestService(
     }
 
     @Transactional
-    fun rejectChangeRequest(
-        id: String,
-        catalogId: String,
-    ) {
+    fun rejectChangeRequest(id: String, catalogId: String) {
         val changeRequest = changeRequestRepository.findByIdAndCatalogId(id, catalogId)
 
         changeRequest?.also { if (it.status != ChangeRequestStatus.OPEN) throw ResponseStatusException(HttpStatus.BAD_REQUEST) }
@@ -201,16 +175,9 @@ class ChangeRequestService(
             .also { logger.debug("rejected change request ${it.id}") }
     }
 
-    fun getByIdAndCatalogId(
-        id: String,
-        catalogId: String,
-    ): ChangeRequest? = changeRequestRepository.findByIdAndCatalogId(id, catalogId)
+    fun getByIdAndCatalogId(id: String, catalogId: String): ChangeRequest? = changeRequestRepository.findByIdAndCatalogId(id, catalogId)
 
-    private fun validateNewChangeRequest(
-        changeRequest: ChangeRequestUpdateBody,
-        catalogId: String,
-        user: User,
-    ) {
+    private fun validateNewChangeRequest(changeRequest: ChangeRequestUpdateBody, catalogId: String, user: User) {
         if (!catalogId.isOrganizationNumber()) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided catalogId is not valid organization number")
         }
@@ -239,10 +206,7 @@ class ChangeRequestService(
         )
     }
 
-    private fun validateJsonPatchOperations(
-        concept: BegrepDBO,
-        operations: List<JsonPatchOperation>,
-    ) {
+    private fun validateJsonPatchOperations(concept: BegrepDBO, operations: List<JsonPatchOperation>) {
         try {
             concept.addUpdatableFieldsFromDTO(
                 patchOriginal(
@@ -257,20 +221,14 @@ class ChangeRequestService(
         }
     }
 
-    private fun changeRequestStatusFromString(str: String?): ChangeRequestStatus? =
-        when (str?.uppercase()) {
-            ChangeRequestStatus.OPEN.name -> ChangeRequestStatus.OPEN
-            ChangeRequestStatus.REJECTED.name -> ChangeRequestStatus.REJECTED
-            ChangeRequestStatus.ACCEPTED.name -> ChangeRequestStatus.ACCEPTED
-            else -> null
-        }
+    private fun changeRequestStatusFromString(str: String?): ChangeRequestStatus? = when (str?.uppercase()) {
+        ChangeRequestStatus.OPEN.name -> ChangeRequestStatus.OPEN
+        ChangeRequestStatus.REJECTED.name -> ChangeRequestStatus.REJECTED
+        ChangeRequestStatus.ACCEPTED.name -> ChangeRequestStatus.ACCEPTED
+        else -> null
+    }
 
-    private fun getConceptWithFallback(
-        conceptId: String?,
-        catalogId: String,
-        user: User,
-    ): BegrepDBO =
-        conceptId
-            ?.let { conceptService.getLatestVersion(it) }
-            ?: createNewConcept(Virksomhet(id = catalogId), user)
+    private fun getConceptWithFallback(conceptId: String?, catalogId: String, user: User): BegrepDBO = conceptId
+        ?.let { conceptService.getLatestVersion(it) }
+        ?: createNewConcept(Virksomhet(id = catalogId), user)
 }

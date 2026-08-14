@@ -391,9 +391,9 @@ class ImportControllerTests : ContractTestsBase() {
                 statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
                 anbefaltTerm = Term(navn = emptyMap()),
                 ansvarligVirksomhet =
-                    Virksomhet(
-                        id = catalogId,
-                    ),
+                Virksomhet(
+                    id = catalogId,
+                ),
             )
 
         val response =
@@ -449,10 +449,7 @@ class ImportControllerTests : ContractTestsBase() {
         assertEquals(ImportResultStatus.IN_PROGRESS, importResultOngoing?.status)
     }
 
-    fun createImportResult(
-        id: String? = null,
-        access: Access? = null,
-    ) = authorizedRequest(
+    fun createImportResult(id: String? = null, access: Access? = null) = authorizedRequest(
         path = "/import/${id ?: catalogId}/create-import-id",
         token = JwtToken(access ?: Access.ORG_WRITE).toString(),
         httpMethod = HttpMethod.GET,
@@ -525,9 +522,9 @@ class ImportControllerTests : ContractTestsBase() {
                 statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
                 anbefaltTerm = Term(navn = emptyMap()),
                 ansvarligVirksomhet =
-                    Virksomhet(
-                        id = catalogId,
-                    ),
+                Virksomhet(
+                    id = catalogId,
+                ),
             )
 
         val response =
@@ -552,9 +549,9 @@ class ImportControllerTests : ContractTestsBase() {
                 statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
                 anbefaltTerm = Term(navn = emptyMap()),
                 ansvarligVirksomhet =
-                    Virksomhet(
-                        id = "987654321", // different organization ID from catalogId
-                    ),
+                Virksomhet(
+                    id = "987654321", // different organization ID from catalogId
+                ),
             )
 
         val response =

@@ -6,36 +6,33 @@ import java.net.URI
 import java.time.LocalDate
 import java.util.Base64
 
-fun String?.isValidURI(): Boolean =
-    if (this.isNullOrBlank()) {
+fun String?.isValidURI(): Boolean = if (this.isNullOrBlank()) {
+    false
+} else {
+    try {
+        URI(this)
+        true
+    } catch (e: Exception) {
         false
-    } else {
-        try {
-            URI(this)
-            true
-        } catch (e: Exception) {
-            false
-        }
     }
+}
 
 fun encodeBase64(input: String): String = Base64.getEncoder().encodeToString(input.toByteArray())
 
-fun isBase64Encoded(value: String): Boolean =
-    try {
-        Base64.getDecoder().decode(value)
-        true
-    } catch (e: IllegalArgumentException) {
-        false
-    }
+fun isBase64Encoded(value: String): Boolean = try {
+    Base64.getDecoder().decode(value)
+    true
+} catch (e: IllegalArgumentException) {
+    false
+}
 
-fun statusFromString(str: String?): Status? =
-    when (str?.lowercase()) {
-        Status.UTKAST.value -> Status.UTKAST
-        Status.GODKJENT.value -> Status.GODKJENT
-        Status.HOERING.value -> Status.HOERING
-        Status.PUBLISERT.value -> Status.PUBLISERT
-        else -> null
-    }
+fun statusFromString(str: String?): Status? = when (str?.lowercase()) {
+    Status.UTKAST.value -> Status.UTKAST
+    Status.GODKJENT.value -> Status.GODKJENT
+    Status.HOERING.value -> Status.HOERING
+    Status.PUBLISERT.value -> Status.PUBLISERT
+    else -> null
+}
 
 fun localDateToXSDDateTime(localDate: LocalDate): XSDDateTime {
     val o = IntArray(9)
@@ -72,12 +69,6 @@ fun escapeURI(uri: String?): String? {
     return sb.toString()
 }
 
-fun getCollectionUri(
-    collectionBaseUri: String,
-    publisherId: String,
-): String = "$collectionBaseUri/collections/$publisherId"
+fun getCollectionUri(collectionBaseUri: String, publisherId: String): String = "$collectionBaseUri/collections/$publisherId"
 
-fun getConceptUri(
-    collectionUri: String,
-    conceptId: String,
-): String = "$collectionUri/concepts/$conceptId"
+fun getConceptUri(collectionUri: String, conceptId: String): String = "$collectionUri/concepts/$conceptId"

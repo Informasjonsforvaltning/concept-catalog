@@ -16,16 +16,12 @@ import java.net.URI
 private val logger = LoggerFactory.getLogger(ConceptPublisher::class.java)
 
 @Service
-class ConceptPublisher(
-    private val applicationProperties: ApplicationProperties,
-    private val restTemplate: RestTemplate = RestTemplate(),
-) {
-    private fun dataSourceUrl(publisherId: String): String =
-        UriComponentsBuilder
-            .fromUriString(applicationProperties.collectionBaseUri)
-            .replacePath("/collections/$publisherId")
-            .build()
-            .toUriString()
+class ConceptPublisher(private val applicationProperties: ApplicationProperties, private val restTemplate: RestTemplate = RestTemplate()) {
+    private fun dataSourceUrl(publisherId: String): String = UriComponentsBuilder
+        .fromUriString(applicationProperties.collectionBaseUri)
+        .replacePath("/collections/$publisherId")
+        .build()
+        .toUriString()
 
     fun triggerHarvest(publisherId: String) {
         val url =
@@ -85,9 +81,8 @@ class ConceptPublisher(
         }
     }
 
-    private fun resolveBearerToken(): String? =
-        (SecurityContextHolder.getContext().authentication?.principal as? Jwt)
-            ?.tokenValue
+    private fun resolveBearerToken(): String? = (SecurityContextHolder.getContext().authentication?.principal as? Jwt)
+        ?.tokenValue
 }
 
 private data class HarvestAdminDataSource(
@@ -99,7 +94,4 @@ private data class HarvestAdminDataSource(
     val description: String? = null,
 )
 
-data class StartHarvestByUrlRequest(
-    val url: String,
-    val dataType: String,
-)
+data class StartHarvestByUrlRequest(val url: String, val dataType: String)

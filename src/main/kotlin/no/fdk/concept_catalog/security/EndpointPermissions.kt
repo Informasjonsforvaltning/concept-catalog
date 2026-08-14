@@ -17,10 +17,7 @@ private fun roleOrgRead(orgnr: String) = "organization:$orgnr:read"
 class EndpointPermissions {
     private val logger = LoggerFactory.getLogger(EndpointPermissions::class.java)
 
-    fun getOrgsByPermission(
-        jwt: Jwt,
-        permission: String,
-    ): Set<String> {
+    fun getOrgsByPermission(jwt: Jwt, permission: String): Set<String> {
         val authorities: String? = jwt.claims["authorities"] as? String
         val regex =
             when (permission) {
@@ -37,10 +34,7 @@ class EndpointPermissions {
             ?: emptySet()
     }
 
-    fun hasOrgReadPermission(
-        jwt: Jwt,
-        orgnr: String?,
-    ): Boolean {
+    fun hasOrgReadPermission(jwt: Jwt, orgnr: String?): Boolean {
         val authorities: String? = jwt.claims["authorities"] as? String
         return when {
             orgnr == null -> false
@@ -53,10 +47,7 @@ class EndpointPermissions {
         }
     }
 
-    fun hasOrgWritePermission(
-        jwt: Jwt,
-        orgnr: String?,
-    ): Boolean {
+    fun hasOrgWritePermission(jwt: Jwt, orgnr: String?): Boolean {
         val authorities: String? = jwt.claims["authorities"] as? String
         return when {
             orgnr == null -> false
@@ -67,10 +58,7 @@ class EndpointPermissions {
         }
     }
 
-    fun hasOrgAdminPermission(
-        jwt: Jwt,
-        orgnr: String?,
-    ): Boolean {
+    fun hasOrgAdminPermission(jwt: Jwt, orgnr: String?): Boolean {
         val authorities: String? = jwt.claims["authorities"] as? String
         return when {
             orgnr == null -> false
@@ -86,15 +74,14 @@ class EndpointPermissions {
         return authorities?.contains(ROLE_ROOT_ADMIN) ?: false
     }
 
-    fun getUser(jwt: Jwt): User? =
-        jwt
-            .let { it.claims["user_name"] as? String }
-            .also { if (it == null) logger.error("user_name claim missing in token") }
-            ?.let { id ->
-                User(
-                    id = id,
-                    email = jwt.claims["email"] as? String,
-                    name = jwt.claims["name"] as? String,
-                )
-            }
+    fun getUser(jwt: Jwt): User? = jwt
+        .let { it.claims["user_name"] as? String }
+        .also { if (it == null) logger.error("user_name claim missing in token") }
+        ?.let { id ->
+            User(
+                id = id,
+                email = jwt.claims["email"] as? String,
+                name = jwt.claims["name"] as? String,
+            )
+        }
 }

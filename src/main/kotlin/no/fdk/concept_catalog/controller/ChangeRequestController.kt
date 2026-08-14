@@ -33,12 +33,11 @@ class ChangeRequestController(
         @PathVariable catalogId: String,
         @RequestParam(value = "status") status: String?,
         @RequestParam(value = "concept") concept: String?,
-    ): ResponseEntity<List<ChangeRequest>> =
-        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            ResponseEntity(changeRequestService.getCatalogRequests(catalogId, status, concept), HttpStatus.OK)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
-        }
+    ): ResponseEntity<List<ChangeRequest>> = if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
+        ResponseEntity(changeRequestService.getCatalogRequests(catalogId, status, concept), HttpStatus.OK)
+    } else {
+        ResponseEntity(HttpStatus.FORBIDDEN)
+    }
 
     @PostMapping
     fun createChangeRequest(
@@ -91,41 +90,38 @@ class ChangeRequestController(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String,
-    ): ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
-            changeRequestService.rejectChangeRequest(changeRequestId, catalogId)
-            ResponseEntity(HttpStatus.OK)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
-        }
+    ): ResponseEntity<Unit> = if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
+        changeRequestService.rejectChangeRequest(changeRequestId, catalogId)
+        ResponseEntity(HttpStatus.OK)
+    } else {
+        ResponseEntity(HttpStatus.FORBIDDEN)
+    }
 
     @GetMapping(value = ["/{changeRequestId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String,
-    ): ResponseEntity<ChangeRequest> =
-        if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
-            changeRequestService
-                .getByIdAndCatalogId(changeRequestId, catalogId)
-                ?.let { ResponseEntity(it, HttpStatus.OK) }
-                ?: ResponseEntity(HttpStatus.NOT_FOUND)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
-        }
+    ): ResponseEntity<ChangeRequest> = if (endpointPermissions.hasOrgReadPermission(jwt, catalogId)) {
+        changeRequestService
+            .getByIdAndCatalogId(changeRequestId, catalogId)
+            ?.let { ResponseEntity(it, HttpStatus.OK) }
+            ?: ResponseEntity(HttpStatus.NOT_FOUND)
+    } else {
+        ResponseEntity(HttpStatus.FORBIDDEN)
+    }
 
     @DeleteMapping(value = ["/{changeRequestId}"])
     fun deleteChangeRequest(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable catalogId: String,
         @PathVariable changeRequestId: String,
-    ): ResponseEntity<Unit> =
-        if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
-            changeRequestService.deleteChangeRequest(changeRequestId, catalogId)
-            ResponseEntity(HttpStatus.NO_CONTENT)
-        } else {
-            ResponseEntity(HttpStatus.FORBIDDEN)
-        }
+    ): ResponseEntity<Unit> = if (endpointPermissions.hasOrgWritePermission(jwt, catalogId)) {
+        changeRequestService.deleteChangeRequest(changeRequestId, catalogId)
+        ResponseEntity(HttpStatus.NO_CONTENT)
+    } else {
+        ResponseEntity(HttpStatus.FORBIDDEN)
+    }
 
     @PostMapping(value = ["/{changeRequestId}"])
     fun updateChangeRequest(
@@ -154,17 +150,12 @@ class ChangeRequestController(
     }
 }
 
-private fun locationHeaderForCreated(
-    newId: String,
-    catalogId: String,
-): HttpHeaders =
-    HttpHeaders().apply {
-        add(HttpHeaders.LOCATION, "/$catalogId/endringsforslag/$newId")
-        add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
-    }
+private fun locationHeaderForCreated(newId: String, catalogId: String): HttpHeaders = HttpHeaders().apply {
+    add(HttpHeaders.LOCATION, "/$catalogId/endringsforslag/$newId")
+    add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
+}
 
-private fun locationHeaderForAccepted(conceptId: String): HttpHeaders =
-    HttpHeaders().apply {
-        add(HttpHeaders.LOCATION, "/begreper/$conceptId")
-        add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
-    }
+private fun locationHeaderForAccepted(conceptId: String): HttpHeaders = HttpHeaders().apply {
+    add(HttpHeaders.LOCATION, "/begreper/$conceptId")
+    add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.LOCATION)
+}

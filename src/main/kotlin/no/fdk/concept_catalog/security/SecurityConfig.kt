@@ -80,17 +80,16 @@ private class RDFMatcher : RequestMatcher {
     override fun matches(request: HttpServletRequest): Boolean = request.method == "GET" && acceptHeaderIsRDF(request.getHeader("Accept"))
 }
 
-private fun acceptHeaderIsRDF(accept: String?): Boolean =
-    when {
-        accept == null -> false
-        accept.contains(Lang.TURTLE.headerString) -> true
-        accept.contains("text/n3") -> true
-        accept.contains(Lang.RDFJSON.headerString) -> true
-        accept.contains(Lang.JSONLD.headerString) -> true
-        accept.contains(Lang.RDFXML.headerString) -> true
-        accept.contains(Lang.NTRIPLES.headerString) -> true
-        accept.contains(Lang.NQUADS.headerString) -> true
-        accept.contains(Lang.TRIG.headerString) -> true
-        accept.contains(Lang.TRIX.headerString) -> true
-        else -> false
-    }
+private fun acceptHeaderIsRDF(accept: String?): Boolean = when {
+    accept == null -> false
+    accept.contains(Lang.TURTLE.headerString) -> true
+    accept.contains("text/n3") -> true
+    accept.contains(Lang.RDFJSON.headerString) -> true
+    accept.contains(Lang.JSONLD.headerString) -> true
+    accept.contains(Lang.RDFXML.headerString) -> true
+    accept.contains(Lang.NTRIPLES.headerString) -> true
+    accept.contains(Lang.NQUADS.headerString) -> true
+    accept.contains(Lang.TRIG.headerString) -> true
+    accept.contains(Lang.TRIX.headerString) -> true
+    else -> false
+}

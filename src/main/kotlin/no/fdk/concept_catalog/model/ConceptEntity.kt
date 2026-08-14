@@ -28,15 +28,14 @@ data class ConceptEntity(
     val data: BegrepDBO,
 )
 
-fun BegrepDBO.toEntity(): ConceptEntity =
-    ConceptEntity(
-        id = id,
-        originaltBegrep = originaltBegrep,
-        ansvarligVirksomhetId = ansvarligVirksomhet.id,
-        status = status?.value,
-        erPublisert = erPublisert,
-        isArchived = isArchived,
-        data = this,
-    )
+fun BegrepDBO.toEntity(): ConceptEntity = ConceptEntity(
+    id = id,
+    originaltBegrep = originaltBegrep,
+    ansvarligVirksomhetId = ansvarligVirksomhet.id,
+    status = status?.value,
+    erPublisert = erPublisert,
+    isArchived = isArchived,
+    data = this,
+)
 
 fun ConceptEntity.toDBO(): BegrepDBO = data

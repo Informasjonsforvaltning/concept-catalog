@@ -46,11 +46,7 @@ class SearchFilters(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class SearchFilter<T>(
-    val value: T,
-)
+class SearchFilter<T>(val value: T)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class BooleanFilter(
-    val value: Boolean,
-)
+class BooleanFilter(val value: Boolean)

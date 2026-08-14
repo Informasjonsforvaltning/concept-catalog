@@ -35,36 +35,35 @@ fun BegrepDBO.validateSchema(): ValidationData<Void> {
     return validation
 }
 
-fun Begrep.isValid(): Boolean =
-    when {
-        versjonsnr == null -> false
+fun Begrep.isValid(): Boolean = when {
+    versjonsnr == null -> false
 
-        versjonsnr.major == 0 -> false
+    versjonsnr.major == 0 -> false
 
-        anbefaltTerm == null -> false
+    anbefaltTerm == null -> false
 
-        anbefaltTerm.navn.isNullOrEmpty() -> false
+    anbefaltTerm.navn.isNullOrEmpty() -> false
 
-        !isValidTranslationsMap(anbefaltTerm.navn) -> false
+    !isValidTranslationsMap(anbefaltTerm.navn) -> false
 
-        definisjon == null &&
-            definisjonForAllmennheten == null &&
-            definisjonForSpesialister == null -> false
+    definisjon == null &&
+        definisjonForAllmennheten == null &&
+        definisjonForSpesialister == null -> false
 
-        definisjon?.tekst.isNullOrEmpty() &&
-            definisjonForAllmennheten?.tekst.isNullOrEmpty() &&
-            definisjonForSpesialister?.tekst.isNullOrEmpty() -> false
+    definisjon?.tekst.isNullOrEmpty() &&
+        definisjonForAllmennheten?.tekst.isNullOrEmpty() &&
+        definisjonForSpesialister?.tekst.isNullOrEmpty() -> false
 
+    !isValidTranslationsMapOrNull(definisjon?.tekst) &&
         !isValidTranslationsMapOrNull(definisjon?.tekst) &&
-            !isValidTranslationsMapOrNull(definisjon?.tekst) &&
-            !isValidTranslationsMapOrNull(definisjon?.tekst) -> false
+        !isValidTranslationsMapOrNull(definisjon?.tekst) -> false
 
-        !ansvarligVirksomhet.isValid() -> false
+    !ansvarligVirksomhet.isValid() -> false
 
-        !isValidValidityPeriod(gyldigFom, gyldigTom) -> false
+    !isValidValidityPeriod(gyldigFom, gyldigTom) -> false
 
-        else -> true
-    }
+    else -> true
+}
 
 private fun flattenSchema(schema: Schema): Schema {
     val copy = schema.copy().getFlatSchema(openApi?.context)
@@ -79,33 +78,26 @@ private fun flattenSchema(schema: Schema): Schema {
     return copy
 }
 
-private fun Virksomhet.isValid(): Boolean =
-    when {
-        id.isBlank() -> false
-        !id.isOrganizationNumber() -> false
-        else -> true
-    }
+private fun Virksomhet.isValid(): Boolean = when {
+    id.isBlank() -> false
+    !id.isOrganizationNumber() -> false
+    else -> true
+}
 
-private fun isValidTranslationsMapOrNull(translations: Map<String, Any>?): Boolean =
-    when {
-        translations == null -> true
-        else -> isValidTranslationsMap(translations)
-    }
+private fun isValidTranslationsMapOrNull(translations: Map<String, Any>?): Boolean = when {
+    translations == null -> true
+    else -> isValidTranslationsMap(translations)
+}
 
-private fun isValidTranslationsMap(translations: Map<String, Any>): Boolean =
-    when {
-        !translations.values.stream().anyMatch { it is String && it.isNotBlank() } -> false
-        else -> true
-    }
+private fun isValidTranslationsMap(translations: Map<String, Any>): Boolean = when {
+    !translations.values.stream().anyMatch { it is String && it.isNotBlank() } -> false
+    else -> true
+}
 
-private fun isValidValidityPeriod(
-    validFrom: LocalDate?,
-    validTo: LocalDate?,
-): Boolean =
-    when {
-        validFrom != null && validTo != null && validFrom.isAfter(validTo) -> false
-        else -> true
-    }
+private fun isValidValidityPeriod(validFrom: LocalDate?, validTo: LocalDate?): Boolean = when {
+    validFrom != null && validTo != null && validFrom.isAfter(validTo) -> false
+    else -> true
+}
 
 fun String.isOrganizationNumber(): Boolean {
     val regex = Regex("""^[0-9]{9}$""")

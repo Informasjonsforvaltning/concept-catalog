@@ -58,10 +58,10 @@ class ImportServiceContractTest : ContractTestsBase() {
             statusURI = "http://publications.europa.eu/resource/authority/concept-status/DRAFT",
             anbefaltTerm = Term(navn = mapOf("nb" to "Testnavn")),
             ansvarligVirksomhet =
-                Virksomhet(
-                    uri = virksomhetsUri,
-                    id = catalogId,
-                ),
+            Virksomhet(
+                uri = virksomhetsUri,
+                id = catalogId,
+            ),
             interneFelt = null,
             internErstattesAv = null,
         )

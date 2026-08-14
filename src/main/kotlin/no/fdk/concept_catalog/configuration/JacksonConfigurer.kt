@@ -16,16 +16,14 @@ import org.springframework.context.annotation.Primary
 class JacksonConfigurer {
     @Bean
     @Primary
-    fun objectMapper(): ObjectMapper =
-        jacksonObjectMapper {
-            configure(KotlinFeature.NullIsSameAsDefault, true)
-        }.registerModule(JavaTimeModule())
-            .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+    fun objectMapper(): ObjectMapper = jacksonObjectMapper {
+        configure(KotlinFeature.NullIsSameAsDefault, true)
+    }.registerModule(JavaTimeModule())
+        .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
 
     @Bean
-    fun hibernateJsonFormatMapper(objectMapper: ObjectMapper): HibernatePropertiesCustomizer =
-        HibernatePropertiesCustomizer { props ->
-            props["hibernate.type.json_format_mapper"] = JacksonJsonFormatMapper(objectMapper)
-        }
+    fun hibernateJsonFormatMapper(objectMapper: ObjectMapper): HibernatePropertiesCustomizer = HibernatePropertiesCustomizer { props ->
+        props["hibernate.type.json_format_mapper"] = JacksonJsonFormatMapper(objectMapper)
+    }
 }

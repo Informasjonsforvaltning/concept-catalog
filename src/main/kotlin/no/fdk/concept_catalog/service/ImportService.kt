@@ -70,20 +70,15 @@ class ImportService(
         cancelConceptExtractionStatus(importId)
     }
 
-    private fun cancelConceptExtractionStatus(importId: String): Unit =
-        getImportResult(importId).let {
-            val updatedExtractions =
-                it.conceptExtractions.map { conceptExtraction ->
-                    conceptExtraction.copy(conceptExtractionStatus = ConceptExtractionStatus.CANCELLED)
-                }
-            importResultRepository.save(it.copy(conceptExtractions = updatedExtractions))
-        }
+    private fun cancelConceptExtractionStatus(importId: String): Unit = getImportResult(importId).let {
+        val updatedExtractions =
+            it.conceptExtractions.map { conceptExtraction ->
+                conceptExtraction.copy(conceptExtractionStatus = ConceptExtractionStatus.CANCELLED)
+            }
+        importResultRepository.save(it.copy(conceptExtractions = updatedExtractions))
+    }
 
-    fun updateImportStatus(
-        importId: String,
-        status: ImportResultStatus,
-        failureMessage: String? = null,
-    ) = getImportResult(importId).let {
+    fun updateImportStatus(importId: String, status: ImportResultStatus, failureMessage: String? = null) = getImportResult(importId).let {
         when {
             it.status != status -> {
                 importResultRepository.save(
@@ -100,50 +95,32 @@ class ImportService(
         }
     }
 
-    private fun getImportResult(importId: String): ImportResult =
-        importResultRepository
-            .findById(importId)
-            .orElseThrow {
-                ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
-            }
+    private fun getImportResult(importId: String): ImportResult = importResultRepository
+        .findById(importId)
+        .orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $importId not found")
+        }
 
-    fun updateImportProgress(
-        importId: String,
-        extractedConcepts: Int,
-        totalConcepts: Int,
-    ) = importResultRepository.save(
+    fun updateImportProgress(importId: String, extractedConcepts: Int, totalConcepts: Int) = importResultRepository.save(
         getImportResult(importId).copy(
             extractedConcepts = extractedConcepts,
             totalConcepts = totalConcepts,
         ),
     )
 
-    fun updateImportProgress(
-        importId: String,
-        extractedConcepts: Int,
-    ) = importResultRepository.save(
+    fun updateImportProgress(importId: String, extractedConcepts: Int) = importResultRepository.save(
         getImportResult(importId).copy(
             extractedConcepts = extractedConcepts,
         ),
     )
 
-    fun updateImportSavingProgress(
-        importId: String,
-        savedConcepts: Int,
-    ) = importResultRepository.save(
+    fun updateImportSavingProgress(importId: String, savedConcepts: Int) = importResultRepository.save(
         getImportResult(importId).copy(
             savedConcepts = savedConcepts,
         ),
     )
 
-    fun importRdf(
-        catalogId: String,
-        importId: String,
-        concepts: String,
-        lang: Lang,
-        user: User,
-        jwt: Jwt,
-    ) {
+    fun importRdf(catalogId: String, importId: String, concepts: String, lang: Lang, user: User, jwt: Jwt) {
         val model: Model
 
         try {
@@ -278,10 +255,7 @@ class ImportService(
 
     fun getResult(statusId: String): ImportResult? = importResultRepository.findById(statusId).orElse(null)
 
-    fun deleteImportResult(
-        catalogId: String,
-        resultId: String,
-    ) {
+    fun deleteImportResult(catalogId: String, resultId: String) {
         val result =
             importResultRepository.findById(resultId).orElse(null)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Import result with id: $resultId not found")
@@ -319,80 +293,62 @@ class ImportService(
         status: ImportResultStatus,
         importId: String? = null,
         failureMessage: String? = null,
-    ): ImportResult =
-        importId
-            ?.let { getImportResult(it) }
-            ?.let {
-                importResultRepository.save(
-                    it.copy(
-                        id = it.id,
-                        created = LocalDateTime.now(),
-                        catalogId = catalogId,
-                        status = status,
-                        conceptExtractions = conceptExtractions,
-                    ),
-                )
-            } ?: importResultRepository.save(
-            ImportResult(
-                id = UUID.randomUUID().toString(),
-                created = LocalDateTime.now(),
-                catalogId = catalogId,
-                status = status,
-                conceptExtractions = conceptExtractions,
-            ),
-        )
+    ): ImportResult = importId
+        ?.let { getImportResult(it) }
+        ?.let {
+            importResultRepository.save(
+                it.copy(
+                    id = it.id,
+                    created = LocalDateTime.now(),
+                    catalogId = catalogId,
+                    status = status,
+                    conceptExtractions = conceptExtractions,
+                ),
+            )
+        } ?: importResultRepository.save(
+        ImportResult(
+            id = UUID.randomUUID().toString(),
+            created = LocalDateTime.now(),
+            catalogId = catalogId,
+            status = status,
+            conceptExtractions = conceptExtractions,
+        ),
+    )
 
-    private fun findLatestConceptByUri(
-        uri: String,
-        catalogId: String,
-    ): BegrepDBO? =
-        findExistingConceptId(uri, catalogId)
-            ?.let { conceptRepository.findById(it).orElse(null)?.toDBO() }
-            ?.let { concept ->
-                conceptRepository
-                    .findByOriginaltBegrep(concept.originaltBegrep)
-                    .map { it.toDBO() }
-                    .maxByOrNull { it.versjonsnr }
-            }
+    private fun findLatestConceptByUri(uri: String, catalogId: String): BegrepDBO? = findExistingConceptId(uri, catalogId)
+        ?.let { conceptRepository.findById(it).orElse(null)?.toDBO() }
+        ?.let { concept ->
+            conceptRepository
+                .findByOriginaltBegrep(concept.originaltBegrep)
+                .map { it.toDBO() }
+                .maxByOrNull { it.versjonsnr }
+        }
 
-    private fun findExistingConceptId(
-        externalId: String,
-        catalogId: String,
-    ): String? =
-        importResultRepository
-            .findFirstByCatalogIdAndStatusAndExternalId(
-                catalogId,
-                ImportResultStatus.COMPLETED.name,
-                externalId,
-            )?.conceptExtractions
-            ?.allExtractionRecords
-            ?.firstOrNull { it.externalId == externalId }
-            ?.internalId
+    private fun findExistingConceptId(externalId: String, catalogId: String): String? = importResultRepository
+        .findFirstByCatalogIdAndStatusAndExternalId(
+            catalogId,
+            ImportResultStatus.COMPLETED.name,
+            externalId,
+        )?.conceptExtractions
+        ?.allExtractionRecords
+        ?.firstOrNull { it.externalId == externalId }
+        ?.internalId
 
-    fun updateImportedConceptStatus(
-        importId: String,
-        externalId: String,
-        conceptExtractionStatus: ConceptExtractionStatus,
-    ) = getImportResult(importId).let { importResult ->
-        val updatedExtractions =
-            importResult.conceptExtractions.map {
-                if (it.extractionRecord.externalId == externalId) {
-                    it.copy(conceptExtractionStatus = conceptExtractionStatus)
-                } else {
-                    it
+    fun updateImportedConceptStatus(importId: String, externalId: String, conceptExtractionStatus: ConceptExtractionStatus) =
+        getImportResult(importId).let { importResult ->
+            val updatedExtractions =
+                importResult.conceptExtractions.map {
+                    if (it.extractionRecord.externalId == externalId) {
+                        it.copy(conceptExtractionStatus = conceptExtractionStatus)
+                    } else {
+                        it
+                    }
                 }
-            }
 
-        importResultRepository.save(importResult.copy(conceptExtractions = updatedExtractions))
-    }
+            importResultRepository.save(importResult.copy(conceptExtractions = updatedExtractions))
+        }
 
-    fun addConceptToCatalog(
-        catalogId: String,
-        importId: String,
-        externalId: String,
-        user: User,
-        jwt: Jwt,
-    ) {
+    fun addConceptToCatalog(catalogId: String, importId: String, externalId: String, user: User, jwt: Jwt) {
         logger.info("Adding concept with external ID: $externalId from import with ID: $importId to catalog: $catalogId")
 
         val importResult = getImportResult(importId)
@@ -438,12 +394,7 @@ class ImportService(
 
     fun saveConceptDB(concept: BegrepDBO): BegrepDBO = conceptRepository.save(concept.toEntity()).toDBO()
 
-    fun updateHistory(
-        concept: BegrepDBO,
-        operations: List<JsonPatchOperation>,
-        user: User,
-        jwt: Jwt,
-    ) {
+    fun updateHistory(concept: BegrepDBO, operations: List<JsonPatchOperation>, user: User, jwt: Jwt) {
         try {
             historyService.updateHistory(concept, operations, user, jwt)
             logger.info("Updated history for concept: ${concept.id}")
@@ -575,10 +526,7 @@ class ImportService(
         }
     }
 
-    fun extractIssues(
-        begrepDBO: BegrepDBO,
-        patchOerations: List<JsonPatchOperation>,
-    ): List<Issue> {
+    fun extractIssues(begrepDBO: BegrepDBO, patchOerations: List<JsonPatchOperation>): List<Issue> {
         val issues = mutableListOf<Issue>()
         if (patchOerations.isEmpty()) {
             issues.add(
@@ -616,11 +564,10 @@ class ImportService(
         return issues
     }
 
-    fun BegrepDBO.validateMinimumVersion(): Boolean =
-        when {
-            versjonsnr < SemVer(0, 1, 0) -> false
-            else -> true
-        }
+    fun BegrepDBO.validateMinimumVersion(): Boolean = when {
+        versjonsnr < SemVer(0, 1, 0) -> false
+        else -> true
+    }
 }
 
 private val logger: Logger = LoggerFactory.getLogger(ImportService::class.java)

@@ -4,9 +4,7 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import java.util.Date
 
-class JwtToken(
-    private val access: Access,
-) {
+class JwtToken(private val access: Access) {
     private val exp = Date().time + 120 * 1000
     private val aud =
         listOf(
@@ -39,9 +37,7 @@ class JwtToken(
     override fun toString(): String = buildToken()
 }
 
-enum class Access(
-    val authorities: String,
-) {
+enum class Access(val authorities: String) {
     ORG_READ("organization:123456789:read,organization:246813579:read,organization:111111111:read,organization:111222333:read"),
     ORG_WRITE(
         "organization:123456789:admin,organization:246813579:write,organization:222222222:admin,organization:111111111:write,organization:111222333:admin",

@@ -20,33 +20,23 @@ import org.springframework.web.bind.annotation.RestController
         "application/n-triples", "application/n-quads", "application/trig", "application/trix",
     ],
 )
-class SkosApNoController(
-    private val skosApNoModelService: SkosApNoModelService,
-) {
+class SkosApNoController(private val skosApNoModelService: SkosApNoModelService) {
     @GetMapping("/{id}")
-    fun getCollectionById(
-        @RequestHeader(HttpHeaders.ACCEPT) accept: String?,
-        @PathVariable("id") id: String,
-    ): String =
-        skosApNoModelService
-            .buildModelForPublishersCollection(id)
-            .rdfResponse(jenaLangFromHeader(accept))
+    fun getCollectionById(@RequestHeader(HttpHeaders.ACCEPT) accept: String?, @PathVariable("id") id: String): String = skosApNoModelService
+        .buildModelForPublishersCollection(id)
+        .rdfResponse(jenaLangFromHeader(accept))
 
     @GetMapping
-    fun getAllCollections(
-        @RequestHeader(HttpHeaders.ACCEPT) accept: String?,
-    ): String =
-        skosApNoModelService
-            .buildModelForAllCollections()
-            .rdfResponse(jenaLangFromHeader(accept))
+    fun getAllCollections(@RequestHeader(HttpHeaders.ACCEPT) accept: String?): String = skosApNoModelService
+        .buildModelForAllCollections()
+        .rdfResponse(jenaLangFromHeader(accept))
 
     @GetMapping("/{collectionId}/concepts/{id}")
     fun getConceptById(
         @RequestHeader(HttpHeaders.ACCEPT) accept: String?,
         @PathVariable("collectionId") collectionId: String,
         @PathVariable("id") id: String,
-    ): String =
-        skosApNoModelService
-            .buildModelForConcept(collectionId, id)
-            .rdfResponse(jenaLangFromHeader(accept))
+    ): String = skosApNoModelService
+        .buildModelForConcept(collectionId, id)
+        .rdfResponse(jenaLangFromHeader(accept))
 }

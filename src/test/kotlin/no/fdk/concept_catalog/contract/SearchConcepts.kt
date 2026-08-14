@@ -127,9 +127,9 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "Begrep",
                         filters =
-                            SearchFilters(
-                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
-                            ),
+                        SearchFilters(
+                            status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -156,12 +156,12 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "",
                         filters =
-                            SearchFilters(
-                                assignedUser =
-                                    SearchFilter(
-                                        listOf("user-id"),
-                                    ),
+                        SearchFilters(
+                            assignedUser =
+                            SearchFilter(
+                                listOf("user-id"),
                             ),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -189,12 +189,12 @@ class SearchConcepts : ContractTestsBase() {
                         "",
                         sort = sortByModified,
                         filters =
-                            SearchFilters(
-                                originalId =
-                                    SearchFilter(
-                                        listOf("id0-old", "id1"),
-                                    ),
+                        SearchFilters(
+                            originalId =
+                            SearchFilter(
+                                listOf("id0-old", "id1"),
                             ),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -284,15 +284,15 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "",
                         filters =
-                            SearchFilters(
-                                subject =
-                                    SearchFilter(
-                                        listOf(
-                                            "5e6b2561-6157-4eb4-b396-d773cd00de12",
-                                            "fagomr3",
-                                        ),
-                                    ),
+                        SearchFilters(
+                            subject =
+                            SearchFilter(
+                                listOf(
+                                    "5e6b2561-6157-4eb4-b396-d773cd00de12",
+                                    "fagomr3",
+                                ),
                             ),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -322,10 +322,10 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "",
                         filters =
-                            SearchFilters(
-                                internalFields =
-                                    SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("false")))),
-                            ),
+                        SearchFilters(
+                            internalFields =
+                            SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("false")))),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -339,10 +339,10 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "",
                         filters =
-                            SearchFilters(
-                                internalFields =
-                                    SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("true")))),
-                            ),
+                        SearchFilters(
+                            internalFields =
+                            SearchFilter(mapOf(Pair("felt1", listOf("true")), Pair("felt2", listOf("true")))),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -372,10 +372,10 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "",
                         filters =
-                            SearchFilters(
-                                label =
-                                    SearchFilter(listOf("merkelapp1")),
-                            ),
+                        SearchFilters(
+                            label =
+                            SearchFilter(listOf("merkelapp1")),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -388,10 +388,10 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "",
                         filters =
-                            SearchFilters(
-                                label =
-                                    SearchFilter(listOf("merkelapp3")),
-                            ),
+                        SearchFilters(
+                            label =
+                            SearchFilter(listOf("merkelapp3")),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -420,15 +420,15 @@ class SearchConcepts : ContractTestsBase() {
                         "Begrep",
                         sort = sortByModified,
                         filters =
-                            SearchFilters(
-                                status =
-                                    SearchFilter(
-                                        listOf(
-                                            "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
-                                            "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE",
-                                        ),
-                                    ),
+                        SearchFilters(
+                            status =
+                            SearchFilter(
+                                listOf(
+                                    "http://publications.europa.eu/resource/authority/concept-status/CURRENT",
+                                    "http://publications.europa.eu/resource/authority/concept-status/CANDIDATE",
+                                ),
                             ),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -482,9 +482,9 @@ class SearchConcepts : ContractTestsBase() {
                         query = "Begrep",
                         fields = queryFields,
                         filters =
-                            SearchFilters(
-                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")),
-                            ),
+                        SearchFilters(
+                            status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -606,9 +606,9 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         "",
                         filters =
-                            SearchFilters(
-                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")),
-                            ),
+                        SearchFilters(
+                            status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CANDIDATE")),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),
@@ -872,10 +872,10 @@ class SearchConcepts : ContractTestsBase() {
                     SearchOperation(
                         query = "",
                         filters =
-                            SearchFilters(
-                                status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
-                                published = BooleanFilter(false),
-                            ),
+                        SearchFilters(
+                            status = SearchFilter(listOf("http://publications.europa.eu/resource/authority/concept-status/CURRENT")),
+                            published = BooleanFilter(false),
+                        ),
                     ),
                 ),
                 JwtToken(Access.ORG_WRITE).toString(),

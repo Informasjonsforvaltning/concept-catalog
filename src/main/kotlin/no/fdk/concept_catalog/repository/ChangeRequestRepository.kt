@@ -9,29 +9,13 @@ import org.springframework.stereotype.Repository
 interface ChangeRequestRepository : JpaRepository<ChangeRequest, String> {
     fun findByCatalogId(catalogId: String): List<ChangeRequest>
 
-    fun findByCatalogIdAndStatus(
-        catalogId: String,
-        status: ChangeRequestStatus,
-    ): List<ChangeRequest>
+    fun findByCatalogIdAndStatus(catalogId: String, status: ChangeRequestStatus): List<ChangeRequest>
 
-    fun findByCatalogIdAndConceptId(
-        catalogId: String,
-        conceptId: String,
-    ): List<ChangeRequest>
+    fun findByCatalogIdAndConceptId(catalogId: String, conceptId: String): List<ChangeRequest>
 
-    fun findByCatalogIdAndStatusAndConceptId(
-        catalogId: String,
-        status: ChangeRequestStatus,
-        conceptId: String,
-    ): List<ChangeRequest>
+    fun findByCatalogIdAndStatusAndConceptId(catalogId: String, status: ChangeRequestStatus, conceptId: String): List<ChangeRequest>
 
-    fun findByConceptIdAndStatus(
-        conceptId: String,
-        status: ChangeRequestStatus,
-    ): List<ChangeRequest>
+    fun findByConceptIdAndStatus(conceptId: String, status: ChangeRequestStatus): List<ChangeRequest>
 
-    fun findByIdAndCatalogId(
-        id: String,
-        catalogId: String,
-    ): ChangeRequest?
+    fun findByIdAndCatalogId(id: String, catalogId: String): ChangeRequest?
 }

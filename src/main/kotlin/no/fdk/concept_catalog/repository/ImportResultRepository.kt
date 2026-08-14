@@ -18,11 +18,7 @@ interface ImportResultRepository : JpaRepository<ImportResult, String> {
         """,
         nativeQuery = true,
     )
-    fun findFirstByCatalogIdAndStatusAndExternalId(
-        catalogId: String,
-        status: String,
-        externalId: String,
-    ): ImportResult?
+    fun findFirstByCatalogIdAndStatusAndExternalId(catalogId: String, status: String, externalId: String): ImportResult?
 
     fun findAllByCatalogId(catalogId: String): List<ImportResult>
 }

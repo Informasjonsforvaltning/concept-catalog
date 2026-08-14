@@ -37,10 +37,7 @@ private val SEM_VAR_REGEX = Regex("""^(\d+)\.(\d+)\.(\d+)$""")
 private val EMAIL_REGEX = Regex("""^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$""")
 private val TELEPHONE_REGEX = Regex("""^\+?[0-9\s\-()]{7,15}$""")
 
-fun Resource.extract(
-    originalConcept: BegrepDBO,
-    objectMapper: ObjectMapper,
-): ConceptExtraction {
+fun Resource.extract(originalConcept: BegrepDBO, objectMapper: ObjectMapper): ConceptExtraction {
     val versjonsnr = extractVersjonsnr()
     val statusUri = extractStatusUri()
     val anbefaltTerm = extractAnbefaltTerm()
@@ -250,21 +247,19 @@ private fun Resource.extractDefinisjon(): Pair<Definisjon?, List<Issue>> {
     }
 }
 
-private fun Resource.extractDefinisjonForAllmennheten(): Pair<Definisjon?, List<Issue>> =
-    listProperties(EUVOC.xlDefinition)
-        .asSequence()
-        .mapNotNull { it.`object`.asResourceOrNull() }
-        .firstOrNull { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.public) }
-        ?.extractDefinition()
-        ?: Pair(null, emptyList())
+private fun Resource.extractDefinisjonForAllmennheten(): Pair<Definisjon?, List<Issue>> = listProperties(EUVOC.xlDefinition)
+    .asSequence()
+    .mapNotNull { it.`object`.asResourceOrNull() }
+    .firstOrNull { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.public) }
+    ?.extractDefinition()
+    ?: Pair(null, emptyList())
 
-private fun Resource.extractDefinisjonForSpesialister(): Pair<Definisjon?, List<Issue>> =
-    listProperties(EUVOC.xlDefinition)
-        .asSequence()
-        .mapNotNull { it.`object`.asResourceOrNull() }
-        .firstOrNull { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.specialist) }
-        ?.extractDefinition()
-        ?: Pair(null, emptyList())
+private fun Resource.extractDefinisjonForSpesialister(): Pair<Definisjon?, List<Issue>> = listProperties(EUVOC.xlDefinition)
+    .asSequence()
+    .mapNotNull { it.`object`.asResourceOrNull() }
+    .firstOrNull { it.hasProperty(DCTerms.audience, AUDIENCE_TYPE.specialist) }
+    ?.extractDefinition()
+    ?: Pair(null, emptyList())
 
 private fun Resource.extractDefinition(): Pair<Definisjon?, List<Issue>> {
     val issues = mutableListOf<Issue>()
