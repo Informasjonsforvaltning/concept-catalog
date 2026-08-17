@@ -24,7 +24,7 @@ management:
       path-mapping:
         info: ping
       exposure:
-        include: health, info
+        include: health, info, prometheus
   metrics:
     tags:
       application: concept-catalog
