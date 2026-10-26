@@ -4,6 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import no.fdk.conceptcatalog.service.statusFromString
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 
@@ -38,4 +39,15 @@ fun BegrepDBO.toEntity(): ConceptEntity = ConceptEntity(
     data = this,
 )
 
-fun ConceptEntity.toDBO(): BegrepDBO = data
+fun ConceptEntity.toDBO(): BegrepDBO {
+    val ansvarligVirksomhet = data.ansvarligVirksomhet.copy(id = ansvarligVirksomhetId)
+    val statusValue = statusFromString(status)
+    return data.copy(
+        id = id,
+        originaltBegrep = originaltBegrep,
+        ansvarligVirksomhet = ansvarligVirksomhet,
+        status = statusValue,
+        erPublisert = erPublisert,
+        isArchived = isArchived,
+    )
+}
