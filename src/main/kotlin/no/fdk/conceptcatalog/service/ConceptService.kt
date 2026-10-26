@@ -347,19 +347,21 @@ class ConceptService(
     } else {
         conceptRepository
             .findByOriginaltBegrep(originaltBegrep)
-            .map { it.toDBO() }
             .filter { it.erPublisert == true }
+            .map { it.toDBO() }
             .maxByOrNull { concept -> concept.versjonsnr }
             ?.toDTO()
     }
 
     fun getLastPublishedForOrganization(orgNr: String): List<Begrep> = conceptRepository
         .findByAnsvarligVirksomhetId(orgNr)
-        .map { it.toDBO() }
+        .asSequence()
         .filter { it.erPublisert == true }
+        .map { it.toDBO() }
         .sortedByDescending { concept -> concept.versjonsnr }
         .distinctBy { concept -> concept.originaltBegrep }
         .map { it.toDTO() }
+        .toList()
 
     fun getLatestVersion(originalId: String): BegrepDBO? = conceptRepository
         .findByOriginaltBegrep(originalId)
