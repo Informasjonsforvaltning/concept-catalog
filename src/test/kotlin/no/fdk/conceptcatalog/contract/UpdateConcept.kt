@@ -7,11 +7,13 @@ import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import no.fdk.conceptcatalog.ContractTestsBase
 import no.fdk.conceptcatalog.model.Begrep
+import no.fdk.conceptcatalog.model.BegrepsRelasjon
 import no.fdk.conceptcatalog.model.ForholdTilKildeEnum
 import no.fdk.conceptcatalog.model.InterntFelt
 import no.fdk.conceptcatalog.model.JsonPatchOperation
 import no.fdk.conceptcatalog.model.Kildebeskrivelse
 import no.fdk.conceptcatalog.model.OpEnum
+import no.fdk.conceptcatalog.model.toDBO
 import no.fdk.conceptcatalog.model.toEntity
 import no.fdk.conceptcatalog.utils.Access
 import no.fdk.conceptcatalog.utils.BEGREP_0
@@ -399,5 +401,66 @@ class UpdateConcept : ContractTestsBase() {
         assertEquals(mapOf(Pair("felt-id", InterntFelt("ny feltverdi"))), result.interneFelt)
         assertEquals("ASDF", result.abbreviatedLabel)
         assertEquals(listOf("merk merk"), result.merkelapp)
+    }
+
+    @Test
+    fun `Bad request when internal relation lists contain null values`() {
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
+
+        stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
+
+        val relation = BegrepsRelasjon(relasjon = "assosiativ", relatertBegrep = "related-id")
+        val operationsWithNull =
+            listOf(
+                JsonPatchOperation(op = OpEnum.ADD, "/internSeOgså", listOf(null, "see-also-id")),
+                JsonPatchOperation(op = OpEnum.ADD, "/internErstattesAv", listOf(null)),
+                JsonPatchOperation(op = OpEnum.ADD, "/internBegrepsRelasjon", listOf(relation, null)),
+            )
+
+        operationsWithNull.forEach { operation ->
+            val response =
+                authorizedRequest(
+                    "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                    mapper.writeValueAsString(listOf(operation)),
+                    JwtToken(Access.ORG_WRITE).toString(),
+                    HttpMethod.PATCH,
+                )
+
+            assertEquals(HttpStatus.BAD_REQUEST, response.statusCode, "expected bad request for ${operation.path}")
+        }
+
+        val saved = conceptRepository.findById(BEGREP_TO_BE_UPDATED.id!!).get().toDBO()
+        assertEquals(BEGREP_TO_BE_UPDATED.internSeOgså, saved.internSeOgså)
+        assertEquals(BEGREP_TO_BE_UPDATED.internErstattesAv, saved.internErstattesAv)
+        assertEquals(BEGREP_TO_BE_UPDATED.internBegrepsRelasjon, saved.internBegrepsRelasjon)
+    }
+
+    @Test
+    fun `Bad request when labels or language text lists contain null values`() {
+        conceptRepository.save(BEGREP_TO_BE_UPDATED.toDBO().toEntity())
+
+        stubFor(post(urlMatching("/111111111/.*/updates")).willReturn(aResponse().withStatus(200)))
+
+        val operationsWithNull =
+            listOf(
+                JsonPatchOperation(op = OpEnum.ADD, "/merkelapp", listOf(null, "label")),
+                JsonPatchOperation(op = OpEnum.ADD, "/tillattTerm", mapOf("nb" to listOf(null))),
+            )
+
+        operationsWithNull.forEach { operation ->
+            val response =
+                authorizedRequest(
+                    "/begreper/${BEGREP_TO_BE_UPDATED.id}",
+                    mapper.writeValueAsString(listOf(operation)),
+                    JwtToken(Access.ORG_WRITE).toString(),
+                    HttpMethod.PATCH,
+                )
+
+            assertEquals(HttpStatus.BAD_REQUEST, response.statusCode, "expected bad request for ${operation.path}")
+        }
+
+        val saved = conceptRepository.findById(BEGREP_TO_BE_UPDATED.id!!).get().toDBO()
+        assertEquals(BEGREP_TO_BE_UPDATED.merkelapp, saved.merkelapp)
+        assertEquals(BEGREP_TO_BE_UPDATED.tillattTerm, saved.tillattTerm)
     }
 }
