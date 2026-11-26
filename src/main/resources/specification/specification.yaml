@@ -321,12 +321,19 @@ components:
           description: id for the concept this is a revision of (GUID)
         versjonsnr:
           $ref: "#/components/schemas/SemVer"
-        erSistPublisert:
+        sistPublisertId:
+          type: string
+          description: id of the highest published version of the concept, set by the server
+        erPublisert:
           type: boolean
-          description: shows if the concept is the highest published version
-        revisjonAvSistPublisert:
+          description: shows if the concept is published, set by the server
+        isArchived:
           type: boolean
-          description: shows if the concept is a revision of the highest published version
+          description: shows if the concept is archived, set by the server
+        publiseringsTidspunkt:
+          type: string
+          format: date-time
+          description: time of publication, set by the server
         status:
           $ref: "#/components/schemas/Status"
         statusURI:
@@ -335,9 +342,9 @@ components:
         anbefaltTerm:
           $ref : "#/components/schemas/Term"
         tillattTerm:
-          $ref: "#/components/schemas/TekstMedSpraakKode"
+          $ref: "#/components/schemas/TekstListeMedSpraakKode"
         frarådetTerm:
-          $ref: "#/components/schemas/TekstMedSpraakKode"
+          $ref: "#/components/schemas/TekstListeMedSpraakKode"
         definisjon:
           $ref: "#/components/schemas/Definisjon"
         definisjonForAllmennheten:
@@ -346,6 +353,10 @@ components:
           $ref: "#/components/schemas/Definisjon"
         merknad:
           $ref: '#/components/schemas/TekstMedSpraakKode'
+        merkelapp:
+          type: array
+          items:
+            type: string
         ansvarligVirksomhet:
           allOf:
             - $ref: "#/components/schemas/Virksomhet"
@@ -353,7 +364,7 @@ components:
         eksempel:
           $ref: '#/components/schemas/TekstMedSpraakKode'
         fagområde:
-          $ref: '#/components/schemas/TekstMedSpraakKode'
+          $ref: '#/components/schemas/TekstListeMedSpraakKode'
         fagområdeKoder:
           type: array
           items:
@@ -372,6 +383,13 @@ components:
           nullable: true
         endringslogelement:
           $ref: "#/components/schemas/Endringslogelement"
+        opprettet:
+          type: string
+          format: date-time
+          description: time of creation, set by the server
+        opprettetAv:
+          type: string
+          description: name of the user who created the concept, set by the server
         seOgså:
           type: array
           items:
@@ -380,8 +398,11 @@ components:
           type: array
           items:
             type: string
-        tildeltBruker:
-          $ref: "#/components/schemas/Bruker"
+        assignedUser:
+          type: string
+          description: id of the user assigned to the concept
+        abbreviatedLabel:
+          type: string
         begrepsRelasjon:
           type: array
           items:
@@ -390,6 +411,18 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/InterntFelt'
+        internSeOgså:
+          type: array
+          items:
+            type: string
+        internErstattesAv:
+          type: array
+          items:
+            type: string
+        internBegrepsRelasjon:
+          type: array
+          items:
+            $ref: "#/components/schemas/BegrepsRelasjon"
     BegrepsRelasjon:
       type: object
       properties:
@@ -571,18 +604,14 @@ components:
     TekstMedSpraakKode:
       description: A generic object to hold multilanguage texts, that has language code (according to ISO 639-1) as keys
       type: object
-      additionalProperties: {}
-    Bruker:
+      additionalProperties:
+        type: string
+    TekstListeMedSpraakKode:
+      description: A generic object to hold lists of multilanguage texts, that has language code (according to ISO 639-1) as keys
       type: object
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          nullable: false
-        navn:
-          type: string
-        email:
+      additionalProperties:
+        type: array
+        items:
           type: string
     JsonSearchOperation:
       type: object
